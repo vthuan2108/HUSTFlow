@@ -18,19 +18,20 @@ export default function TreasureStore({ state, onBuyItem, onUseConsumable }: Tre
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" id="treasure-store">
       {/* Left 2 Columns: Items for Sale */}
       <div className="lg:col-span-2 space-y-4">
-        <div className="bg-[#0f141c] border border-slate-800/80 rounded-2xl p-5 shadow-xl">
-          <div className="flex items-center gap-2 mb-4">
+        <div className="neo-card p-5">
+          <div className="flex items-center gap-2 mb-4 border-b-2 border-slate-950 pb-3">
             <ShoppingBag className="w-5 h-5 text-amber-500" />
             <h3 className="text-sm font-bold text-slate-100 uppercase tracking-wider">Tàng Bảo Các (Spiritual Shop)</h3>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {STORE_ITEMS.map(item => {
-              const canAfford = state.linhThach >= item.cost;
+              const alreadyOwned = item.type === 'PERMANENT' && state.inventory.some(i => i.itemId === item.id);
+              const canAfford = state.linhThach >= item.cost && !alreadyOwned;
               return (
                 <div
                   key={item.id}
-                  className="bg-slate-950/40 border border-slate-900 p-4 rounded-xl hover:border-slate-800 transition-all flex flex-col justify-between"
+                  className="bg-[#1e2638] border-2 border-slate-950 p-4 rounded-xl transition-all flex flex-col justify-between shadow-[2px_2px_0px_#000] hover:shadow-[3px_3px_0px_#000] hover:-translate-x-[1px] hover:-translate-y-[1px]"
                 >
                   <div className="space-y-2">
                     <div className="flex justify-between items-start gap-2">
@@ -38,24 +39,26 @@ export default function TreasureStore({ state, onBuyItem, onUseConsumable }: Tre
                         <span className="text-2xl">{item.icon}</span>
                         <h4 className="text-xs font-bold text-slate-200">{item.name}</h4>
                       </div>
-                      <span className="text-xs font-mono font-bold text-amber-500 bg-amber-950/20 border border-amber-900 px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">
-                        <Gem className="w-3 h-3 text-amber-500" />
+                      <span className="text-xs font-mono font-bold text-slate-950 bg-amber-400 border-2 border-slate-950 px-2.5 py-0.5 rounded-lg flex items-center gap-1 shrink-0 shadow-[1px_1px_0px_#000] pixel-label">
+                        <Gem className="w-3 h-3 text-slate-950" />
                         {item.cost}
                       </span>
                     </div>
-                    <p className="text-[11px] text-slate-500 leading-relaxed">{item.description}</p>
+                    <p className="text-[11px] text-slate-400 leading-relaxed">{item.description}</p>
                   </div>
 
                   <button
                     onClick={() => onBuyItem(item)}
                     disabled={!canAfford}
-                    className={`w-full text-center py-1.5 rounded-lg text-[10px] font-bold mt-4 tracking-wider transition-all cursor-pointer ${
-                      canAfford
-                        ? 'bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700 text-slate-950'
-                        : 'bg-slate-900 text-slate-600 border border-slate-950 cursor-not-allowed'
+                    className={`w-full py-1.5 text-[10px] font-bold mt-4 tracking-wider ${
+                      alreadyOwned
+                        ? 'bg-emerald-950 text-emerald-450 border-2 border-slate-950 rounded-lg cursor-not-allowed font-extrabold shadow-[2px_2px_0px_#000]'
+                        : canAfford
+                        ? 'neo-btn neo-btn-primary'
+                        : 'bg-slate-900 text-slate-650 border-2 border-slate-950 rounded-lg cursor-not-allowed font-extrabold'
                     }`}
                   >
-                    {canAfford ? 'MUA BẰNG LINH THẠCH' : 'CHƯA ĐỦ LINH THẠCH'}
+                    {alreadyOwned ? 'ĐÃ SỞ HỮU BÍ TỊCH' : canAfford ? 'MUA BẰNG LINH THẠCH' : 'CHƯA ĐỦ LINH THẠCH'}
                   </button>
                 </div>
               );
@@ -66,15 +69,15 @@ export default function TreasureStore({ state, onBuyItem, onUseConsumable }: Tre
 
       {/* Right Column: Inventory & Stats */}
       <div className="space-y-4">
-        <div className="bg-[#0f141c] border border-slate-800/80 rounded-2xl p-5 shadow-xl h-full flex flex-col">
-          <div className="flex items-center gap-2 mb-4">
+        <div className="neo-card p-5 h-full flex flex-col">
+          <div className="flex items-center gap-2 mb-4 border-b-2 border-slate-950 pb-3">
             <Package className="w-5 h-5 text-indigo-400" />
             <h3 className="text-sm font-bold text-slate-100 uppercase tracking-wider">Hành Trang Nhân Vật</h3>
           </div>
 
           {/* Active Shield Indicator */}
           {state.shieldActive && (
-            <div className="bg-indigo-950/20 border border-indigo-900/60 p-3 rounded-xl mb-4 flex items-center gap-3">
+            <div className="bg-[#1e2638] border-2 border-slate-950 p-3 rounded-xl mb-4 flex items-center gap-3 shadow-[2px_2px_0px_#000]">
               <Shield className="w-5 h-5 text-indigo-400 animate-pulse shrink-0" />
               <div>
                 <p className="text-[10px] font-bold text-indigo-300">HỘ TÂM KÍNH ĐANG KÍCH HOẠT</p>
@@ -90,10 +93,13 @@ export default function TreasureStore({ state, onBuyItem, onUseConsumable }: Tre
                 const storeItem = STORE_ITEMS.find(s => s.id === inv.itemId);
                 if (!storeItem) return null;
 
+                const isSpell = storeItem.type === 'PERMANENT';
+                const isEquipped = state.activeSpells?.includes(inv.itemId);
+
                 return (
                   <div
                     key={inv.itemId}
-                    className="bg-slate-950/40 border border-slate-900 p-3 rounded-xl flex items-center justify-between gap-3"
+                    className="bg-[#1e2638] border-2 border-slate-950 p-3 rounded-xl flex items-center justify-between gap-3 shadow-[2px_2px_0px_#000]"
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5">
@@ -102,22 +108,33 @@ export default function TreasureStore({ state, onBuyItem, onUseConsumable }: Tre
                           {storeItem.name}
                         </h4>
                       </div>
-                      <p className="text-[9px] text-slate-500 mt-1">Số lượng: <strong className="text-slate-300 font-mono">{inv.quantity}</strong></p>
+                      <p className="text-[9px] text-slate-500 mt-1">
+                        {isSpell 
+                          ? <>Trạng thái: <strong className={isEquipped ? 'text-emerald-450' : 'text-slate-400'}>{isEquipped ? 'Đang trang bị' : 'Đang cất giữ'}</strong></>
+                          : <>Số lượng: <strong className="text-slate-300 font-mono">{inv.quantity}</strong></>
+                        }
+                      </p>
                     </div>
 
                     <button
                       onClick={() => onUseConsumable(inv.itemId)}
-                      className="bg-slate-900 hover:bg-slate-950 border border-slate-800 text-slate-300 hover:text-emerald-400 font-bold text-[9px] px-3 py-1.5 rounded-lg transition-colors cursor-pointer shrink-0"
+                      className={`px-3 py-1.5 neo-btn ${
+                        isSpell 
+                          ? (isEquipped ? 'bg-slate-950 text-amber-400 hover:text-amber-300' : 'neo-btn-success text-slate-950')
+                          : 'neo-btn neo-btn-success text-slate-950'
+                      } text-[9px] shrink-0 font-bold`}
                     >
-                      SỬ DỤNG
+                      {isSpell 
+                        ? (isEquipped ? 'THÁO RA' : 'TRANG BỊ') 
+                        : 'SỬ DỤNG'}
                     </button>
                   </div>
                 );
               })
             ) : (
-              <div className="text-center py-24 text-slate-600 text-xs flex flex-col items-center justify-center gap-2 border border-dashed border-slate-800 rounded-xl h-full">
+              <div className="text-center py-24 text-slate-600 text-xs flex flex-col items-center justify-center gap-2 border-2 border-dashed border-slate-950 rounded-xl h-full">
                 <Package className="w-6 h-6 text-slate-700 animate-pulse" />
-                <span>Hành trang trống rỗng. Hãy ghé Tàng Bảo Các mua đan dược bổ trợ!</span>
+                <span>Hành trang trống rỗng. Hãy mua đan dược bổ trợ!</span>
               </div>
             )}
           </div>

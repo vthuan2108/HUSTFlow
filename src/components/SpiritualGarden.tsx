@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { GardenPlant } from '../types';
 import { SPIRITUAL_SEEDS } from '../data';
 import { Trash2, Sprout } from 'lucide-react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface SpiritualGardenProps {
   plants: GardenPlant[];
@@ -54,8 +54,7 @@ function GrassTile({ col, row }: { col: number; row: number }) {
     <polygon
       points={pts(tl, tr, br, bl)}
       fill={fill}
-      stroke="#82c030"
-      strokeWidth="0.5"
+      stroke="none"
     />
   );
 }
@@ -79,49 +78,59 @@ function IsoTree({ col, row, icon, delay }: IsoTreeProps) {
       transition={{ delay, type: 'spring', stiffness: 260, damping: 18 }}
       style={{ transformOrigin: `${cx}px ${cy + 2}px`, transformBox: 'fill-box' }}
     >
-      {/* Ground shadow ellipse */}
-      <ellipse cx={cx} cy={cy + 2} rx={8} ry={3.5} fill="rgba(0,0,0,0.22)" />
-      {/* Trunk */}
-      <rect x={cx - 1.5} y={cy - 6} width={3} height={9} fill="#854d0e" />
-      {/* Bottom canopy tier */}
-      <polygon
-        points={`${cx - 11},${cy - 5} ${cx + 11},${cy - 5} ${cx},${cy - 20}`}
-        fill="#22c55e"
-      />
-      {/* Mid canopy tier */}
-      <polygon
-        points={`${cx - 8},${cy - 16} ${cx + 8},${cy - 16} ${cx},${cy - 29}`}
-        fill="#4ade80"
-      />
-      {/* Top canopy tier */}
-      <polygon
-        points={`${cx - 5},${cy - 25} ${cx + 5},${cy - 25} ${cx},${cy - 37}`}
-        fill="#86efac"
-      />
-      {/* Highlight overlay on the right face of the tree to create 3D shading */}
-      <polygon
-        points={`${cx},${cy - 37} ${cx + 5},${cy - 25} ${cx},${cy - 25}`}
-        fill="rgba(255,255,255,0.12)"
-      />
-      <polygon
-        points={`${cx},${cy - 29} ${cx + 8},${cy - 16} ${cx},${cy - 16}`}
-        fill="rgba(255,255,255,0.12)"
-      />
-      <polygon
-        points={`${cx},${cy - 20} ${cx + 11},${cy - 5} ${cx},${cy - 5}`}
-        fill="rgba(255,255,255,0.12)"
-      />
-      {/* The plant emoji label */}
-      {icon !== '🌲' && (
-        <text
-          x={cx}
-          y={cy - 41}
-          textAnchor="middle"
-          fontSize="9"
-          style={{ userSelect: 'none', filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.8))' }}
-        >
-          {icon}
-        </text>
+      {icon === '🌲' ? (
+        <>
+          {/* Ground shadow ellipse */}
+          <ellipse cx={cx} cy={cy + 2} rx={8} ry={3.5} fill="rgba(0,0,0,0.22)" />
+          {/* Trunk */}
+          <rect x={cx - 1.5} y={cy - 6} width={3} height={9} fill="#854d0e" />
+          {/* Bottom canopy tier */}
+          <polygon
+            points={`${cx - 11},${cy - 5} ${cx + 11},${cy - 5} ${cx},${cy - 20}`}
+            fill="#22c55e"
+          />
+          {/* Mid canopy tier */}
+          <polygon
+            points={`${cx - 8},${cy - 16} ${cx + 8},${cy - 16} ${cx},${cy - 29}`}
+            fill="#4ade80"
+          />
+          {/* Top canopy tier */}
+          <polygon
+            points={`${cx - 5},${cy - 25} ${cx + 5},${cy - 25} ${cx},${cy - 37}`}
+            fill="#86efac"
+          />
+          {/* Highlight overlay on the right face of the tree to create 3D shading */}
+          <polygon
+            points={`${cx},${cy - 37} ${cx + 5},${cy - 25} ${cx},${cy - 25}`}
+            fill="rgba(255,255,255,0.12)"
+          />
+          <polygon
+            points={`${cx},${cy - 29} ${cx + 8},${cy - 16} ${cx},${cy - 16}`}
+            fill="rgba(255,255,255,0.12)"
+          />
+          <polygon
+            points={`${cx},${cy - 20} ${cx + 11},${cy - 5} ${cx},${cy - 5}`}
+            fill="rgba(255,255,255,0.12)"
+          />
+        </>
+      ) : (
+        <>
+          {/* Ground shadow for custom plant */}
+          <ellipse cx={cx} cy={cy + 3} rx={9} ry={4} fill="rgba(0,0,0,0.22)" />
+          {/* Upright custom plant emoji */}
+          <text
+            x={cx}
+            y={cy - 2}
+            textAnchor="middle"
+            fontSize="22"
+            className="select-none"
+            style={{
+              filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.35))'
+            }}
+          >
+            {icon}
+          </text>
+        </>
       )}
     </motion.g>
   );
@@ -129,6 +138,7 @@ function IsoTree({ col, row, icon, delay }: IsoTreeProps) {
 
 export default function SpiritualGarden({ plants, onClearGarden }: SpiritualGardenProps) {
   const [filter, setFilter] = useState<'DAY' | 'WEEK' | 'MONTH'>('WEEK');
+  const [selectedPlant, setSelectedPlant] = useState<GardenPlant | null>(null);
 
   // Filter plants based on selection
   const filteredPlants = plants.filter(plant => {
@@ -222,10 +232,10 @@ export default function SpiritualGarden({ plants, onClearGarden }: SpiritualGard
   }
 
   return (
-    <div className="bg-[#0f141c]/90 border border-slate-800/80 rounded-2xl p-4 shadow-xl space-y-3 font-sans" id="spiritual-garden">
+    <div className="neo-card p-4 space-y-3 font-sans" id="spiritual-garden">
 
       {/* Header */}
-      <div className="flex justify-between items-center border-b border-slate-800/60 pb-3">
+      <div className="flex justify-between items-center border-b-2 border-slate-950 pb-3">
         <div className="flex items-center gap-2">
           <Sprout className="w-5 h-5 text-emerald-400 animate-pulse" />
           <h3 className="text-sm font-black text-slate-100 uppercase tracking-wider">🌿 Linh Viên</h3>
@@ -235,7 +245,7 @@ export default function SpiritualGarden({ plants, onClearGarden }: SpiritualGard
             onClick={() => {
               if (confirm('Đạo hữu có chắc chắn muốn dọn sạch Linh Viên?')) onClearGarden();
             }}
-            className="flex items-center gap-1 px-2 py-1 bg-rose-950/20 hover:bg-rose-950/40 text-rose-400 border border-rose-900/30 rounded-lg text-[9px] font-bold transition-all cursor-pointer"
+            className="flex items-center gap-1 px-2.5 py-1 neo-btn neo-btn-danger text-[9px] font-bold text-white"
           >
             <Trash2 className="w-3 h-3" />
             DỌN VƯỜN
@@ -244,23 +254,25 @@ export default function SpiritualGarden({ plants, onClearGarden }: SpiritualGard
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex bg-slate-950/60 border border-slate-900 p-0.5 rounded-xl text-[10px] font-extrabold">
+      <div className="flex bg-slate-950 p-1 rounded-xl border-2 border-slate-950 text-[10px] font-extrabold shadow-[1px_1px_0px_#000]">
         {(['DAY', 'WEEK', 'MONTH'] as const).map(t => (
           <button
             key={t}
             onClick={() => setFilter(t)}
             className={`flex-1 py-1.5 rounded-lg transition-all cursor-pointer text-center ${
-              filter === t ? 'bg-slate-900 text-slate-100 shadow' : 'text-slate-500 hover:text-slate-400'
+              filter === t 
+                ? 'bg-amber-400 text-slate-950 border border-slate-950 shadow-[1px_1px_0px_#000]' 
+                : 'text-slate-500 hover:text-slate-400'
             }`}
           >
             {t === 'DAY' ? 'Ngày' : t === 'WEEK' ? 'Tuần' : 'Tháng'}
           </button>
         ))}
       </div>
-      <div className="text-center font-mono text-[9px] text-slate-500">{getDateRangeLabel()}</div>
+      <div className="text-center font-mono text-[9px] text-slate-500 pixel-label">{getDateRangeLabel()}</div>
 
       {/* ── SVG Isometric Garden ── */}
-      <div className="flex justify-center overflow-hidden">
+      <div className="flex justify-center overflow-hidden border-2 border-slate-950 rounded-xl bg-slate-950 p-4 shadow-[inset_2px_2px_4px_rgba(0,0,0,0.5)]">
         <svg
           width={svgW}
           height={svgH}
@@ -301,43 +313,111 @@ export default function SpiritualGarden({ plants, onClearGarden }: SpiritualGard
             const isHarvested = cell.plant.status === 'HARVESTED';
             const seed = SPIRITUAL_SEEDS.find(s => s.name === cell.plant.name);
 
-            if (isHarvested) {
-              return (
-                <IsoTree
-                  key={`tree-${cell.r}-${cell.c}-${cell.plant.name}`}
-                  col={cell.c}
-                  row={cell.r}
-                  icon={seed?.icon || '🌲'}
-                  delay={idx * 0.05}
-                />
-              );
-            }
-            // Withered plant — wilted icon
-            const center = iso(cell.c + 0.5, cell.r + 0.5);
             return (
-              <motion.text
-                key={`dead-${cell.r}-${cell.c}`}
-                x={center.x}
-                y={center.y - 5}
-                textAnchor="middle"
-                fontSize="14"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 0.75 }}
-                transition={{ delay: idx * 0.04 }}
-                style={{ userSelect: 'none' }}
+              <g
+                key={`plant-${cell.r}-${cell.c}-${cell.plant.name}`}
+                onClick={() => setSelectedPlant(cell.plant)}
+                className="cursor-pointer hover:filter hover:drop-shadow-[0_0_8px_rgba(251,191,36,0.7)] transition-all"
               >
-                🥀
-              </motion.text>
+                {isHarvested ? (
+                  <IsoTree
+                    col={cell.c}
+                    row={cell.r}
+                    icon={seed?.icon || '🌲'}
+                    delay={idx * 0.05}
+                  />
+                ) : (
+                  (() => {
+                    const center = iso(cell.c + 0.5, cell.r + 0.5);
+                    return (
+                      <motion.text
+                        x={center.x}
+                        y={center.y - 5}
+                        textAnchor="middle"
+                        fontSize="14"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 0.75 }}
+                        transition={{ delay: idx * 0.04 }}
+                        style={{ userSelect: 'none' }}
+                      >
+                        🥀
+                      </motion.text>
+                    );
+                  })()
+                )}
+              </g>
             );
           })}
         </svg>
       </div>
 
       {/* Footer count */}
-      <div className="text-center font-mono text-[10px] border-t border-slate-900/60 pt-3 text-slate-400 italic">
+      <div className="text-center font-mono text-[10px] border-t-2 border-slate-950 pt-3 text-slate-400 italic">
         Đạo hữu đã trồng được{' '}
         <span className="text-emerald-400 font-bold font-sans">{harvestedCount}</span> gốc linh thảo.
       </div>
+
+      {/* Plant Details Modal */}
+      <AnimatePresence>
+        {selectedPlant && (
+          <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="neo-card p-5 max-w-xs w-full text-center space-y-4 relative"
+            >
+              <button
+                onClick={() => setSelectedPlant(null)}
+                className="absolute top-3 right-3 text-xs text-slate-500 hover:text-slate-300 font-bold"
+              >
+                ✕
+              </button>
+
+              <div className="space-y-2">
+                <span className="text-4xl block animate-bounce my-2 select-none">
+                  {SPIRITUAL_SEEDS.find(s => s.name === selectedPlant.name)?.icon || '🌿'}
+                </span>
+                <h3 className="text-sm font-black text-slate-100 uppercase tracking-wide pixel-label">
+                  {selectedPlant.name}
+                </h3>
+                {(() => {
+                  const seed = SPIRITUAL_SEEDS.find(s => s.name === selectedPlant.name);
+                  const rarity = seed?.rarity || 'SO_CAP';
+                  return (
+                    <span className={`text-[8px] border-2 border-slate-950 px-2.5 py-0.5 rounded-lg font-bold uppercase shadow-[1px_1px_0px_#000] pixel-label inline-block ${
+                      rarity === 'THAN_CAP' ? 'bg-amber-400 text-slate-950' :
+                      rarity === 'CAO_CAP' ? 'bg-orange-400 text-slate-950' :
+                      rarity === 'TRUNG_CAP' ? 'bg-blue-400 text-slate-950' :
+                      'bg-slate-355 text-slate-950'
+                    }`}>
+                      {rarity === 'SO_CAP' ? 'Sơ Cấp' :
+                       rarity === 'TRUNG_CAP' ? 'Trung Cấp' :
+                       rarity === 'CAO_CAP' ? 'Cao Cấp' : 'Thần Cấp'}
+                    </span>
+                  );
+                })()}
+              </div>
+
+              <div className="bg-slate-950 p-3 rounded-lg border-2 border-slate-950 text-left text-[10px] space-y-1.5 font-mono text-slate-300 shadow-[2px_2px_0px_#000]">
+                <p><span className="text-slate-500">Trạng thái:</span> <strong className={selectedPlant.status === 'HARVESTED' ? 'text-emerald-400' : 'text-rose-500'}>{selectedPlant.status === 'HARVESTED' ? 'Viên Mãn ✓' : 'Héo Úa 🥀'}</strong></p>
+                <p><span className="text-slate-500">Thu hoạch:</span> <span>{selectedPlant.harvestedAt}</span></p>
+                <p><span className="text-slate-500">Linh khí tích tụ:</span> <span className="text-emerald-400">+{selectedPlant.xpGained} XP</span> / <span className="text-amber-400">+{selectedPlant.linhThachGained} Đá</span></p>
+                <p className="text-[9px] text-slate-500 italic pt-1.5 border-t border-slate-900 font-sans">
+                  {SPIRITUAL_SEEDS.find(s => s.name === selectedPlant.name)?.description || 'Linh thảo quý hiếm được tẩm bổ đạo tâm của tông môn.'}
+                </p>
+              </div>
+
+              <button
+                onClick={() => setSelectedPlant(null)}
+                className="w-full py-2 neo-btn neo-btn-primary text-[10px] font-bold"
+              >
+                LĨNH HỘI LINH KHÍ
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

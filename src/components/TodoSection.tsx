@@ -363,10 +363,10 @@ export default function TodoSection({
 
   const getLeftBorderColor = (diff?: Priority) => {
     switch (diff) {
-      case 'TRUNG_CAP': return 'border-l-2 border-l-blue-500/70';
-      case 'CAO_CAP': return 'border-l-2 border-l-orange-500/70';
-      case 'THAN_CAP': return 'border-l-2 border-l-amber-500/70';
-      default: return 'border-l-2 border-l-slate-600/40';
+      case 'TRUNG_CAP': return 'border-l-4 border-l-blue-400';
+      case 'CAO_CAP': return 'border-l-4 border-l-orange-400';
+      case 'THAN_CAP': return 'border-l-4 border-l-amber-400';
+      default: return 'border-l-4 border-l-slate-500';
     }
   };
 
@@ -385,36 +385,36 @@ export default function TodoSection({
       {/* Overview Stats Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Core Stat 1 */}
-        <div className="bg-[#0f141c]/80 border border-slate-800/80 rounded-2xl p-4 flex items-center justify-between shadow-lg">
+        <div className="neo-card p-4 flex items-center justify-between">
           <div>
             <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">TẬP HỢP ĐẠO QUẢ</p>
-            <h4 className="text-2xl font-black text-slate-100 font-mono mt-0.5">
+            <h4 className="text-2xl font-black text-slate-100 font-mono mt-0.5 pixel-label">
               {todoItems.filter(i => i.isCompleted).length}/{todoItems.length}
             </h4>
             <p className="text-[9px] text-slate-400 mt-0.5">Tổng nhiệm vụ hoàn thành</p>
           </div>
-          <div className="p-2.5 bg-amber-950/40 border border-amber-900/40 rounded-xl text-amber-500">
+          <div className="p-2.5 bg-slate-950 border-2 border-slate-950 rounded-xl text-amber-500 shadow-[1px_1px_0px_#000]">
             <ListTodo className="w-5 h-5" />
           </div>
         </div>
 
         {/* Daily Stat */}
-        <div className="bg-[#0f141c]/80 border border-slate-800/80 rounded-2xl p-4 flex items-center justify-between shadow-lg">
+        <div className="neo-card p-4 flex items-center justify-between">
           <div>
             <p className="text-[10px] text-emerald-500 uppercase tracking-wider font-semibold">NHIỆM VỤ HÔM NAY</p>
-            <h4 className="text-2xl font-black text-slate-100 font-mono mt-0.5">
+            <h4 className="text-2xl font-black text-slate-100 font-mono mt-0.5 pixel-label">
               {todoItems.filter(i => (i.dueDate || i.createdAt.split('T')[0]) === new Date().toISOString().split('T')[0] && i.isCompleted).length}/{todoItems.filter(i => (i.dueDate || i.createdAt.split('T')[0]) === new Date().toISOString().split('T')[0]).length}
             </h4>
             <p className="text-[9px] text-slate-400 mt-0.5">Nhiệm vụ tu trì trong ngày hôm nay</p>
           </div>
-          <div className="p-2.5 bg-emerald-950/40 border border-emerald-900/40 rounded-xl text-emerald-400">
+          <div className="p-2.5 bg-slate-950 border-2 border-slate-950 rounded-xl text-emerald-400 shadow-[1px_1px_0px_#000]">
             <CalendarDays className="w-5 h-5" />
           </div>
         </div>
       </div>
 
       {/* Control panel and google tasks sync */}
-      <div className="bg-[#0f141c]/80 border border-slate-800/80 rounded-2xl p-5 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="neo-card p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         {/* Sync Controls */}
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center gap-2">
@@ -427,16 +427,16 @@ export default function TodoSection({
           <div className="flex items-center gap-2 mt-1.5">
             <button
               onClick={() => setWeekOffset(prev => prev - 1)}
-              className="px-2 py-0.5 bg-slate-900 border border-slate-800 hover:border-amber-500/30 hover:text-amber-400 text-slate-400 text-[10px] rounded cursor-pointer transition-colors"
+              className="px-2 py-1 bg-slate-950 border-2 border-slate-950 hover:border-amber-400 hover:text-amber-400 text-slate-400 text-[10px] rounded-lg cursor-pointer transition-all shadow-[1px_1px_0px_#000] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
             >
               &larr; Tuần Trước
             </button>
-            <span className="text-[10px] text-amber-500 font-mono font-bold bg-amber-950/20 px-2 py-0.5 rounded border border-amber-900/30">
+            <span className="text-[10px] text-amber-400 font-mono font-bold bg-slate-950 px-2.5 py-1 rounded-lg border-2 border-slate-950 shadow-[1px_1px_0px_#000] pixel-label">
               {weekOffset === 0 ? 'Tuần Hiện Tại' : weekOffset > 0 ? `Tuần Sau +${weekOffset}` : `Tuần Trước ${weekOffset}`}
             </span>
             <button
               onClick={() => setWeekOffset(prev => prev + 1)}
-              className="px-2 py-0.5 bg-slate-900 border border-slate-800 hover:border-amber-500/30 hover:text-amber-400 text-slate-400 text-[10px] rounded cursor-pointer transition-colors"
+              className="px-2 py-1 bg-slate-950 border-2 border-slate-950 hover:border-amber-400 hover:text-amber-400 text-slate-400 text-[10px] rounded-lg cursor-pointer transition-all shadow-[1px_1px_0px_#000] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
             >
               Tuần Tiếp Theo &rarr;
             </button>
@@ -454,9 +454,9 @@ export default function TodoSection({
         <div className="flex flex-wrap items-center gap-2.5">
           {/* Status Display */}
           {isLoggedIn ? (
-            <div className="flex items-center gap-2 bg-slate-950/80 border border-slate-900 px-3 py-1.5 rounded-xl text-[10px] text-slate-300">
+            <div className="flex items-center gap-2 bg-slate-950 border-2 border-slate-950 px-3 py-1.5 rounded-xl text-[10px] text-slate-300 shadow-[1px_1px_0px_#000]">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span className="font-mono truncate max-w-[120px]">{userProfile?.displayName || 'Đã liên kết'}</span>
+              <span className="font-mono truncate max-w-[120px] font-bold">{userProfile?.displayName || 'Đã liên kết'}</span>
               <button
                 onClick={handleLogout}
                 className="text-slate-500 hover:text-rose-400 cursor-pointer ml-1"
@@ -468,7 +468,7 @@ export default function TodoSection({
           ) : (
             <button
               onClick={handleSignIn}
-              className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/30 text-amber-500 font-bold text-[10px] px-3 py-1.5 rounded-xl transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 neo-btn neo-btn-secondary text-[10px]"
             >
               <LogIn className="w-3.5 h-3.5" />
               Kết Nối Google Tasks
@@ -479,7 +479,7 @@ export default function TodoSection({
           <button
             onClick={() => handleSync()}
             disabled={isSyncing}
-            className={`flex items-center gap-1.5 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700 text-slate-950 font-black text-[10px] px-4 py-1.5 rounded-xl transition-all cursor-pointer disabled:opacity-50`}
+            className="flex items-center gap-1.5 px-4 py-1.5 neo-btn neo-btn-primary text-[10px] disabled:opacity-50"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin text-slate-950' : ''}`} />
             {isSyncing ? 'Đang Đồng Bộ...' : 'ĐỒNG BỘ GOOGLE TASKS'}
@@ -493,7 +493,7 @@ export default function TodoSection({
           initial={{ opacity: 0, y: -5 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0 }}
-          className="bg-amber-950/20 border border-amber-900/50 p-2.5 rounded-xl text-[11px] text-amber-400 flex items-center gap-2"
+          className="bg-slate-950 border-2 border-slate-950 p-2.5 rounded-xl text-[11px] text-amber-400 flex items-center gap-2 shadow-[2px_2px_0px_#000]"
         >
           <Sparkles className="w-4 h-4 text-amber-500 animate-pulse shrink-0" />
           <span>{syncMessage}</span>
@@ -519,17 +519,19 @@ export default function TodoSection({
               return getDifficultyRank(b.difficulty) - getDifficultyRank(a.difficulty);
             });
 
+          const isTodayColumn = dateStr === new Date().toISOString().split('T')[0];
+
           return (
             <div
               key={dateStr}
               onDragOver={(e) => e.preventDefault()}
               onDrop={() => handleDropOnDay(dateStr)}
-              className={`bg-[#0f141c]/50 border rounded-2xl p-3 flex flex-col h-[400px] transition-all min-w-[150px] ${
-                draggedTodoId ? 'border-dashed border-amber-500/20 bg-amber-500/2' : label.color
-              }`}
+              className={`neo-card p-3 flex flex-col h-[400px] transition-all min-w-[150px] ${
+                draggedTodoId ? 'border-dashed border-amber-400 bg-amber-400/5 shadow-none' : ''
+              } ${isTodayColumn ? 'border-amber-400 shadow-[4px_4px_0px_0px_#fbbf24]' : ''}`}
             >
               {/* Day Header */}
-              <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-slate-900/60 shrink-0">
+              <div className="flex items-center justify-between mb-2 pb-1.5 border-b-2 border-slate-950 shrink-0">
                 <div>
                   <h4 className="text-xs font-black text-slate-200">{label.full}</h4>
                   <span className="text-[9px] text-slate-500 font-mono">
@@ -542,7 +544,7 @@ export default function TodoSection({
                     setActiveAddColumnDate(activeAddColumnDate === dateStr ? null : dateStr);
                     setColumnNewTitle('');
                   }}
-                  className="p-1 rounded bg-slate-950/60 border border-slate-900 text-slate-400 hover:text-amber-400 cursor-pointer"
+                  className="p-1 rounded-md bg-slate-950 border-2 border-slate-950 text-slate-400 hover:text-amber-400 hover:border-amber-400 shadow-[1px_1px_0px_#000] cursor-pointer transition-all active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
                   title="Thêm nhanh nhiệm vụ cho ngày này"
                 >
                   <Plus className="w-3 h-3" />
@@ -556,24 +558,24 @@ export default function TodoSection({
                   <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="p-2 bg-slate-950 border border-amber-500/20 rounded-xl space-y-1.5"
+                    className="p-2 bg-slate-950 border-2 border-slate-950 rounded-xl space-y-1.5 shadow-[2px_2px_0px_#000]"
                   >
                     <input
                       type="text"
                       required
                       autoFocus
-                      placeholder="Nội dung việc..."
+                      placeholder="Nội dung..."
                       value={columnNewTitle}
                       onChange={(e) => setColumnNewTitle(e.target.value)}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') handleAddInColumn(dateStr);
                       }}
-                      className="w-full bg-slate-900 border border-slate-800 rounded px-1.5 py-1 text-[10px] text-slate-200 focus:outline-none focus:border-amber-500"
+                      className="w-full bg-slate-900 border border-slate-800 rounded-lg px-1.5 py-1 text-[10px] text-slate-200 focus:outline-none focus:border-amber-500"
                     />
                     <select
                       value={columnDifficulty}
                       onChange={(e) => setColumnDifficulty(e.target.value as Priority)}
-                      className="w-full bg-slate-900 border border-slate-800 rounded px-1 py-0.5 text-[9px] text-slate-300 focus:outline-none cursor-pointer"
+                      className="w-full bg-slate-900 border border-slate-800 rounded-lg px-1 py-0.5 text-[9px] text-slate-300 focus:outline-none cursor-pointer"
                     >
                       <option value="SO_CAP">Sơ Cấp (Trắng)</option>
                       <option value="TRUNG_CAP">Trung Cấp (Lam)</option>
@@ -589,7 +591,7 @@ export default function TodoSection({
                       </button>
                       <button
                         onClick={() => handleAddInColumn(dateStr)}
-                        className="text-[9px] bg-amber-500 text-slate-950 font-bold px-2 py-0.5 rounded cursor-pointer"
+                        className="text-[9px] bg-amber-400 hover:bg-amber-500 text-slate-950 font-bold px-2 py-0.5 rounded border border-slate-950 cursor-pointer shadow-[1px_1px_0px_#000]"
                       >
                         Thêm
                       </button>
@@ -604,12 +606,10 @@ export default function TodoSection({
                         key={item.id}
                         draggable
                         onDragStart={() => handleDragStart(item.id)}
-                        className={`group/todo p-2.5 rounded-xl border cursor-grab active:cursor-grabbing transition-all flex flex-col justify-between ${
+                        className={`group/todo p-2.5 rounded-xl border-2 border-slate-950 cursor-grab active:cursor-grabbing transition-all flex flex-col justify-between shadow-[2px_2px_0px_#000] hover:shadow-[3px_3px_0px_#000] hover:-translate-x-[1px] hover:-translate-y-[1px] ${
                           item.isCompleted
-                            ? 'bg-slate-950/20 border-slate-950 opacity-50'
-                            : item.isPriority
-                            ? 'bg-amber-950/10 border-amber-500/40 shadow-[0_0_10px_rgba(245,158,11,0.15)] hover:border-amber-500/60'
-                            : 'bg-slate-950/60 border-slate-900 hover:border-slate-800'
+                            ? 'bg-slate-950/40 opacity-50 shadow-none hover:shadow-none hover:translate-x-0 hover:translate-y-0'
+                            : 'bg-[#1e2638]'
                         } ${getLeftBorderColor(item.difficulty)}`}
                       >
                         <div className="flex items-start gap-1.5">
@@ -634,7 +634,7 @@ export default function TodoSection({
                           </p>
                         </div>
 
-                        <div className="flex items-center justify-between mt-2 pt-1 border-t border-slate-950 text-[8px] font-mono">
+                        <div className="flex items-center justify-between mt-2 pt-1 border-t-2 border-slate-950 text-[8px] font-mono">
                           <div className="flex items-center gap-1.5 flex-wrap">
                             {item.googleTaskId ? (
                               <span className="text-[8px] text-emerald-400 bg-emerald-950/40 border border-emerald-900/40 px-1.5 py-0.5 rounded flex items-center gap-0.5 font-bold uppercase tracking-wider">

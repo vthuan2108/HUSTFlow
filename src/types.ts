@@ -68,6 +68,7 @@ export interface CultivationState {
   inventory: InventoryItem[];
   unlockedRealms: string[];
   tamMaSuppressedDate?: string; // YYYY-MM-DD
+  activeSpells?: string[];
 }
 
 export interface DailyLog {

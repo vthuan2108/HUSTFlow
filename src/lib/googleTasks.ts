@@ -92,7 +92,7 @@ export async function syncGoogleTasks(
       let matchedGoogleTask = null;
       if (todo.googleTaskId && googleMapById.has(todo.googleTaskId)) {
         matchedGoogleTask = googleMapById.get(todo.googleTaskId);
-      } else {
+      } else if (!todo.googleTaskId) {
         matchedGoogleTask = googleMapByTitle.get(todo.title);
       }
       
@@ -126,8 +126,19 @@ export async function syncGoogleTasks(
         }
         matchedLocalTodos.push(todo);
       } else {
-        // If there's no matching Google Task, we delete it locally (by not adding it to matchedLocalTodos)
-        // This is exactly: "nếu đồng bộ có task nào ko trùng khớp với task bên gg task thì xóa"
+        if (!todo.googleTaskId) {
+          // If it was created locally on web (has no googleTaskId) and was not found on Google by title,
+          // push it to Google Tasks rather than deleting it.
+          const pushedId = await pushTaskToGoogle(token, todo);
+          if (pushedId) {
+            todo.googleTaskId = pushedId;
+            addedCount++;
+          }
+          matchedLocalTodos.push(todo);
+        } else {
+          // It had a googleTaskId but wasn't found in googleMapById (meaning it was deleted on Google Tasks).
+          // We delete it locally by not adding it to matchedLocalTodos.
+        }
       }
     }
     

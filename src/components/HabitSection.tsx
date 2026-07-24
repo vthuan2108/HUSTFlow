@@ -60,7 +60,7 @@ export default function HabitSection({ habits, onAddHabit, onToggleHabitDay, onD
   };
 
   return (
-    <div className="bg-[#0f141c]/90 border border-slate-800/80 rounded-2xl p-5 shadow-xl flex flex-col min-h-[300px] max-h-[380px]" id="habit-section">
+    <div className="neo-card p-5 flex flex-col min-h-[300px] max-h-[380px]" id="habit-section">
       <div className="flex items-center justify-between mb-4 shrink-0">
         <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
           <CalendarCheck className="w-4 h-4 text-emerald-400" />
@@ -68,7 +68,7 @@ export default function HabitSection({ habits, onAddHabit, onToggleHabitDay, onD
         </h3>
         <button
           onClick={() => setIsAdding(!isAdding)}
-          className="text-[10px] bg-slate-900 border border-slate-800 hover:border-emerald-800 hover:text-emerald-400 px-2.5 py-1.5 rounded-lg font-semibold transition-all cursor-pointer"
+          className="text-[10px] neo-btn neo-btn-secondary px-2.5 py-1.5"
           id="toggle-add-habit-btn"
         >
           {isAdding ? 'Hủy' : '+ Thêm'}
@@ -83,7 +83,7 @@ export default function HabitSection({ habits, onAddHabit, onToggleHabitDay, onD
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             onSubmit={handleSubmit}
-            className="bg-slate-950/60 border border-slate-900 p-3 rounded-xl mb-4 space-y-2 shrink-0 overflow-hidden text-xs"
+            className="bg-slate-950 border-2 border-slate-950 p-3 rounded-xl mb-4 space-y-2 shrink-0 overflow-hidden text-xs shadow-[2px_2px_0px_#000]"
           >
             <div>
               <label className="text-[9px] text-slate-500 uppercase tracking-wider font-semibold block mb-0.5">Tên Thói Quen Luyện Tập</label>
@@ -93,7 +93,7 @@ export default function HabitSection({ habits, onAddHabit, onToggleHabitDay, onD
                 placeholder="VD: Luyện phát âm IPA, Chép chính tả..."
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-900 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-emerald-500"
+                className="w-full bg-slate-900 border-2 border-slate-950 rounded-lg px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-emerald-500"
               />
             </div>
             <div>
@@ -103,12 +103,12 @@ export default function HabitSection({ habits, onAddHabit, onToggleHabitDay, onD
                 placeholder="VD: 15 phút mỗi ngày lúc sáng sớm..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-900 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none"
+                className="w-full bg-slate-900 border-2 border-slate-950 rounded-lg px-2 py-1 text-xs text-slate-200 focus:outline-none"
               />
             </div>
             <button
               type="submit"
-              className="w-full bg-emerald-600 hover:bg-emerald-700 text-slate-950 font-bold text-[10px] py-1.5 rounded transition-all cursor-pointer"
+              className="w-full py-2 neo-btn neo-btn-success text-[10px]"
             >
               THIẾT LẬP THÓI QUEN (+15 EXP NHẬN MỖI LẦN)
             </button>
@@ -123,7 +123,7 @@ export default function HabitSection({ habits, onAddHabit, onToggleHabitDay, onD
             return (
               <div
                 key={habit.id}
-                className="bg-slate-950/40 border border-slate-900/60 p-3 rounded-xl hover:border-slate-800 transition-all flex items-center justify-between gap-3 text-xs"
+                className="bg-[#1e2638] border-2 border-slate-950 p-3 rounded-xl transition-all flex items-center justify-between gap-3 text-xs shadow-[2px_2px_0px_#000] hover:shadow-[3px_3px_0px_#000] hover:-translate-x-[1px] hover:-translate-y-[1px]"
               >
                 <div className="min-w-0 flex-1 space-y-1.5">
                   <div className="flex items-center gap-1.5 flex-wrap">
@@ -131,7 +131,7 @@ export default function HabitSection({ habits, onAddHabit, onToggleHabitDay, onD
                       {habit.title}
                     </h4>
                     {habit.streak > 0 && (
-                      <span className="text-[8px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-1.5 py-0.5 rounded font-mono font-bold flex items-center gap-0.5">
+                      <span className="text-[8px] bg-amber-400 text-slate-950 border-2 border-slate-950 px-1.5 py-0.5 rounded-lg font-mono font-bold flex items-center gap-0.5 shadow-[1px_1px_0px_#000] pixel-label">
                         🔥 {habit.streak} ngày
                       </span>
                     )}
@@ -146,12 +146,12 @@ export default function HabitSection({ habits, onAddHabit, onToggleHabitDay, onD
                       return (
                         <div
                           key={day.dateStr}
-                          className={`w-2.5 h-2.5 rounded-sm border ${
+                          className={`w-2.5 h-2.5 rounded border-2 ${
                             isCompleted
-                              ? 'bg-emerald-500 border-emerald-400'
+                              ? 'bg-emerald-400 border-slate-950'
                               : day.isToday
-                              ? 'bg-amber-500/20 border-amber-500/50'
-                              : 'bg-slate-900 border-slate-950'
+                              ? 'bg-amber-400/20 border-amber-400'
+                              : 'bg-slate-950 border-slate-950'
                           }`}
                           title={`${day.dayLabel} (${day.dateStr}): ${isCompleted ? 'Đã hoàn thành' : 'Chưa hoàn thành'}`}
                         />
@@ -168,10 +168,10 @@ export default function HabitSection({ habits, onAddHabit, onToggleHabitDay, onD
                     return (
                       <button
                         onClick={() => onToggleHabitDay(habit.id, todayStr)}
-                        className={`px-3 py-1.5 rounded-lg text-[9px] font-black tracking-wider transition-all cursor-pointer border ${
+                        className={`px-3 py-1.5 rounded-lg text-[9px] font-black tracking-wider transition-all cursor-pointer ${
                           isTodayCompleted
-                            ? 'bg-emerald-950/20 border-emerald-500/50 text-emerald-400'
-                            : 'bg-emerald-600 hover:bg-emerald-700 text-slate-950 border-emerald-500 shadow-md hover:shadow-emerald-500/10'
+                            ? 'bg-slate-950 border-2 border-slate-950 text-emerald-400 shadow-none'
+                            : 'neo-btn neo-btn-success text-slate-950'
                         }`}
                       >
                         {isTodayCompleted ? 'ĐÃ XONG ✓' : 'HOÀN THÀNH'}

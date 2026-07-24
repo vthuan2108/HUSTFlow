@@ -20,7 +20,7 @@ import {
   CultivationNote,
   GardenPlant
 } from './types';
-import { DEFAULT_CHALLENGES, getRealmInfo } from './data';
+import { DEFAULT_CHALLENGES, getRealmInfo, STORE_ITEMS } from './data';
 import CultivationHeader from './components/CultivationHeader';
 import MeditationTimer from './components/MeditationTimer';
 import TaskSection from './components/TaskSection';
@@ -34,7 +34,8 @@ import ForbiddenNotes from './components/ForbiddenNotes';
 import DailyRituals from './components/DailyRituals';
 import CultivationManualsSection from './components/CultivationManualsSection';
 import SpiritualGarden from './components/SpiritualGarden';
-import { initAuth, googleSignIn, logout as firebaseLogout } from './lib/firebase';
+import { initAuth, googleSignIn, logout as firebaseLogout, getAccessToken } from './lib/firebase';
+import { syncGoogleTasks } from './lib/googleTasks';
 import { saveUserDataToCloud, loadUserDataFromCloud, fetchLeaderboardFromCloud } from './lib/firestoreSync';
 import { User } from 'firebase/auth';
 import {
@@ -52,7 +53,7 @@ import {
   LogIn,
   Cloud
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+
 
 function getLocalDateString(d: Date = new Date()): string {
   const year = d.getFullYear();
@@ -81,6 +82,10 @@ export default function App() {
 
   const [isFocusMode, setIsFocusMode] = useState<boolean>(() => {
     return localStorage.getItem('tlk_is_focus_mode') === 'true';
+  });
+
+  const [soundscape, setSoundscape] = useState<'NONE' | 'ZEN' | 'RAIN' | 'STREAM' | 'CHIMES' | 'THUNDER' | 'CAMPFIRE'>(() => {
+    return (localStorage.getItem('tlk_soundscape') as any) || 'NONE';
   });
 
   const [todoItems, setTodoItems] = useState<TodoItem[]>(() => {
@@ -497,12 +502,14 @@ export default function App() {
     setIsCloudSyncing(true);
     try {
       const cloudData = await loadUserDataFromCloud(user.uid);
+      let baseTodos = todoItems;
       if (cloudData) {
         // Silently and automatically sync progress
         setUserName(cloudData.userName);
         setPlanningCompletedDate(cloudData.planningCompletedDate);
         setReflectionCompletedDate(cloudData.reflectionCompletedDate);
-        setTodoItems(cloudData.todoItems || []);
+        baseTodos = cloudData.todoItems || [];
+        setTodoItems(baseTodos);
         setHabits(cloudData.habits || []);
         setCultState(cloudData.cultState);
         setDailyLogs(cloudData.dailyLogs || []);
@@ -549,6 +556,41 @@ export default function App() {
           gardenPlants,
         };
         await saveUserDataToCloud(user.uid, localData);
+      }
+
+      // --- AUTO SYNC GOOGLE TASKS ON RELOAD/MOUNT ---
+      const token = getAccessToken();
+      if (token) {
+        try {
+          const result = await syncGoogleTasks(token, baseTodos);
+          setTodoItems(result.syncedTodos);
+          localStorage.setItem('tlk_todos', JSON.stringify(result.syncedTodos));
+          
+          // Instantly sync the new todo list back to Firestore
+          const updatedLocalData = {
+            userName: cloudData ? cloudData.userName : userName,
+            planningCompletedDate: cloudData ? cloudData.planningCompletedDate : planningCompletedDate,
+            reflectionCompletedDate: cloudData ? cloudData.reflectionCompletedDate : reflectionCompletedDate,
+            todoItems: result.syncedTodos,
+            tasks: [],
+            habits: cloudData ? (cloudData.habits || []) : habits,
+            challenges,
+            cultState: {
+              ...(cloudData ? cloudData.cultState : cultState),
+              currentStreak: getStreakFromLogs(cloudData ? cloudData.dailyLogs : dailyLogs),
+            },
+            dailyLogs: cloudData ? (cloudData.dailyLogs || []) : dailyLogs,
+            ieltsLogs: cloudData ? (cloudData.ieltsLogs || []) : ieltsLogs,
+            ieltsTargets: cloudData ? (cloudData.ieltsTargets || { readingBand: 5.0, listeningBand: 5.0, overallBand: 5.0, targetDate: '' }) : ieltsTargets,
+            camBooksList: cloudData ? (cloudData.camBooksList || []) : camBooksList,
+            manuals: cloudData ? (cloudData.manuals || []) : manuals,
+            notes: cloudData ? (cloudData.notes || []) : notes,
+            gardenPlants: cloudData ? ((cloudData as any).gardenPlants || []) : gardenPlants,
+          };
+          await saveUserDataToCloud(user.uid, updatedLocalData);
+        } catch (syncErr) {
+          console.error('Google Tasks automatic sync on reload failed:', syncErr);
+        }
       }
     } catch (error) {
       console.error('Error loading user data from cloud:', error);
@@ -668,13 +710,24 @@ export default function App() {
   const addExp = (amount: number, stones: number) => {
     const today = getLocalDateString();
     const isTamMa = checkTamMaActive() && cultState.tamMaSuppressedDate !== today;
-    const adjustedAmount = isTamMa && amount > 0 ? Math.round(amount * 0.7) : amount;
+    
+    // Apply Tụ Khí Quyết active spell (+30% Tu Vi from meditation/actions)
+    const isSpellTuKhiActive = cultState.activeSpells?.includes('spell_tu_khi_quyet');
+    const xpMultiplier = isSpellTuKhiActive && amount > 0 ? 1.3 : 1.0;
+    const adjustedAmount = isTamMa && amount > 0
+      ? Math.round(amount * 0.7 * xpMultiplier)
+      : Math.round(amount * xpMultiplier);
+
+    // Apply Tâm Ma Trảm active spell (Double Linh Thạch from all rewards)
+    const isSpellTamMaActive = cultState.activeSpells?.includes('spell_tam_ma_tram');
+    const stoneMultiplier = isSpellTamMaActive && stones > 0 ? 2.0 : 1.0;
+    const adjustedStones = Math.round(stones * stoneMultiplier);
 
     setCultState(prev => {
       const newCurrentExp = Math.max(0, prev.currentExp + adjustedAmount);
       const newTotalExp = Math.max(0, prev.totalExp + adjustedAmount);
-      const newLinhThach = Math.max(0, prev.linhThach + stones);
-      const newStonesEarned = Math.max(0, prev.spiritStonesEarned + stones);
+      const newLinhThach = Math.max(0, prev.linhThach + adjustedStones);
+      const newStonesEarned = Math.max(0, prev.spiritStonesEarned + adjustedStones);
 
       // Log stats inside daily logs
       updateDailyLog(adjustedAmount, 0, 0);
@@ -933,12 +986,15 @@ export default function App() {
           const newHistory = { ...h.history, [date]: isCompleted };
           const streak = calculateHabitStreak(newHistory);
 
+          const isSpellThanHanhActive = cultState.activeSpells?.includes('spell_than_hanh_bo');
+          const habitXp = isSpellThanHanhActive ? 22 : 15;
+
           if (isCompleted) {
-            addExp(15, 5); // Constant 15 XP and 5 Coins for habit ticking
+            addExp(habitXp, 5); // Constant 15 (or 22) XP and 5 Coins for habit ticking
             updateChallengeValue('HABITS_COMPLETED', 1);
             setCultState(c => ({ ...c, habitsCompletedCount: c.habitsCompletedCount + 1 }));
           } else {
-            addExp(-15, -5); // Deduct 15 XP and 5 Coins when unchecking
+            addExp(-habitXp, -5); // Deduct 15 (or 22) XP and 5 Coins when unchecking
             updateChallengeValue('HABITS_COMPLETED', -1);
             setCultState(c => ({ ...c, habitsCompletedCount: Math.max(0, c.habitsCompletedCount - 1) }));
           }
@@ -1049,6 +1105,29 @@ export default function App() {
   const handleUseConsumable = (itemId: string) => {
     const hasItem = cultState.inventory.some(i => i.itemId === itemId && i.quantity > 0);
     if (!hasItem) return;
+
+    const storeItem = STORE_ITEMS.find(s => s.id === itemId);
+    if (!storeItem) return;
+
+    if (storeItem.type === 'PERMANENT') {
+      // Toggle equip/unequip spell
+      setCultState(prev => {
+        const activeSpells = prev.activeSpells || [];
+        const isEquipped = activeSpells.includes(itemId);
+        let newSpells = [...activeSpells];
+        if (isEquipped) {
+          newSpells = newSpells.filter(id => id !== itemId);
+        } else {
+          if (newSpells.length >= 2) {
+            alert('Đạo hữu chỉ có thể trang bị tối đa 2 phép thuật chủ động cùng lúc!');
+            return prev;
+          }
+          newSpells.push(itemId);
+        }
+        return { ...prev, activeSpells: newSpells };
+      });
+      return;
+    }
 
     if (itemId === 'linh_chi_duoc') {
       // Consume, grant 100 Exp instantly
@@ -1329,9 +1408,93 @@ export default function App() {
   };
 
   // Calculations for Cultivation Profile stats
+  const currentHour = new Date().getHours();
+  const isNightTime = currentHour >= 18 || currentHour < 6;
 
   return (
     <div className="min-h-screen text-slate-300 relative selection:bg-amber-500/20 selection:text-amber-300" id="main-applet-container">
+      {/* ── Dynamic Weather & Time-of-Day Overlays ── */}
+      {/* Night Sky Twinkling Stars */}
+      {isNightTime && (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10">
+          {Array.from({ length: 25 }).map((_, i) => {
+            const top = Math.random() * 40; // Only top half of screen
+            const left = Math.random() * 100;
+            const size = 1 + Math.random() * 2;
+            const delay = Math.random() * 3;
+            return (
+              <div
+                key={`star-${i}`}
+                className="absolute bg-white rounded-full animate-twinkle"
+                style={{
+                  top: `${top}%`,
+                  left: `${left}%`,
+                  width: `${size}px`,
+                  height: `${size}px`,
+                  animationDelay: `${delay}s`,
+                  boxShadow: '0 0 4px rgba(255, 255, 255, 0.8)',
+                }}
+              />
+            );
+          })}
+        </div>
+      )}
+
+      {/* Rain falling particles */}
+      {(soundscape === 'RAIN' || soundscape === 'THUNDER') && (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10">
+          {Array.from({ length: 40 }).map((_, i) => {
+            const left = Math.random() * 100;
+            const delay = Math.random() * 2;
+            const duration = 0.6 + Math.random() * 0.5;
+            return (
+              <div
+                key={`rain-${i}`}
+                className="absolute w-[1px] h-[35px] bg-sky-300/20 animate-rain"
+                style={{
+                  left: `${left}%`,
+                  top: `-40px`,
+                  animationDelay: `${delay}s`,
+                  animationDuration: `${duration}s`,
+                }}
+              />
+            );
+          })}
+        </div>
+      )}
+
+      {/* Campfire ember rising particles */}
+      {soundscape === 'CAMPFIRE' && (
+        <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10">
+          {Array.from({ length: 25 }).map((_, i) => {
+            const left = 10 + Math.random() * 80;
+            const delay = Math.random() * 4;
+            const duration = 3.5 + Math.random() * 2.0;
+            const size = 2 + Math.random() * 3;
+            return (
+              <div
+                key={`ember-${i}`}
+                className="absolute bg-amber-500/40 rounded-full animate-ember"
+                style={{
+                  left: `${left}%`,
+                  bottom: `-10px`,
+                  width: `${size}px`,
+                  height: `${size}px`,
+                  animationDelay: `${delay}s`,
+                  animationDuration: `${duration}s`,
+                  boxShadow: '0 0 6px rgba(245, 158, 11, 0.7)',
+                }}
+              />
+            );
+          })}
+        </div>
+      )}
+
+      {/* Lightning Flash overlay */}
+      {soundscape === 'THUNDER' && (
+        <div className="fixed inset-0 bg-white pointer-events-none animate-lightning z-50 mix-blend-screen" />
+      )}
+
       {/* Immersive background stars pattern */}
       <div className="absolute inset-0 bg-[#070a0f] bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px] opacity-30 -z-10" />
 
@@ -1340,106 +1503,21 @@ export default function App() {
         <div className="fixed inset-0 pointer-events-none shadow-[inset_0_0_80px_rgba(168,85,247,0.18)] z-50 animate-pulse border-2 border-purple-500/10" />
       )}
 
-      {/* RENDER MODE A: FOCUS MODE */}
-      <AnimatePresence>
-        {isFocusMode ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-[#05070a] z-40 flex flex-col items-center justify-center p-4 overflow-y-auto"
-            id="focus-mode-view"
-          >
-            {/* Ambient zen grid background */}
-            <div className="absolute inset-0 bg-[radial-gradient(#10b981_1px,transparent_1px)] [background-size:32px_32px] opacity-5 -z-10" />
-
-            <div className="max-w-xl w-full flex flex-col items-center space-y-6 my-auto">
-              {/* Focus mode header */}
-              <div className="text-center space-y-1">
-                <span className="text-[10px] font-bold font-mono tracking-widest text-emerald-400 bg-emerald-950/40 border border-emerald-900 px-3 py-1 rounded-full uppercase">
-                  Cảnh Giới Bế Quan Tập Trung
-                </span>
-                <h1 className="text-xl font-bold text-slate-200 uppercase tracking-widest mt-2">Đạo Tâm Nhất Thống</h1>
-                <p className="text-xs text-slate-500">Giảm bớt xao nhãng, toàn lực khắc chế tâm ma học tập.</p>
-              </div>
-
-              {/* Timer Center */}
-              <div className="w-full">
-                <MeditationTimer
-                  state={cultState}
-                  onMeditationComplete={handleMeditationComplete}
-                  onPassiveQiTick={handlePassiveQiTick}
-                  isFocusMode={isFocusMode}
-                  onToggleFocusMode={() => setIsFocusMode(false)}
-                />
-              </div>
-
-              {/* Focusing task panel */}
-              <div className="bg-[#0f141c] border border-slate-800/80 p-5 rounded-2xl w-full text-center space-y-3 shadow-xl">
-                <h3 className="text-xs font-bold text-slate-200 flex items-center justify-center gap-1.5 uppercase">
-                  <CheckCircle className="w-4 h-4 text-emerald-400" />
-                  Nhiệm Vụ Đang Khắc Chế
-                </h3>
-
-                {tasks.filter(t => !t.isCompleted).length > 0 ? (
-                  <div className="space-y-3">
-                    <select
-                      value={focusSelectedTaskId}
-                      onChange={(e) => setFocusSelectedTaskId(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-900 rounded-lg px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-emerald-500 cursor-pointer"
-                    >
-                      <option value="">-- Chọn nhiệm vụ muốn tập trung làm --</option>
-                      {tasks.filter(t => !t.isCompleted).map(t => (
-                        <option key={t.id} value={t.id}>{t.title}</option>
-                      ))}
-                    </select>
-
-                    {focusSelectedTaskId && (
-                      <div className="p-3 bg-emerald-950/10 border border-emerald-900/30 rounded-xl flex items-center justify-between gap-3 text-left">
-                        <span className="text-xs font-semibold text-slate-200">
-                          {tasks.find(t => t.id === focusSelectedTaskId)?.title}
-                        </span>
-                        <button
-                          onClick={() => handleFocusTaskComplete(focusSelectedTaskId)}
-                          className="bg-emerald-600 hover:bg-emerald-700 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-lg transition-colors cursor-pointer shrink-0"
-                        >
-                          HOÀN THÀNH
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <p className="text-xs text-slate-500 italic">Đạo phủ hiện không có nhiệm vụ tồn đọng nào!</p>
-                )}
-              </div>
-
-              {/* Exit button */}
-              <button
-                onClick={() => setIsFocusMode(false)}
-                className="text-[10px] text-slate-500 hover:text-rose-400 font-bold border border-slate-900 hover:border-rose-900/40 bg-slate-950/60 px-5 py-2 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer"
-                id="exit-focus-btn"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                XUẤT QUAN (QUAY LẠI TÔNG MÔN)
-              </button>
-            </div>
-          </motion.div>
-        ) : (
-          /* RENDER MODE B: MAIN HUB VIEW */
-          <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
+      {/* MAIN HUB VIEW */}
+      <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
             {/* Top Navigation Bar / Metadata Backup Row */}
-            <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#0f141c]/60 border border-slate-800/80 px-5 py-3 rounded-2xl shadow-lg shrink-0">
+            <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 neo-card px-5 py-3 shrink-0">
               <div className="flex items-center gap-2">
                 <CompassIcon className="w-5 h-5 text-amber-500 animate-spin-slow" />
                 <h1 className="text-sm font-extrabold uppercase tracking-widest text-slate-100 font-sans">
-                  Tiên Lộ Ký <span className="text-[10px] text-amber-500 font-semibold font-mono">v1.1</span>
+                  Tiên Lộ Ký <span className="text-[9px] bg-amber-400 text-slate-950 px-2 py-0.5 rounded border-2 border-slate-950 font-bold ml-1.5 pixel-label">v1.1</span>
                 </h1>
               </div>
 
               {/* Import / Export & Notification Alert controllers */}
               <div className="flex items-center gap-3">
                 {/* Backup buttons */}
-                <div className="flex bg-slate-950 border border-slate-900/60 p-0.5 rounded-lg text-[10px]">
+                <div className="flex bg-slate-950 border-2 border-slate-950 p-0.5 rounded-lg text-[10px] shadow-[1px_1px_0px_#000]">
                   <button
                     onClick={handleExportData}
                     className="p-1 px-2 hover:bg-slate-900 text-slate-400 hover:text-slate-200 rounded transition-colors flex items-center gap-1 font-semibold cursor-pointer"
@@ -1466,7 +1544,7 @@ export default function App() {
 
                 {/* Google Sign-in / Cloud Status Profile Widget */}
                 {currentUser ? (
-                  <div className="flex items-center gap-2 bg-slate-950 border border-slate-900/60 p-1.5 rounded-lg text-[10px] font-sans">
+                  <div className="flex items-center gap-2 bg-slate-950 border-2 border-slate-950 p-1.5 rounded-lg text-[10px] font-sans shadow-[1px_1px_0px_#000]">
                     {/* User Google Avatar */}
                     {currentUser.photoURL ? (
                       <img 
@@ -1510,7 +1588,7 @@ export default function App() {
                 ) : (
                   <button
                     onClick={handleGoogleSignIn}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-slate-950 font-extrabold text-[9px] rounded-lg uppercase tracking-wider transition-all cursor-pointer shadow-md shadow-amber-950/20"
+                    className="flex items-center gap-1 px-3 py-1.5 bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold text-[9px] rounded-lg border-2 border-slate-950 uppercase tracking-wider transition-all cursor-pointer shadow-[2px_2px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#000]"
                   >
                     <LogIn className="w-3.5 h-3.5 stroke-[2.5]" />
                     Đăng Nhập Google
@@ -1550,13 +1628,13 @@ export default function App() {
             )}
 
             {/* Main Tabs switcher */}
-            <nav className="flex border-b border-slate-800/60 pb-px text-xs font-bold gap-1 overflow-x-auto scrollbar-none">
+            <nav className="flex pb-3 text-xs font-bold gap-2 overflow-x-auto scrollbar-none">
               <button
                 onClick={() => setActiveTab('MEDITATION')}
-                className={`py-2.5 px-4 transition-all border-b-2 font-bold cursor-pointer shrink-0 flex items-center gap-1.5 ${
+                className={`py-2.5 px-4 border-2 border-slate-950 rounded-xl font-bold cursor-pointer shrink-0 flex items-center gap-1.5 transition-all active:translate-y-[2px] active:translate-x-[2px] active:shadow-none ${
                   activeTab === 'MEDITATION'
-                    ? 'border-amber-500 text-amber-500 bg-amber-950/10'
-                    : 'border-transparent text-slate-500 hover:text-slate-300'
+                    ? 'bg-amber-400 text-slate-950 shadow-[3px_3px_0px_#000]'
+                    : 'bg-[#131924] text-slate-400 hover:text-slate-200'
                 }`}
                 id="tab-meditation"
               >
@@ -1566,10 +1644,10 @@ export default function App() {
 
               <button
                 onClick={() => setActiveTab('TODOS')}
-                className={`py-2.5 px-4 transition-all border-b-2 font-bold cursor-pointer shrink-0 flex items-center gap-1.5 ${
+                className={`py-2.5 px-4 border-2 border-slate-950 rounded-xl font-bold cursor-pointer shrink-0 flex items-center gap-1.5 transition-all active:translate-y-[2px] active:translate-x-[2px] active:shadow-none ${
                   activeTab === 'TODOS'
-                    ? 'border-amber-500 text-amber-500 bg-amber-950/10'
-                    : 'border-transparent text-slate-500 hover:text-slate-300'
+                    ? 'bg-emerald-400 text-slate-950 shadow-[3px_3px_0px_#000]'
+                    : 'bg-[#131924] text-slate-400 hover:text-slate-200'
                 }`}
                 id="tab-todos"
               >
@@ -1579,10 +1657,10 @@ export default function App() {
 
               <button
                 onClick={() => setActiveTab('IELTS_ARENA')}
-                className={`py-2.5 px-4 transition-all border-b-2 font-bold cursor-pointer shrink-0 flex items-center gap-1.5 ${
+                className={`py-2.5 px-4 border-2 border-slate-950 rounded-xl font-bold cursor-pointer shrink-0 flex items-center gap-1.5 transition-all active:translate-y-[2px] active:translate-x-[2px] active:shadow-none ${
                   activeTab === 'IELTS_ARENA'
-                    ? 'border-amber-500 text-amber-500 bg-amber-950/10'
-                    : 'border-transparent text-slate-500 hover:text-slate-300'
+                    ? 'bg-blue-400 text-slate-950 shadow-[3px_3px_0px_#000]'
+                    : 'bg-[#131924] text-slate-400 hover:text-slate-200'
                 }`}
                 id="tab-ielts"
               >
@@ -1592,10 +1670,10 @@ export default function App() {
 
               <button
                 onClick={() => setActiveTab('CULT_PATH')}
-                className={`py-2.5 px-4 transition-all border-b-2 font-bold cursor-pointer shrink-0 flex items-center gap-1.5 ${
+                className={`py-2.5 px-4 border-2 border-slate-950 rounded-xl font-bold cursor-pointer shrink-0 flex items-center gap-1.5 transition-all active:translate-y-[2px] active:translate-x-[2px] active:shadow-none ${
                   activeTab === 'CULT_PATH'
-                    ? 'border-amber-500 text-amber-500 bg-amber-950/10'
-                    : 'border-transparent text-slate-500 hover:text-slate-300'
+                    ? 'bg-purple-400 text-slate-950 shadow-[3px_3px_0px_#000]'
+                    : 'bg-[#131924] text-slate-400 hover:text-slate-200'
                 }`}
                 id="tab-cult-path"
               >
@@ -1605,10 +1683,10 @@ export default function App() {
 
               <button
                 onClick={() => setActiveTab('ANALYTICS')}
-                className={`py-2.5 px-4 transition-all border-b-2 font-bold cursor-pointer shrink-0 flex items-center gap-1.5 ${
+                className={`py-2.5 px-4 border-2 border-slate-950 rounded-xl font-bold cursor-pointer shrink-0 flex items-center gap-1.5 transition-all active:translate-y-[2px] active:translate-x-[2px] active:shadow-none ${
                   activeTab === 'ANALYTICS'
-                    ? 'border-amber-500 text-amber-500 bg-amber-950/10'
-                    : 'border-transparent text-slate-500 hover:text-slate-300'
+                    ? 'bg-pink-400 text-slate-950 shadow-[3px_3px_0px_#000]'
+                    : 'bg-[#131924] text-slate-400 hover:text-slate-200'
                 }`}
                 id="tab-analytics"
               >
@@ -1618,10 +1696,10 @@ export default function App() {
 
               <button
                 onClick={() => setActiveTab('STORE')}
-                className={`py-2.5 px-4 transition-all border-b-2 font-bold cursor-pointer shrink-0 flex items-center gap-1.5 ${
+                className={`py-2.5 px-4 border-2 border-slate-950 rounded-xl font-bold cursor-pointer shrink-0 flex items-center gap-1.5 transition-all active:translate-y-[2px] active:translate-x-[2px] active:shadow-none ${
                   activeTab === 'STORE'
-                    ? 'border-amber-500 text-amber-500 bg-amber-950/10'
-                    : 'border-transparent text-slate-500 hover:text-slate-300'
+                    ? 'bg-rose-400 text-slate-950 shadow-[3px_3px_0px_#000]'
+                    : 'bg-[#131924] text-slate-400 hover:text-slate-200'
                 }`}
                 id="tab-store"
               >
@@ -1631,10 +1709,10 @@ export default function App() {
 
               <button
                 onClick={() => setActiveTab('CAM_DIA')}
-                className={`py-2.5 px-4 transition-all border-b-2 font-bold cursor-pointer shrink-0 flex items-center gap-1.5 ${
+                className={`py-2.5 px-4 border-2 border-slate-950 rounded-xl font-bold cursor-pointer shrink-0 flex items-center gap-1.5 transition-all active:translate-y-[2px] active:translate-x-[2px] active:shadow-none ${
                   activeTab === 'CAM_DIA'
-                    ? 'border-purple-500 text-purple-400 bg-purple-950/10'
-                    : 'border-transparent text-slate-500 hover:text-slate-300'
+                    ? 'bg-red-500 text-slate-950 shadow-[3px_3px_0px_#000]'
+                    : 'bg-[#131924] text-slate-400 hover:text-slate-200'
                 }`}
                 id="tab-cam-dia"
               >
@@ -1660,13 +1738,84 @@ export default function App() {
                     />
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-                      <MeditationTimer
-                        state={cultState}
-                        onMeditationComplete={handleMeditationComplete}
-                        onPassiveQiTick={handlePassiveQiTick}
-                        isFocusMode={isFocusMode}
-                        onToggleFocusMode={() => setIsFocusMode(true)}
-                      />
+                      <div className={isFocusMode ? "fixed inset-0 bg-[#05070a] z-50 flex flex-col items-center justify-center p-4 overflow-y-auto" : "w-full"}>
+                        {isFocusMode && (
+                          <div className="absolute inset-0 bg-[radial-gradient(#10b981_1px,transparent_1px)] [background-size:32px_32px] opacity-5 -z-10" />
+                        )}
+                        <div className={isFocusMode ? "max-w-xl w-full flex flex-col items-center space-y-6 my-auto z-10" : "w-full"}>
+                          {isFocusMode && (
+                            <div className="text-center space-y-1">
+                              <span className="text-[10px] font-bold font-mono tracking-widest text-emerald-400 bg-emerald-950/40 border border-emerald-900 px-3 py-1 rounded-full uppercase">
+                                Cảnh Giới Bế Quan Tập Trung
+                              </span>
+                              <h1 className="text-xl font-bold text-slate-200 uppercase tracking-widest mt-2">Đạo Tâm Nhất Thống</h1>
+                              <p className="text-xs text-slate-500">Giảm bớt xao nhãng, toàn lực khắc chế tâm ma học tập.</p>
+                            </div>
+                          )}
+
+                          <MeditationTimer
+                            state={cultState}
+                            onMeditationComplete={handleMeditationComplete}
+                            onPassiveQiTick={handlePassiveQiTick}
+                            isFocusMode={isFocusMode}
+                            onToggleFocusMode={() => setIsFocusMode(!isFocusMode)}
+                            soundscape={soundscape}
+                            onSoundscapeChange={setSoundscape}
+                          />
+
+                          {isFocusMode && (
+                            <>
+                              {/* Focusing task panel */}
+                              <div className="bg-[#0f141c] border border-slate-800/80 p-5 rounded-2xl w-full text-center space-y-3 shadow-xl">
+                                <h3 className="text-xs font-bold text-slate-200 flex items-center justify-center gap-1.5 uppercase">
+                                  <CheckCircle className="w-4 h-4 text-emerald-400" />
+                                  Nhiệm Vụ Đang Khắc Chế
+                                </h3>
+
+                                {tasks.filter(t => !t.isCompleted).length > 0 ? (
+                                  <div className="space-y-3">
+                                    <select
+                                      value={focusSelectedTaskId}
+                                      onChange={(e) => setFocusSelectedTaskId(e.target.value)}
+                                      className="w-full bg-slate-950 border border-slate-900 rounded-lg px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-emerald-500 cursor-pointer"
+                                    >
+                                      <option value="">-- Chọn nhiệm vụ muốn tập trung làm --</option>
+                                      {tasks.filter(t => !t.isCompleted).map(t => (
+                                        <option key={t.id} value={t.id}>{t.title}</option>
+                                      ))}
+                                    </select>
+
+                                    {focusSelectedTaskId && (
+                                      <div className="p-3 bg-emerald-950/10 border border-emerald-900/30 rounded-xl flex items-center justify-between gap-3 text-left">
+                                        <span className="text-xs font-semibold text-slate-200">
+                                          {tasks.find(t => t.id === focusSelectedTaskId)?.title}
+                                        </span>
+                                        <button
+                                          onClick={() => handleFocusTaskComplete(focusSelectedTaskId)}
+                                          className="bg-emerald-600 hover:bg-emerald-700 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-lg transition-colors cursor-pointer shrink-0"
+                                        >
+                                          HOÀN THÀNH
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <p className="text-xs text-slate-500 italic">Đạo phủ hiện không có nhiệm vụ tồn đọng nào!</p>
+                                )}
+                              </div>
+
+                              {/* Exit button */}
+                              <button
+                                onClick={() => setIsFocusMode(false)}
+                                className="text-[10px] text-slate-500 hover:text-rose-400 font-bold border border-slate-900 hover:border-rose-900/40 bg-slate-950/60 px-5 py-2 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer"
+                              >
+                                <LogOut className="w-3.5 h-3.5" />
+                                XUẤT QUAN (QUAY LẠI TÔNG MÔN)
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
                       <TaskSection
                         tasks={tasks}
                         onAddTask={handleAddTask}
@@ -1753,12 +1902,11 @@ export default function App() {
                   leaderboard={leaderboard}
                   isFetchingLeaderboard={isFetchingLeaderboard}
                   onRefreshLeaderboard={handleFetchLeaderboard}
+                  state={cultState}
                 />
               </div>
             </main>
           </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

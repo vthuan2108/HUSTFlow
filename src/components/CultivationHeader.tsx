@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import { CultivationState } from '../types';
-import { getRealmInfo, RealmInfo } from '../data';
+import { getRealmInfo, RealmInfo, STORE_ITEMS } from '../data';
 import { Shield, Sparkles, Gem, User, Trophy, Flame, Compass } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -118,7 +118,7 @@ export default function CultivationHeader({ state, onRename, onBreakthrough, use
   };
 
   return (
-    <div className={`bg-[#0f141c]/90 border rounded-2xl p-5 shadow-2xl space-y-4 relative overflow-hidden transition-all duration-300 ${style.glowBorder}`} id="cultivation-header">
+    <div className="neo-card p-5 space-y-4 relative overflow-hidden" id="cultivation-header">
       {/* Background radial glow */}
       <div className={`absolute -top-12 -left-12 w-32 h-32 bg-gradient-to-br ${style.glow} blur-2xl pointer-events-none rounded-full opacity-35`} />
 
@@ -134,7 +134,7 @@ export default function CultivationHeader({ state, onRename, onBreakthrough, use
             <div className="absolute inset-0 rounded-full border border-dashed border-slate-700/40 animate-spin-slow" />
             
             {/* Glowing orb center */}
-            <div className={`w-9 h-9 rounded-full bg-slate-950 border flex items-center justify-center relative z-10 transition-all ${style.glowBorder}`}>
+            <div className={`w-9 h-9 rounded-full bg-slate-950 border-2 border-slate-950 flex items-center justify-center relative z-10 transition-all`}>
               <User className={`w-4 h-4 transition-colors ${realm.colorClass}`} />
             </div>
             
@@ -151,11 +151,11 @@ export default function CultivationHeader({ state, onRename, onBreakthrough, use
                     type="text"
                     value={tempName}
                     onChange={(e) => setTempName(e.target.value)}
-                    className="bg-slate-950 border border-slate-900 rounded px-2 py-0.5 text-xs text-slate-200 focus:outline-none"
+                    className="bg-slate-950 border-2 border-slate-950 rounded-lg px-2 py-0.5 text-xs text-slate-200 focus:outline-none"
                     maxLength={15}
                     autoFocus
                   />
-                  <button type="submit" className="text-[10px] bg-emerald-950 border border-emerald-900 text-emerald-400 px-2 py-0.5 rounded">Lưu</button>
+                  <button type="submit" className="text-[10px] neo-btn neo-btn-success px-2 py-0.5 rounded">Lưu</button>
                 </form>
               ) : (
                 <div className="flex items-center gap-1.5">
@@ -171,12 +171,26 @@ export default function CultivationHeader({ state, onRename, onBreakthrough, use
             </div>
 
             <div className="flex items-center gap-2 mt-1">
-              <span className={`text-sm font-black font-sans tracking-[0.1em] uppercase ${style.text}`}>
+              <span className={`text-xs font-black font-sans tracking-[0.1em] uppercase pixel-label ${style.text}`}>
                 {realm.fullName}
               </span>
-              <span className={`text-[8px] font-extrabold font-mono border px-2 py-0.5 rounded-full uppercase tracking-wider ${style.badgeBg}`}>
-                Lớp {state.level}
+              <span className="text-[9px] font-bold border-2 border-slate-950 px-2 py-0.5 rounded-lg bg-amber-400 text-slate-950 pixel-label shadow-[1px_1px_0px_#000] shrink-0">
+                LV. {state.level}
               </span>
+              {state.activeSpells && state.activeSpells.map(spellId => {
+                const spell = STORE_ITEMS.find(s => s.id === spellId);
+                if (!spell) return null;
+                return (
+                  <span
+                    key={spellId}
+                    className="text-[9px] font-bold border-2 border-slate-950 px-1.5 py-0.5 rounded-lg bg-emerald-400 text-slate-950 pixel-label shadow-[1px_1px_0px_#000] flex items-center gap-1 shrink-0"
+                    title={`${spell.name}: ${spell.description}`}
+                  >
+                    <span>{spell.icon}</span>
+                    <span className="hidden sm:inline">{spell.name}</span>
+                  </span>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -185,15 +199,15 @@ export default function CultivationHeader({ state, onRename, onBreakthrough, use
         <div className="flex items-center gap-4 text-xs font-mono">
           {/* Shield status */}
           {state.shieldActive && (
-            <div className="flex items-center gap-1 bg-indigo-950/20 border border-indigo-900/60 px-2.5 py-1 rounded-xl text-indigo-400">
+            <div className="flex items-center gap-1 bg-indigo-950/20 border-2 border-slate-950 px-2.5 py-1 rounded-xl text-indigo-400 shadow-[2px_2px_0px_#000]">
               <Shield className="w-3.5 h-3.5" />
               <span className="text-[10px] font-bold">HỘ THÂN</span>
             </div>
           )}
 
           {/* Linh Thach Balance */}
-          <div className="bg-slate-950 border border-slate-900 px-3 py-1.5 rounded-xl flex items-center gap-2">
-            <Gem className="w-4 h-4 text-amber-500" />
+          <div className="bg-slate-950 border-2 border-slate-950 px-3 py-1.5 rounded-xl flex items-center gap-2 shadow-[2px_2px_0px_#000]">
+            <Gem className="w-4 h-4 text-amber-400" />
             <div>
               <p className="text-[8px] text-slate-600 font-bold uppercase leading-none">Linh Thạch</p>
               <p className="text-xs font-bold text-slate-200 mt-0.5">{state.linhThach}</p>
@@ -211,7 +225,7 @@ export default function CultivationHeader({ state, onRename, onBreakthrough, use
           </span>
         </div>
 
-        <div className="relative w-full bg-slate-950 border border-slate-900/50 rounded-full h-4 overflow-hidden flex items-center shadow-[inner_0_2px_4px_rgba(0,0,0,0.4)]">
+        <div className="relative w-full bg-slate-950 border-[3px] border-slate-950 rounded-xl h-5 overflow-hidden flex items-center shadow-none">
           {/* Progress fill */}
           <div
             className={`h-full bg-gradient-to-r ${style.gradient} transition-all duration-700 relative`}
@@ -233,7 +247,7 @@ export default function CultivationHeader({ state, onRename, onBreakthrough, use
         <div className="flex items-center justify-between flex-wrap gap-2 pt-1 text-[11px]">
           <span className="text-slate-500 flex items-center gap-1 select-none">
             <Sparkles className="w-3.5 h-3.5 text-yellow-500" />
-            Khi tu vi tràn đầy, hãy tiến hành kích hoạt đột phá bình cảnh để tiến thăng cảnh giới!
+            Khi tu vi tràn đầy, hãy tiến hành đột phá để thăng cảnh giới!
           </span>
 
           <button
@@ -242,10 +256,10 @@ export default function CultivationHeader({ state, onRename, onBreakthrough, use
               setBreakthroughResult('IDLE');
             }}
             disabled={!canBreakthrough}
-            className={`px-5 py-2 rounded-xl font-bold text-[10px] tracking-widest transition-all cursor-pointer ${
+            className={`px-5 py-2 rounded-xl text-[10px] font-black tracking-widest ${
               canBreakthrough
-                ? 'bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-slate-950 shadow-lg shadow-amber-950/30'
-                : 'bg-slate-900 text-slate-600 border border-slate-950 cursor-not-allowed'
+                ? 'neo-btn neo-btn-primary'
+                : 'bg-slate-900 text-slate-600 border-2 border-slate-950 cursor-not-allowed'
             }`}
           >
             ĐỘT PHÁ CẢNH GIỚI
@@ -261,13 +275,13 @@ export default function CultivationHeader({ state, onRename, onBreakthrough, use
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-[#0f141c] border border-slate-800 rounded-2xl p-6 max-w-sm w-full text-center space-y-6 shadow-2xl relative"
+              className="neo-card p-6 max-w-sm w-full text-center space-y-6 relative"
             >
               {/* Close Button if idle or complete */}
               {breakthroughResult !== 'ANIMATING' && (
                 <button
                   onClick={() => setIsBreakthroughModalOpen(false)}
-                  className="absolute top-4 right-4 text-xs text-slate-500 hover:text-slate-300"
+                  className="absolute top-4 right-4 text-xs text-slate-500 hover:text-slate-300 font-bold"
                 >
                   Đóng
                 </button>
@@ -275,17 +289,17 @@ export default function CultivationHeader({ state, onRename, onBreakthrough, use
 
               {breakthroughResult === 'IDLE' && (
                 <div className="space-y-4">
-                  <div className="w-12 h-12 rounded-full bg-amber-950/40 border border-amber-900 flex items-center justify-center mx-auto text-amber-400">
+                  <div className="w-12 h-12 rounded-full bg-amber-950/40 border-2 border-slate-950 flex items-center justify-center mx-auto text-amber-400">
                     <Flame className="w-6 h-6 animate-pulse" />
                   </div>
                   <div>
-                    <h3 className="text-md font-bold text-slate-100 uppercase tracking-widest">ĐỘT PHÁ BÌNH CẢNH</h3>
+                    <h3 className="text-md font-bold text-slate-100 uppercase tracking-widest pixel-label">ĐỘT PHÁ BÌNH CẢNH</h3>
                     <p className="text-xs text-slate-400 mt-2">
                       Tiến hành vượt qua lôi kiếp để đột phá tiến cấp danh hiệu mới.
                     </p>
                   </div>
 
-                  <div className="bg-slate-950 p-3 rounded-xl space-y-2 border border-slate-900 text-left font-mono text-[10px]">
+                  <div className="bg-slate-950 p-3 rounded-xl space-y-2 border-2 border-slate-950 text-left font-mono text-[10px] shadow-[2px_2px_0px_#000]">
                     <div className="flex justify-between">
                       <span className="text-slate-500">Tỉ lệ thành công:</span>
                       <span className="text-amber-400 font-bold">{successRate.toFixed(1)}%</span>
@@ -299,14 +313,14 @@ export default function CultivationHeader({ state, onRename, onBreakthrough, use
                     <div className="flex justify-between">
                       <span className="text-slate-500">Kiếp nạn thất bại:</span>
                       <span className="text-rose-500">
-                        {state.shieldActive ? 'Không mất tu vi (Được bảo hộ)' : '-10% Tu Vi'}
+                        {state.shieldActive ? 'Không mất tu vi (Đoạt bảo)' : '-10% Tu Vi'}
                       </span>
                     </div>
                   </div>
 
                   <button
                     onClick={startBreakthroughProcess}
-                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 font-bold text-xs tracking-widest hover:from-amber-600 hover:to-yellow-600 cursor-pointer"
+                    className="w-full py-2.5 neo-btn neo-btn-primary text-xs font-bold tracking-widest"
                   >
                     BẮT ĐẦU ĐỘT PHÁ (KÍCH HOẠT)
                   </button>
@@ -315,7 +329,7 @@ export default function CultivationHeader({ state, onRename, onBreakthrough, use
 
               {breakthroughResult === 'ANIMATING' && (
                 <div className="space-y-4 py-8">
-                  <div className="w-16 h-16 rounded-full bg-indigo-950/40 border border-indigo-900 flex items-center justify-center mx-auto text-indigo-400 relative">
+                  <div className="w-16 h-16 rounded-full bg-indigo-950/40 border-2 border-slate-950 flex items-center justify-center mx-auto text-indigo-400 relative shadow-[2px_2px_0px_#000]">
                     <Compass className="w-8 h-8 animate-spin text-indigo-400" />
                     <div className="absolute inset-0 rounded-full border border-dashed border-indigo-500 animate-ping opacity-30" />
                   </div>
@@ -328,18 +342,18 @@ export default function CultivationHeader({ state, onRename, onBreakthrough, use
 
               {breakthroughResult === 'SUCCESS' && (
                 <div className="space-y-4">
-                  <div className="w-12 h-12 rounded-full bg-emerald-950/40 border border-emerald-900 flex items-center justify-center mx-auto text-emerald-400">
+                  <div className="w-12 h-12 rounded-full bg-emerald-950/40 border-2 border-slate-950 flex items-center justify-center mx-auto text-emerald-400 shadow-[2px_2px_0px_#000]">
                     <Trophy className="w-6 h-6 text-emerald-400" />
                   </div>
                   <div>
-                    <h3 className="text-md font-bold text-emerald-400 uppercase tracking-widest">ĐỘT PHÁ THÀNH CÔNG!</h3>
+                    <h3 className="text-md font-bold text-emerald-400 uppercase tracking-widest pixel-label">ĐỘT PHÁ THÀNH CÔNG!</h3>
                     <p className="text-xs text-slate-300 mt-2">
                       Chúc mừng bạn đã độ kiếp viên mãn, chính thức thăng tiến danh hiệu cao quý mới!
                     </p>
                   </div>
                   <button
                     onClick={() => setIsBreakthroughModalOpen(false)}
-                    className="w-full py-2 bg-emerald-600 text-slate-950 font-bold text-xs rounded-xl"
+                    className="w-full py-2 neo-btn neo-btn-success text-xs font-bold tracking-widest"
                   >
                     XÁC NHẬN SỰ KIỆN
                   </button>
@@ -348,11 +362,11 @@ export default function CultivationHeader({ state, onRename, onBreakthrough, use
 
               {breakthroughResult === 'FAILED' && (
                 <div className="space-y-4">
-                  <div className="w-12 h-12 rounded-full bg-rose-950/40 border border-rose-900 flex items-center justify-center mx-auto text-rose-400">
+                  <div className="w-12 h-12 rounded-full bg-rose-950/40 border-2 border-slate-950 flex items-center justify-center mx-auto text-rose-400 shadow-[2px_2px_0px_#000]">
                     <Shield className="w-6 h-6 text-rose-400" />
                   </div>
                   <div>
-                    <h3 className="text-md font-bold text-rose-400 uppercase tracking-widest">ĐỘT PHÁ THẤT BẠI</h3>
+                    <h3 className="text-md font-bold text-rose-400 uppercase tracking-widest pixel-label">ĐỘT PHÁ THẤT BẠI</h3>
                     <p className="text-xs text-slate-300 mt-2">
                       {state.shieldActive
                         ? 'Lôi kiếp giáng xuống nhưng Hộ Tâm Kính đã cản phá toàn bộ đòn đánh. Tu vi nguyên vẹn!'
@@ -361,7 +375,7 @@ export default function CultivationHeader({ state, onRename, onBreakthrough, use
                   </div>
                   <button
                     onClick={() => setIsBreakthroughModalOpen(false)}
-                    className="w-full py-2 bg-rose-600 text-slate-950 font-bold text-xs rounded-xl"
+                    className="w-full py-2 neo-btn neo-btn-danger text-xs font-bold tracking-widest text-white"
                   >
                     CHẤP NHẬN SỰ THẬT
                   </button>

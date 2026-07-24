@@ -185,29 +185,29 @@ export default function StreakGrid({ dailyLogs, todoItems }: StreakGridProps) {
   }
 
   return (
-    <div className="bg-[#0f141c]/90 border border-slate-800/80 rounded-2xl p-5 shadow-xl space-y-5" id="streak-grid-container">
+    <div className="neo-card p-5 space-y-5" id="streak-grid-container">
       {/* 4 Core Stats Columns (Green/Emerald Theme) */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 border-b border-slate-900 pb-4 font-mono">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 border-b-2 border-slate-950 pb-4 font-mono">
         <div className="space-y-0.5">
-          <h5 className="text-xl sm:text-2xl font-black text-emerald-400 tracking-tight">
+          <h5 className="text-xl sm:text-2xl font-black text-emerald-400 tracking-tight pixel-label">
             {totalReviews.toLocaleString('en-US')}
           </h5>
           <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider font-sans">TỔNG NHIỆM VỤ HOÀN THÀNH</p>
         </div>
         <div className="space-y-0.5">
-          <h5 className="text-xl sm:text-2xl font-black text-emerald-400 tracking-tight">
+          <h5 className="text-xl sm:text-2xl font-black text-emerald-400 tracking-tight pixel-label">
             {activeDays.toLocaleString('en-US')}
           </h5>
           <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider font-sans">NGÀY TU LUYỆN</p>
         </div>
         <div className="space-y-0.5">
-          <h5 className="text-xl sm:text-2xl font-black text-emerald-400 tracking-tight">
+          <h5 className="text-xl sm:text-2xl font-black text-emerald-400 tracking-tight pixel-label">
             {currentStreak.toLocaleString('en-US')}
           </h5>
           <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider font-sans">NGÀY BẾ QUAN HIỆN TẠI</p>
         </div>
         <div className="space-y-0.5">
-          <h5 className="text-xl sm:text-2xl font-black text-emerald-400 tracking-tight">
+          <h5 className="text-xl sm:text-2xl font-black text-emerald-400 tracking-tight pixel-label">
             {longestStreak.toLocaleString('en-US')}
           </h5>
           <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider font-sans">NGÀY BẾ QUAN DÀI NHẤT</p>
@@ -216,11 +216,11 @@ export default function StreakGrid({ dailyLogs, todoItems }: StreakGridProps) {
 
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
-          <div className="p-1.5 bg-emerald-950/40 border border-emerald-900/60 rounded-lg text-emerald-400 shrink-0">
+          <div className="p-1.5 bg-slate-950 border-2 border-slate-950 rounded-lg text-emerald-400 shrink-0 shadow-[1px_1px_0px_#000]">
             <Flame className="w-4 h-4" />
           </div>
           <div>
-            <h4 className="text-xs font-black text-slate-100 uppercase tracking-wide">
+            <h4 className="text-xs font-bold text-slate-100 uppercase tracking-wide">
               Trận Pháp Bế Quan
             </h4>
             <p className="text-[8px] text-slate-500 font-sans">Đại trận đồ theo dõi quá trình hành trì bế quan tu luyện</p>
@@ -228,19 +228,23 @@ export default function StreakGrid({ dailyLogs, todoItems }: StreakGridProps) {
         </div>
 
         {/* Tab Toggle buttons */}
-        <div className="flex bg-slate-950 p-0.5 rounded-lg border border-slate-900/80 text-[8.5px] font-bold">
+        <div className="flex bg-slate-950 p-1 rounded-xl border-2 border-slate-950 text-[8.5px] font-bold shadow-[1px_1px_0px_#000]">
           <button
             onClick={() => setViewMode('MONTH')}
-            className={`px-3 py-1 rounded-md transition-colors cursor-pointer ${
-              viewMode === 'MONTH' ? 'bg-emerald-600 text-slate-950 font-black' : 'text-slate-400 hover:text-slate-200'
+            className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+              viewMode === 'MONTH'
+                ? 'bg-emerald-400 text-slate-950 font-black border border-slate-950 shadow-[1px_1px_0px_#000]'
+                : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             Tháng {currentMonth + 1}
           </button>
           <button
             onClick={() => setViewMode('YEAR')}
-            className={`px-3 py-1 rounded-md transition-colors cursor-pointer ${
-              viewMode === 'YEAR' ? 'bg-emerald-600 text-slate-950 font-black' : 'text-slate-400 hover:text-slate-200'
+            className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+              viewMode === 'YEAR'
+                ? 'bg-emerald-400 text-slate-950 font-black border border-slate-950 shadow-[1px_1px_0px_#000]'
+                : 'text-slate-400 hover:text-slate-200'
             }`}
           >
             Cả Năm
@@ -251,10 +255,10 @@ export default function StreakGrid({ dailyLogs, todoItems }: StreakGridProps) {
       {viewMode === 'MONTH' ? (
         // Month Calendar View (Standard grid format)
         <div className="space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-900 pb-2">
+          <div className="flex items-center justify-between border-b-2 border-slate-950 pb-2">
             <span className="text-sm font-bold text-slate-200">{monthNames[currentMonth]} {currentYear}</span>
             <span className="text-[10px] text-emerald-400 flex items-center gap-1 uppercase tracking-wider font-mono font-bold">
-              <Sparkles className="w-3.5 h-3.5" /> bế quan định lực
+              <Sparkles className="w-3.5 h-3.5 animate-pulse" /> bế quan định lực
             </span>
           </div>
 
@@ -290,23 +294,23 @@ export default function StreakGrid({ dailyLogs, todoItems }: StreakGridProps) {
                 return (
                   <div
                     key={day.dateStr}
-                    className={`aspect-square rounded-xl flex flex-col items-center justify-center relative group border cursor-pointer transition-all ${
+                    className={`aspect-square rounded-lg flex flex-col items-center justify-center relative group border-2 border-slate-950 transition-all shadow-[2px_2px_0px_#000] hover:shadow-[3px_3px_0px_#000] hover:-translate-x-[1px] hover:-translate-y-[1px] ${
                       hasLog
                         ? getColorClass(day.log)
-                        : 'bg-[#111827]/40 border-slate-800/80 hover:border-slate-700/80 hover:bg-[#111827]/60'
+                        : 'bg-[#111827]/40 border-slate-950 hover:bg-[#111827]/60'
                     } ${
-                      isToday ? 'ring-2 ring-emerald-400/80 ring-offset-2 ring-offset-[#0f141c]' : ''
+                      isToday ? 'ring-2 ring-amber-400 ring-offset-2 ring-offset-[#0f141c]' : ''
                     }`}
                   >
                     <span className={`text-xs ${textColor}`}>{day.dayNum}</span>
                     
                     {/* Small dot below the number if active */}
                     {hasLog && (
-                      <span className={`w-1 h-1 rounded-full absolute bottom-1.5 ${isLightBg ? 'bg-slate-950/60' : 'bg-emerald-400/80'}`} />
+                      <span className={`w-1.5 h-1.5 rounded-full absolute bottom-1.5 ${isLightBg ? 'bg-slate-950/60' : 'bg-emerald-400/80'}`} />
                     )}
 
                     {/* Rich Tooltip */}
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-40 p-2 bg-slate-950 border border-slate-800 rounded-lg shadow-2xl text-[9px] leading-normal text-slate-300 opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-150 z-50 font-sans text-left">
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-40 p-2 bg-slate-950 border-2 border-slate-950 rounded-lg shadow-[3px_3px_0px_#000] text-[9px] leading-normal text-slate-300 opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-150 z-50 font-sans text-left">
                       <p className="font-bold text-slate-200 border-b border-slate-900 pb-1 mb-1 font-mono text-center">
                         {day.dateStr} {isToday ? '(Hôm nay)' : ''}
                       </p>
@@ -338,7 +342,7 @@ export default function StreakGrid({ dailyLogs, todoItems }: StreakGridProps) {
       ) : (
         // Year Grid Contribution View (GitHub style)
         <div className="space-y-3">
-          <div className="flex items-center justify-between text-[9.5px] text-slate-400 border-b border-slate-900 pb-1.5">
+          <div className="flex items-center justify-between text-[9.5px] text-slate-400 border-b border-slate-950 pb-1.5">
             <span>Đại Trận Pháp 365 Ngày Tu Vi</span>
             <span className="text-[8px] text-slate-500 font-sans">Cuộn ngang ➔</span>
           </div>
@@ -373,12 +377,12 @@ export default function StreakGrid({ dailyLogs, todoItems }: StreakGridProps) {
                         return (
                           <div
                             key={dayIdx}
-                            className={`w-2.5 h-2.5 rounded-sm relative group border cursor-default ${getColorClass(day.log)} ${
+                            className={`w-2.5 h-2.5 rounded-sm relative group border-2 border-slate-950 cursor-default ${getColorClass(day.log)} ${
                               isToday ? 'ring-1 ring-emerald-400' : ''
                             }`}
                           >
                             {/* Rich Tooltip */}
-                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-40 p-2 bg-slate-950 border border-slate-800 rounded-lg shadow-2xl text-[9px] leading-normal text-slate-300 opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-150 z-50 font-sans text-left">
+                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-40 p-2 bg-slate-950 border-2 border-slate-950 rounded-lg shadow-[3px_3px_0px_#000] text-[9px] leading-normal text-slate-300 opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-150 z-50 font-sans text-left">
                               <p className="font-bold text-slate-200 border-b border-slate-900 pb-1 mb-1 font-mono text-center">
                                 {day.dateStr}
                               </p>
@@ -414,11 +418,11 @@ export default function StreakGrid({ dailyLogs, todoItems }: StreakGridProps) {
           {/* Legend indicator */}
           <div className="flex justify-end items-center gap-1.5 text-[8px] text-slate-500 font-sans pr-1">
             <span>Ít</span>
-            <span className="w-2 h-2 rounded-sm bg-[#161b22] border border-[#21262d]/40" />
-            <span className="w-2 h-2 rounded-sm bg-[#0e4429] border border-[#0e4429]/40" />
-            <span className="w-2 h-2 rounded-sm bg-[#006d32] border border-[#006d32]/40" />
-            <span className="w-2 h-2 rounded-sm bg-[#26a641] border border-[#26a641]/40" />
-            <span className="w-2 h-2 rounded-sm bg-[#39d353] border border-[#39d353]/40" />
+            <span className="w-2.5 h-2.5 rounded border-2 border-slate-950 bg-[#161b22]" />
+            <span className="w-2.5 h-2.5 rounded border-2 border-slate-950 bg-[#0e4429]" />
+            <span className="w-2.5 h-2.5 rounded border-2 border-slate-950 bg-[#006d32]" />
+            <span className="w-2.5 h-2.5 rounded border-2 border-slate-950 bg-[#26a641]" />
+            <span className="w-2.5 h-2.5 rounded border-2 border-slate-950 bg-[#39d353]" />
             <span>Nhiều</span>
           </div>
         </div>

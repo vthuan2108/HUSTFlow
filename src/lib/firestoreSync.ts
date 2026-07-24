@@ -23,14 +23,33 @@ export interface CultivationSaveData {
   notes: any[];
 }
 
+function sanitizeForFirestore(val: any): any {
+  if (val === undefined) return null;
+  if (val === null) return null;
+  if (Array.isArray(val)) {
+    return val.map(sanitizeForFirestore);
+  }
+  if (typeof val === 'object') {
+    const res: any = {};
+    for (const key of Object.keys(val)) {
+      if (val[key] !== undefined) {
+        res[key] = sanitizeForFirestore(val[key]);
+      }
+    }
+    return res;
+  }
+  return val;
+}
+
 /**
  * Saves all user states to Firebase Firestore under the user's UID document.
  */
 export async function saveUserDataToCloud(uid: string, data: CultivationSaveData): Promise<void> {
   try {
     const docRef = doc(db, 'users', uid);
+    const sanitizedData = sanitizeForFirestore(data);
     await setDoc(docRef, {
-      ...data,
+      ...sanitizedData,
       updatedAt: new Date().toISOString(),
     });
   } catch (error) {

@@ -23,6 +23,8 @@ interface MeditationTimerProps {
   onPassiveQiTick: (tuViGained: number) => void;
   isFocusMode: boolean;
   onToggleFocusMode: () => void;
+  soundscape: SoundscapeType;
+  onSoundscapeChange: (val: SoundscapeType) => void;
 }
 
 // --- WEB AUDIO API PROCEDURAL SOUNDSCAPES SYNTHESIS ---
@@ -417,7 +419,9 @@ export default function MeditationTimer({
   onMeditationComplete,
   onPassiveQiTick,
   isFocusMode,
-  onToggleFocusMode
+  onToggleFocusMode,
+  soundscape,
+  onSoundscapeChange
 }: MeditationTimerProps) {
   const [mode, setMode] = useState<'FOCUS' | 'SHORT_BREAK' | 'LONG_BREAK'>('FOCUS');
   const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes
@@ -440,9 +444,6 @@ export default function MeditationTimer({
     localStorage.setItem('tlk_completed_cycles', completedCycles.toString());
   }, [completedCycles]);
 
-  const [soundscape, setSoundscape] = useState<SoundscapeType>(() => {
-    return (localStorage.getItem('tlk_soundscape') as SoundscapeType) || 'NONE';
-  });
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const passiveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -461,10 +462,6 @@ export default function MeditationTimer({
     }
     return audioContextRef.current;
   };
-
-  useEffect(() => {
-    localStorage.setItem('tlk_soundscape', soundscape);
-  }, [soundscape]);
 
   // 60fps smooth progress animation
   const maxTimeDep = (() => {
@@ -770,17 +767,17 @@ export default function MeditationTimer({
   const plantStageEmoji = selectedSeed.icon || '🌿';
 
   return (
-    <div className="bg-[#0f141c] border border-slate-800/80 rounded-2xl shadow-xl flex flex-col items-center relative overflow-hidden" id="meditation-timer">
+    <div className="neo-card flex flex-col items-center relative overflow-hidden" id="meditation-timer">
 
       {/* Top bar */}
       <div className="w-full flex items-center justify-between px-4 pt-4 pb-2">
         {/* Mode Tabs */}
-        <div className="flex gap-1 p-0.5 bg-slate-950/80 border border-slate-900 rounded-lg">
+        <div className="flex gap-1.5 p-1 bg-slate-950 border-2 border-slate-950 rounded-xl shadow-[1px_1px_0px_#000]">
           <button
             onClick={() => handleModeChange('FOCUS')}
-            className={`px-2 py-1 rounded-md text-[9px] font-bold transition-all cursor-pointer ${
+            className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase transition-all cursor-pointer ${
               mode === 'FOCUS'
-                ? 'bg-emerald-950/80 border border-emerald-800/80 text-emerald-400'
+                ? 'bg-emerald-400 text-slate-950 border border-slate-950 shadow-[1px_1px_0px_#000]'
                 : 'text-slate-500 hover:text-slate-300'
             }`}
           >
@@ -788,9 +785,9 @@ export default function MeditationTimer({
           </button>
           <button
             onClick={() => handleModeChange('SHORT_BREAK')}
-            className={`px-2 py-1 rounded-md text-[9px] font-bold transition-all cursor-pointer ${
+            className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase transition-all cursor-pointer ${
               mode === 'SHORT_BREAK'
-                ? 'bg-blue-950/80 border border-blue-800/80 text-blue-400'
+                ? 'bg-blue-400 text-slate-950 border border-slate-950 shadow-[1px_1px_0px_#000]'
                 : 'text-slate-500 hover:text-slate-300'
             }`}
           >
@@ -798,9 +795,9 @@ export default function MeditationTimer({
           </button>
           <button
             onClick={() => handleModeChange('LONG_BREAK')}
-            className={`px-2 py-1 rounded-md text-[9px] font-bold transition-all cursor-pointer ${
+            className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase transition-all cursor-pointer ${
               mode === 'LONG_BREAK'
-                ? 'bg-indigo-950/80 border border-indigo-800/80 text-indigo-400'
+                ? 'bg-indigo-400 text-slate-950 border border-slate-950 shadow-[1px_1px_0px_#000]'
                 : 'text-slate-500 hover:text-slate-300'
             }`}
           >
@@ -812,17 +809,17 @@ export default function MeditationTimer({
         <div className="flex items-center gap-1.5">
           <button
             onClick={() => setSoundEnabled(!soundEnabled)}
-            className="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200 cursor-pointer"
+            className="p-1.5 rounded-lg bg-slate-950 border-2 border-slate-950 text-slate-400 hover:text-slate-200 cursor-pointer shadow-[1px_1px_0px_#000]"
             title={soundEnabled ? 'Tắt tiếng' : 'Bật tiếng'}
           >
             {soundEnabled ? <Volume2 className="w-3 h-3" /> : <VolumeX className="w-3 h-3" />}
           </button>
           <button
             onClick={onToggleFocusMode}
-            className={`p-1.5 rounded-lg border cursor-pointer transition-all ${
+            className={`p-1.5 rounded-lg border-2 cursor-pointer transition-all ${
               isFocusMode
-                ? 'bg-amber-950/40 text-amber-400 border-amber-900'
-                : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-amber-400'
+                ? 'bg-amber-400 text-slate-950 border-slate-950 shadow-[1px_1px_0px_#000]'
+                : 'bg-slate-950 text-slate-400 border-slate-950 hover:text-amber-400 shadow-[1px_1px_0px_#000]'
             }`}
             title="Cảnh giới Focus"
           >
@@ -843,7 +840,7 @@ export default function MeditationTimer({
                 <stop offset="0%" stopColor="#86efac" />
                 <stop offset="100%" stopColor="#059669" />
               </linearGradient>
-              <linearGradient id="breakGrad" x1="0%" y1="0%" x2="100%\" y2="100%">
+              <linearGradient id="breakGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor="#bfdbfe" />
                 <stop offset="100%" stopColor="#2563eb" />
               </linearGradient>
@@ -863,8 +860,8 @@ export default function MeditationTimer({
             <circle
               cx="110" cy="110" r="96"
               fill="none"
-              stroke="#1f2937"
-              strokeWidth="9"
+              stroke="#000000"
+              strokeWidth="12"
             />
 
             {/* Elapsed progress arc — fills clockwise, smooth 60fps */}
@@ -872,7 +869,7 @@ export default function MeditationTimer({
               cx="110" cy="110" r="96"
               fill="none"
               stroke={mode === 'FOCUS' ? 'url(#focusGrad)' : 'url(#breakGrad)'}
-              strokeWidth="9"
+              strokeWidth="12"
               strokeLinecap="round"
               strokeDasharray={`${2 * Math.PI * 96}`}
               strokeDashoffset={2 * Math.PI * 96 * (1 - smoothProgress)}
@@ -889,17 +886,17 @@ export default function MeditationTimer({
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             {/* Inner cream-colored circle (like Forest app) */}
             <div
-              className="w-44 h-44 rounded-full flex flex-col items-center justify-end pb-4 relative overflow-hidden"
+              className="w-44 h-44 rounded-full border-[3px] border-slate-950 flex flex-col items-center justify-end pb-4 relative overflow-hidden"
               style={{ background: 'radial-gradient(circle, #1a2a1f 0%, #0d1a11 100%)' }}
             >
               {mode === 'FOCUS' && (
-                <div className="absolute top-4 text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-800/60 text-emerald-400 z-10 select-none">
+                <div className="absolute top-4 text-[9px] font-bold px-2.5 py-0.5 rounded-lg bg-emerald-400 text-slate-950 border-2 border-slate-950 z-10 select-none shadow-[1px_1px_0px_#000] pixel-label">
                   Chu kỳ: {completedCycles}/{getRequiredCycles(selectedSeed.rarity)}
                 </div>
               )}
               {/* Dirt mound half-circle at bottom */}
               <div
-                className="absolute bottom-0 left-1/2 -translate-x-1/2 w-32 h-14 rounded-t-full"
+                className="absolute bottom-0 left-1/2 -translate-x-1/2 w-32 h-14 rounded-t-full border-t-2 border-slate-950"
                 style={{ background: 'linear-gradient(to top, #5c3317, #7a4520)' }}
               />
 
@@ -936,7 +933,7 @@ export default function MeditationTimer({
           <div className="flex items-center gap-3 mb-3">
             <button
               onClick={handlePrevSeed}
-              className="w-7 h-7 rounded-full bg-slate-900 border border-slate-800 text-slate-400 hover:text-emerald-400 hover:border-emerald-800 transition-all cursor-pointer flex items-center justify-center text-xs font-bold"
+              className="w-7 h-7 rounded-full bg-slate-950 border-2 border-slate-950 text-slate-400 hover:text-emerald-400 hover:border-emerald-800 transition-all cursor-pointer flex items-center justify-center text-xs font-black shadow-[1px_1px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
               title="Linh thảo trước"
             >
               ‹
@@ -952,7 +949,7 @@ export default function MeditationTimer({
             </div>
             <button
               onClick={handleNextSeed}
-              className="w-7 h-7 rounded-full bg-slate-900 border border-slate-800 text-slate-400 hover:text-emerald-400 hover:border-emerald-800 transition-all cursor-pointer flex items-center justify-center text-xs font-bold"
+              className="w-7 h-7 rounded-full bg-slate-950 border-2 border-slate-950 text-slate-400 hover:text-emerald-400 hover:border-emerald-800 transition-all cursor-pointer flex items-center justify-center text-xs font-black shadow-[1px_1px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
               title="Linh thảo tiếp theo"
             >
               ›
@@ -961,7 +958,7 @@ export default function MeditationTimer({
         )}
 
         {/* Timer digits */}
-        <div className="text-5xl font-black font-mono tracking-widest text-slate-100 mb-1">
+        <div className="text-5xl font-black font-mono tracking-widest text-slate-100 mb-1 pixel-label pixel-shadow">
           {formatTime(timeLeft)}
         </div>
 
@@ -980,10 +977,10 @@ export default function MeditationTimer({
             value={soundscape}
             onChange={(e) => {
               const val = e.target.value as SoundscapeType;
-              setSoundscape(val);
+              onSoundscapeChange(val);
               getAudioContext();
             }}
-            className="w-full bg-slate-950/80 border border-slate-900 rounded-xl px-3 py-1.5 text-[10px] text-slate-400 focus:outline-none focus:border-emerald-500/40 cursor-pointer font-bold transition-all hover:border-slate-800 text-center"
+            className="w-full bg-slate-950 border-2 border-slate-950 rounded-xl px-3 py-1.5 text-[10px] text-slate-300 focus:outline-none focus:border-amber-400 cursor-pointer font-bold shadow-[2px_2px_0px_#000] text-center"
           >
             <option value="NONE">🔇 Tắt nhạc nền</option>
             <option value="ZEN">🧘 Hợp Âm Thiền (Zen)</option>
@@ -999,7 +996,7 @@ export default function MeditationTimer({
         <div className="flex items-center gap-3">
           <button
             onClick={resetTimer}
-            className="p-2.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+            className="p-2.5 rounded-full bg-slate-950 border-2 border-slate-950 text-slate-400 hover:text-slate-200 transition-colors shadow-[2px_2px_0px_#000] active:translate-y-[2px] active:translate-x-[2px] active:shadow-none cursor-pointer"
             title="Thiết lập lại"
           >
             <RotateCcw className="w-4 h-4" />
@@ -1007,12 +1004,12 @@ export default function MeditationTimer({
 
           <button
             onClick={toggleTimer}
-            className={`px-8 py-2.5 rounded-full font-black text-[11px] tracking-widest flex items-center gap-2 transition-all shadow-lg cursor-pointer ${
+            className={`px-8 py-2.5 neo-btn text-[11px] font-black tracking-widest ${
               isRunning
-                ? 'bg-slate-200 text-slate-950 hover:bg-slate-300'
+                ? 'bg-slate-200 text-slate-950'
                 : mode === 'FOCUS'
-                ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 hover:from-emerald-600 hover:to-teal-600 shadow-emerald-500/20'
-                : 'bg-gradient-to-r from-blue-500 to-sky-400 text-slate-950 hover:from-blue-600 hover:to-sky-500'
+                ? 'neo-btn-primary'
+                : 'bg-blue-400 text-slate-950'
             }`}
             id="toggle-timer-btn"
           >
@@ -1037,7 +1034,7 @@ export default function MeditationTimer({
 
         {/* Rewards footer */}
         {mode === 'FOCUS' && (
-          <div className="mt-4 pt-3 border-t border-slate-900/60 w-full flex justify-around text-[9px] text-slate-500 font-mono">
+          <div className="mt-4 pt-3 border-t-2 border-slate-950 w-full flex justify-around text-[9px] text-slate-500 font-mono">
             <span>Tu Vi: <strong className="text-emerald-400">+{actualExpGained}</strong></span>
             <span>Linh Thạch: <strong className="text-amber-400">+{actualCoinsGained}</strong></span>
             {gatheringPill && <span className="text-emerald-500">Tụ Khí Đan +25%</span>}

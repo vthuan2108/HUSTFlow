@@ -65,6 +65,36 @@ export const STORE_ITEMS: StoreItem[] = [
     effectType: 'SUCCESS_RATE',
     effectValue: 1.0,
     icon: '☯️'
+  },
+  {
+    id: 'spell_tu_khi_quyet',
+    name: 'Tụ Khí Quyết',
+    description: 'Bí tịch sơ cấp. Khi trang bị, nhận thêm +30% Tu Vi khi hoàn thành thiền định (Pomodoro).',
+    cost: 100,
+    type: 'PERMANENT',
+    effectType: 'POMODORO_XP',
+    effectValue: 0.30,
+    icon: '📖'
+  },
+  {
+    id: 'spell_tam_ma_tram',
+    name: 'Tâm Ma Trảm',
+    description: 'Trảm trừ tạp niệm. Khi trang bị, nhận gấp đôi (+100%) lượng Linh Thạch từ mọi nguồn.',
+    cost: 180,
+    type: 'PERMANENT',
+    effectType: 'COIN_BUFF',
+    effectValue: 2.0,
+    icon: '⚔️'
+  },
+  {
+    id: 'spell_than_hanh_bo',
+    name: 'Thần Hành Bộ',
+    description: 'Thân pháp nhẹ nhàng. Tăng +50% hiệu quả hấp thụ Tu Vi từ nhật khóa thói quen.',
+    cost: 120,
+    type: 'PERMANENT',
+    effectType: 'HABIT_XP',
+    effectValue: 1.5,
+    icon: '⚡'
   }
 ];
 
