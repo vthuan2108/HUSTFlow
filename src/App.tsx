@@ -35,7 +35,7 @@ import DailyRituals from './components/DailyRituals';
 import CultivationManualsSection from './components/CultivationManualsSection';
 import SpiritualGarden from './components/SpiritualGarden';
 import { initAuth, googleSignIn, logout as firebaseLogout, getAccessToken } from './lib/firebase';
-import { syncGoogleTasks } from './lib/googleTasks';
+import { syncGoogleTasks, deleteTaskOnGoogle, patchTaskOnGoogle } from './lib/googleTasks';
 import { saveUserDataToCloud, loadUserDataFromCloud, fetchLeaderboardFromCloud } from './lib/firestoreSync';
 import { User } from 'firebase/auth';
 import {
@@ -373,6 +373,15 @@ export default function App() {
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [isFetchingLeaderboard, setIsFetchingLeaderboard] = useState<boolean>(false);
 
+  const [deletedGoogleTaskIds, setDeletedGoogleTaskIds] = useState<string[]>(() => {
+    const saved = localStorage.getItem('tlk_deleted_google_task_ids');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('tlk_deleted_google_task_ids', JSON.stringify(deletedGoogleTaskIds));
+  }, [deletedGoogleTaskIds]);
+
   // --- GOOGLE LOGIN & CLOUD SYNC STATES ---
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isCloudSyncing, setIsCloudSyncing] = useState<boolean>(false);
@@ -562,8 +571,9 @@ export default function App() {
       const token = getAccessToken();
       if (token) {
         try {
-          const result = await syncGoogleTasks(token, baseTodos);
+          const result = await syncGoogleTasks(token, baseTodos, deletedGoogleTaskIds);
           setTodoItems(result.syncedTodos);
+          setDeletedGoogleTaskIds([]);
           localStorage.setItem('tlk_todos', JSON.stringify(result.syncedTodos));
           
           // Instantly sync the new todo list back to Firestore
@@ -1066,6 +1076,20 @@ export default function App() {
             updateChallengeValue('TASKS_COMPLETED', -1);
             setCultState(c => ({ ...c, tasksCompletedCount: Math.max(0, c.tasksCompletedCount - 1) }));
           }
+
+          // Instantly sync to Google Tasks if linked and logged in
+          if (t.googleTaskId) {
+            const token = getAccessToken();
+            if (token) {
+              patchTaskOnGoogle(token, t.googleTaskId, {
+                isCompleted: nextCompleted,
+                completedAt: nextCompleted ? new Date().toISOString() : undefined
+              }).catch(err => {
+                console.warn('Instant Google Task toggle patch failed:', err);
+              });
+            }
+          }
+
           return {
             ...t,
             isCompleted: nextCompleted,
@@ -1078,6 +1102,21 @@ export default function App() {
   };
 
   const handleDeleteTodo = (id: string) => {
+    const todoToDelete = todoItems.find(t => t.id === id);
+    if (todoToDelete?.googleTaskId) {
+      setDeletedGoogleTaskIds(prev => {
+        if (prev.includes(todoToDelete.googleTaskId!)) return prev;
+        return [...prev, todoToDelete.googleTaskId!];
+      });
+
+      // Instantly delete from Google Tasks in background if logged in
+      const token = getAccessToken();
+      if (token) {
+        deleteTaskOnGoogle(token, todoToDelete.googleTaskId).catch(err => {
+          console.warn('Instant Google Task delete failed, will retry on sync:', err);
+        });
+      }
+    }
     setTodoItems(prev => prev.filter(t => t.id !== id));
   };
 
@@ -1849,6 +1888,8 @@ export default function App() {
                   onToggleTodo={handleToggleTodo}
                   onDeleteTodo={handleDeleteTodo}
                   onSyncTodos={handleSyncTodos}
+                  deletedGoogleTaskIds={deletedGoogleTaskIds}
+                  onClearDeletedGoogleTaskIds={() => setDeletedGoogleTaskIds([])}
                 />
               </div>
 

@@ -36,6 +36,8 @@ interface TodoSectionProps {
   onToggleTodo: (id: string) => void;
   onDeleteTodo: (id: string) => void;
   onSyncTodos: (syncedTodos: TodoItem[]) => void;
+  deletedGoogleTaskIds?: string[];
+  onClearDeletedGoogleTaskIds?: () => void;
 }
 
 export default function TodoSection({
@@ -43,7 +45,9 @@ export default function TodoSection({
   onAddTodo,
   onToggleTodo,
   onDeleteTodo,
-  onSyncTodos
+  onSyncTodos,
+  deletedGoogleTaskIds = [],
+  onClearDeletedGoogleTaskIds
 }: TodoSectionProps) {
   const [newTitle, setNewTitle] = useState('');
   const [todoDate, setTodoDate] = useState(getLocalDateString());
@@ -123,8 +127,11 @@ export default function TodoSection({
     setIsSyncing(true);
     setSyncMessage('Đang đồng bộ với Google Tiên Đài...');
     try {
-      const result = await syncGoogleTasks(token, todoItems);
+      const result = await syncGoogleTasks(token, todoItems, deletedGoogleTaskIds);
       onSyncTodos(result.syncedTodos);
+      if (onClearDeletedGoogleTaskIds) {
+        onClearDeletedGoogleTaskIds();
+      }
       setSyncMessage(
         `Đồng bộ hoàn tất! Đã thêm/cập nhật ${result.addedCount + result.updatedCount} nhiệm vụ.`
       );
@@ -255,7 +262,7 @@ export default function TodoSection({
           if (t.googleTaskId && isLoggedIn) {
             const token = getAccessToken();
             if (token) {
-              patchTaskOnGoogle(token, t.googleTaskId, { title: t.title }); // updates date implicitly based on sync or we can trigger partial patch
+              patchTaskOnGoogle(token, t.googleTaskId, { title: t.title, dueDate: dateStr });
             }
           }
           return updated;

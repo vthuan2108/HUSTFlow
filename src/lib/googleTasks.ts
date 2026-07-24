@@ -60,10 +60,20 @@ function formatToRFC3339(dateStr: string): string {
 // Sync local todos with Google Tasks
 export async function syncGoogleTasks(
   token: string,
-  localTodos: TodoItem[]
+  localTodos: TodoItem[],
+  deletedIds: string[] = []
 ): Promise<{ syncedTodos: TodoItem[]; addedCount: number; updatedCount: number }> {
   try {
     const listId = await getOrCreateTaskList(token);
+
+    // 1. Delete tasks on Google Tasks if they are in deletedIds list
+    for (const gid of deletedIds) {
+      try {
+        await deleteTaskOnGoogle(token, gid);
+      } catch (err) {
+        console.warn(`Failed to delete task ${gid} on Google during sync:`, err);
+      }
+    }
     
     // Fetch all tasks from Google Tasks
     const googleData = await apiCall(`/lists/${listId}/tasks?showCompleted=true&showHidden=true`, token);
@@ -147,7 +157,7 @@ export async function syncGoogleTasks(
     const syncedTodos = [...matchedLocalTodos];
     
     for (const gt of googleTasks) {
-      if (!localGoogleIds.has(gt.id)) {
+      if (!localGoogleIds.has(gt.id) && !deletedIds.includes(gt.id)) {
         const type: 'DAY' = 'DAY';
         const tuViReward = 15;
         const linhThachReward = 5;
@@ -217,7 +227,7 @@ export async function pushTaskToGoogle(
 export async function patchTaskOnGoogle(
   token: string,
   googleTaskId: string,
-  updates: { title?: string; isCompleted?: boolean; completedAt?: string }
+  updates: { title?: string; isCompleted?: boolean; completedAt?: string; dueDate?: string }
 ): Promise<boolean> {
   try {
     const listId = await getOrCreateTaskList(token);
@@ -225,6 +235,10 @@ export async function patchTaskOnGoogle(
     
     if (updates.title !== undefined) {
       body.title = updates.title;
+    }
+
+    if (updates.dueDate !== undefined) {
+      body.due = formatToRFC3339(updates.dueDate);
     }
     
     if (updates.isCompleted !== undefined) {
