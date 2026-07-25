@@ -5,8 +5,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { CultivationState } from '../types';
-import { Play, Pause, RotateCcw, Volume2, VolumeX, Eye } from 'lucide-react';
-import { motion } from 'motion/react';
+import { Play, Pause, RotateCcw, Volume2, VolumeX, Eye, ShieldAlert } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { SPIRITUAL_SEEDS } from '../data';
 
 export type SoundscapeType = 'NONE' | 'ZEN' | 'RAIN' | 'STREAM' | 'CHIMES' | 'THUNDER' | 'CAMPFIRE';
@@ -423,7 +423,7 @@ export default function MeditationTimer({
   soundscape,
   onSoundscapeChange
 }: MeditationTimerProps) {
-  const [mode, setMode] = useState<'FOCUS' | 'SHORT_BREAK' | 'LONG_BREAK'>('FOCUS');
+  const [mode, setMode] = useState<'FOCUS' | 'SHORT_BREAK' | 'FREE'>('FOCUS');
   const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes
   const [isRunning, setIsRunning] = useState(false);
   const [quoteIndex, setQuoteIndex] = useState(0);
@@ -443,6 +443,60 @@ export default function MeditationTimer({
   useEffect(() => {
     localStorage.setItem('tlk_completed_cycles', completedCycles.toString());
   }, [completedCycles]);
+
+  const [showBlockerSettings, setShowBlockerSettings] = useState<boolean>(false);
+  const [blockedDomains, setBlockedDomains] = useState<string[]>(() => {
+    const saved = localStorage.getItem('tlk_blocked_domains');
+    return saved ? JSON.parse(saved) : ['facebook.com', 'youtube.com', 'tiktok.com', 'twitter.com'];
+  });
+  const [isBlockerEnabled, setIsBlockerEnabled] = useState<boolean>(() => {
+    return localStorage.getItem('tlk_blocker_enabled') !== 'false';
+  });
+  const [newDomainInput, setNewDomainInput] = useState<string>('');
+  const [isExtensionInstalled, setIsExtensionInstalled] = useState<boolean>(false);
+
+  useEffect(() => {
+    localStorage.setItem('tlk_blocked_domains', JSON.stringify(blockedDomains));
+  }, [blockedDomains]);
+
+  useEffect(() => {
+    localStorage.setItem('tlk_blocker_enabled', String(isBlockerEnabled));
+  }, [isBlockerEnabled]);
+
+  useEffect(() => {
+    const checkExt = () => {
+      if (document.documentElement.dataset.tlkExtensionInstalled === "true") {
+        setIsExtensionInstalled(true);
+      }
+    };
+    checkExt();
+    const intervalId = setInterval(checkExt, 1000);
+    return () => clearInterval(intervalId);
+  }, []);
+
+  useEffect(() => {
+    if (isBlockerEnabled) {
+      if (isRunning && mode === 'FOCUS') {
+        window.dispatchEvent(
+          new CustomEvent('TLK_BLOCKER_SYNC', {
+            detail: { action: 'START_BLOCKING', blocklist: blockedDomains }
+          })
+        );
+      } else {
+        window.dispatchEvent(
+          new CustomEvent('TLK_BLOCKER_SYNC', {
+            detail: { action: 'STOP_BLOCKING' }
+          })
+        );
+      }
+    } else {
+      window.dispatchEvent(
+        new CustomEvent('TLK_BLOCKER_SYNC', {
+          detail: { action: 'STOP_BLOCKING' }
+        })
+      );
+    }
+  }, [isRunning, mode, isBlockerEnabled, blockedDomains]);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const passiveTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -467,23 +521,33 @@ export default function MeditationTimer({
   const maxTimeDep = (() => {
     if (mode === 'FOCUS') return 25 * 60;
     if (mode === 'SHORT_BREAK') return 5 * 60;
-    return 15 * 60;
+    return 25 * 60; // For FREE mode, the ring fills up every 25 minutes (1500 seconds)
   })();
 
   useEffect(() => {
     const animate = () => {
       if (isRunning) {
         const msSinceTick = Date.now() - tickStartRef.current;
-        const elapsedSecs = (maxTimeDep - timeLeft) + Math.min(msSinceTick / 1000, 0.999);
-        setSmoothProgress(Math.min(elapsedSecs / maxTimeDep, 1));
+        if (mode === 'FREE') {
+          const currentProgressSeconds = timeLeft % 1500;
+          const elapsedSecs = currentProgressSeconds + Math.min(msSinceTick / 1000, 0.999);
+          setSmoothProgress(Math.min(elapsedSecs / 1500, 1));
+        } else {
+          const elapsedSecs = (maxTimeDep - timeLeft) + Math.min(msSinceTick / 1000, 0.999);
+          setSmoothProgress(Math.min(elapsedSecs / maxTimeDep, 1));
+        }
       } else {
-        setSmoothProgress((maxTimeDep - timeLeft) / maxTimeDep);
+        if (mode === 'FREE') {
+          setSmoothProgress((timeLeft % 1500) / 1500);
+        } else {
+          setSmoothProgress((maxTimeDep - timeLeft) / maxTimeDep);
+        }
       }
       rafRef.current = requestAnimationFrame(animate);
     };
     rafRef.current = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(rafRef.current);
-  }, [isRunning, timeLeft, maxTimeDep]);
+  }, [isRunning, timeLeft, maxTimeDep, mode]);
 
 
   useEffect(() => {
@@ -585,7 +649,7 @@ export default function MeditationTimer({
   const getModeDuration = (m: typeof mode) => {
     if (m === 'FOCUS') return 25 * 60; // Always 25 minutes for all seeds
     if (m === 'SHORT_BREAK') return 5 * 60;
-    return 15 * 60; // LONG_BREAK
+    return 0; // FREE mode starts at 0 and counts up
   };
 
   const isSeedUnlocked = (seedId: string): boolean => {
@@ -637,6 +701,43 @@ export default function MeditationTimer({
       timerRef.current = setInterval(() => {
         tickStartRef.current = Date.now();
         setTimeLeft(prev => {
+          if (mode === 'FREE') {
+            const nextTime = prev + 1;
+            if (nextTime > 0 && nextTime % 1500 === 0) {
+              playCompletionSound();
+              const cycle1Plants = [
+                { name: 'Ngọc Linh Chi', icon: '🍄' },
+                { name: 'Cửu Diệp Thảo', icon: '🌿' },
+                { name: 'Bạch Ngọc Liên', icon: '🪷' },
+                { name: 'Thanh Long Thảo', icon: '🌵' }
+              ];
+              const randomPlant = cycle1Plants[Math.floor(Math.random() * cycle1Plants.length)];
+              
+              const baseXP = 50;
+              const baseCoins = 50;
+              
+              const spellingQi = state.activeSpells?.includes('spell_tu_khi_quyet');
+              const spellingTamMa = state.activeSpells?.includes('spell_tam_ma_tram');
+              
+              const activeSpellMultiplier = spellingQi ? 0.30 : 0;
+              const coinSpellMultiplier = spellingTamMa ? 1.0 : 0;
+              
+              const pillBonus = state.inventory.some(i => i.itemId === 'tu_khi_dan') ? 0.25 : 0;
+              
+              const finalXp = Math.round(baseXP * (1 + pillBonus + activeSpellMultiplier));
+              const finalCoins = Math.round(baseCoins * (1 + coinSpellMultiplier));
+              
+              if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification('🧘 Tự Do Bế Quan Đắc Đạo!', {
+                  body: `Đạo hữu thiền định tự do đạt 25 phút! Nhận ngẫu nhiên linh thảo [${randomPlant.name}]. Nhận +${finalXp} Tu Vi và +${finalCoins} Linh Thạch.`,
+                  icon: '/icon.png'
+                });
+              }
+              onMeditationComplete(25, finalXp, finalCoins, randomPlant.name, 'HARVESTED');
+            }
+            return nextTime;
+          }
+
           if (prev <= 1) {
             clearInterval(timerRef.current!);
             setIsRunning(false);
@@ -767,7 +868,7 @@ export default function MeditationTimer({
   const plantStageEmoji = selectedSeed.icon || '🌿';
 
   return (
-    <div className="neo-card flex flex-col items-center relative overflow-hidden" id="meditation-timer">
+    <div className="neo-card flex flex-col items-center relative overflow-hidden h-full w-full" id="meditation-timer">
 
       {/* Top bar */}
       <div className="w-full flex items-center justify-between px-4 pt-4 pb-2">
@@ -794,14 +895,14 @@ export default function MeditationTimer({
             Tiểu Đốn
           </button>
           <button
-            onClick={() => handleModeChange('LONG_BREAK')}
+            onClick={() => handleModeChange('FREE')}
             className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase transition-all cursor-pointer ${
-              mode === 'LONG_BREAK'
-                ? 'bg-indigo-400 text-slate-950 border border-slate-950 shadow-[1px_1px_0px_#000]'
+              mode === 'FREE'
+                ? 'bg-purple-400 text-slate-950 border border-slate-950 shadow-[1px_1px_0px_#000]'
                 : 'text-slate-500 hover:text-slate-300'
             }`}
           >
-            Đại Đốn
+            Tự Do
           </button>
         </div>
 
@@ -929,11 +1030,14 @@ export default function MeditationTimer({
         </div>
 
         {/* Seed name row with arrow navigation */}
-        {mode === 'FOCUS' && !isRunning && (
+        {mode === 'FOCUS' && (
           <div className="flex items-center gap-3 mb-3">
             <button
               onClick={handlePrevSeed}
-              className="w-7 h-7 rounded-full bg-slate-950 border-2 border-slate-950 text-slate-400 hover:text-emerald-400 hover:border-emerald-800 transition-all cursor-pointer flex items-center justify-center text-xs font-black shadow-[1px_1px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+              disabled={isRunning}
+              className={`w-7 h-7 rounded-full bg-slate-950 border-2 border-slate-950 text-slate-400 hover:text-emerald-400 hover:border-emerald-800 transition-all cursor-pointer flex items-center justify-center text-xs font-black shadow-[1px_1px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none ${
+                isRunning ? 'opacity-0 pointer-events-none' : ''
+              }`}
               title="Linh thảo trước"
             >
               ‹
@@ -949,11 +1053,32 @@ export default function MeditationTimer({
             </div>
             <button
               onClick={handleNextSeed}
-              className="w-7 h-7 rounded-full bg-slate-950 border-2 border-slate-950 text-slate-400 hover:text-emerald-400 hover:border-emerald-800 transition-all cursor-pointer flex items-center justify-center text-xs font-black shadow-[1px_1px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+              disabled={isRunning}
+              className={`w-7 h-7 rounded-full bg-slate-950 border-2 border-slate-950 text-slate-400 hover:text-emerald-400 hover:border-emerald-800 transition-all cursor-pointer flex items-center justify-center text-xs font-black shadow-[1px_1px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none ${
+                isRunning ? 'opacity-0 pointer-events-none' : ''
+              }`}
               title="Linh thảo tiếp theo"
             >
               ›
             </button>
+          </div>
+        )}
+
+        {mode === 'FREE' && (
+          <div className="text-center min-w-[200px] mb-3 flex flex-col items-center">
+            <p className="text-[10px] font-bold text-purple-400 flex items-center gap-1">
+              ✨ Trận Pháp Tự Do Tu Luyện ✨
+            </p>
+            <p className="text-[8.5px] text-slate-500 font-mono mt-0.5 max-w-[210px] leading-relaxed">
+              Thiền định đếm giờ tự do. Đủ mỗi 25 phút sẽ ngẫu nhiên nhận được 1 linh thảo Sơ Cấp.
+            </p>
+          </div>
+        )}
+
+        {mode === 'SHORT_BREAK' && (
+          <div className="text-center min-w-[200px] mb-3 flex flex-col items-center opacity-0 pointer-events-none select-none">
+            <p className="text-[10px] font-bold text-blue-400">✨ Nghỉ ngơi dưỡng thần ✨</p>
+            <p className="text-[8.5px] text-slate-500 font-mono mt-0.5">Tạm dừng bế quan, xả hơi định thần.</p>
           </div>
         )}
 
@@ -1003,12 +1128,26 @@ export default function MeditationTimer({
           </button>
 
           <button
+            onClick={() => setShowBlockerSettings(true)}
+            className={`p-2.5 rounded-full border-2 border-slate-950 transition-all shadow-[2px_2px_0px_#000] active:translate-y-[2px] active:translate-x-[2px] active:shadow-none cursor-pointer ${
+              isBlockerEnabled && isExtensionInstalled
+                ? 'bg-amber-400 text-slate-950 hover:bg-amber-300'
+                : 'bg-slate-950 text-slate-400 hover:text-slate-250'
+            }`}
+            title="Thiết lập Trận Pháp Chặn Tâm Ma"
+          >
+            <ShieldAlert className="w-4 h-4" />
+          </button>
+
+          <button
             onClick={toggleTimer}
             className={`px-8 py-2.5 neo-btn text-[11px] font-black tracking-widest ${
               isRunning
                 ? 'bg-slate-200 text-slate-950'
                 : mode === 'FOCUS'
                 ? 'neo-btn-primary'
+                : mode === 'FREE'
+                ? 'bg-purple-400 text-slate-950'
                 : 'bg-blue-400 text-slate-950'
             }`}
             id="toggle-timer-btn"
@@ -1022,6 +1161,11 @@ export default function MeditationTimer({
               <>
                 <Play className="w-4 h-4 fill-current" />
                 GIEO TRỒNG
+              </>
+            ) : mode === 'FREE' ? (
+              <>
+                <Play className="w-4 h-4 fill-current" />
+                TỰ DO TU LUYỆN
               </>
             ) : (
               <>
@@ -1040,6 +1184,141 @@ export default function MeditationTimer({
             {gatheringPill && <span className="text-emerald-500">Tụ Khí Đan +25%</span>}
           </div>
         )}
+
+        {/* Blocker Settings Modal */}
+        <AnimatePresence>
+          {showBlockerSettings && (
+            <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="neo-card p-5 max-w-sm w-full text-center space-y-4 relative"
+              >
+                <button
+                  onClick={() => setShowBlockerSettings(false)}
+                  className="absolute top-3 right-3 text-xs text-slate-500 hover:text-slate-350 font-bold"
+                >
+                  ✕
+                </button>
+
+                <div className="space-y-1">
+                  <h3 className="text-sm font-black text-slate-100 uppercase tracking-wide pixel-label flex items-center justify-center gap-1.5">
+                    <ShieldAlert className="w-4.5 h-4.5 text-amber-400" />
+                    Trận Pháp Chặn Tâm Ma
+                  </h3>
+                  <p className="text-[10px] text-slate-550">Chặn trang web gây xao nhãng trong thời gian Bế Quan.</p>
+                </div>
+
+                {/* Extension status indicator */}
+                <div className={`p-2.5 border-2 border-slate-950 rounded-xl text-[10px] font-bold text-left flex items-center gap-2 ${
+                  isExtensionInstalled 
+                    ? 'bg-emerald-950/40 text-emerald-400' 
+                    : 'bg-amber-950/30 text-amber-455'
+                }`}>
+                  <span className="text-xs">{isExtensionInstalled ? '🛡️' : '⚠️'}</span>
+                  <div>
+                    <p className="font-extrabold m-0">Trạng thái Tiện ích mở rộng:</p>
+                    <p className="font-mono text-[9px] mt-0.5 text-slate-500 m-0">
+                      {isExtensionInstalled 
+                        ? 'Đã kết nối thành công với Trận Pháp Hộ Thể.' 
+                        : 'Chưa phát hiện Tiện ích mở rộng Chrome.'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Toggle Switch */}
+                <div className="flex items-center justify-between bg-slate-950 p-3 rounded-xl border-2 border-slate-950">
+                  <span className="text-[11px] font-bold text-slate-300">Kích hoạt chặn web:</span>
+                  <button
+                     onClick={() => setIsBlockerEnabled(!isBlockerEnabled)}
+                     className={`px-3 py-1 text-[9px] font-extrabold border-2 border-slate-950 rounded-lg shadow-[1.5px_1.5px_0px_#000] active:translate-y-[1px] active:shadow-none transition-all ${
+                       isBlockerEnabled 
+                         ? 'bg-emerald-400 text-slate-950 font-black' 
+                         : 'bg-slate-900 text-slate-500'
+                     }`}
+                  >
+                    {isBlockerEnabled ? 'ĐANG MỞ' : 'ĐANG TẮT'}
+                  </button>
+                </div>
+
+                {/* Domain Input Form */}
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Ví dụ: facebook.com"
+                      value={newDomainInput}
+                      onChange={(e) => setNewDomainInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          const domain = newDomainInput.trim().toLowerCase();
+                          if (domain && !blockedDomains.includes(domain)) {
+                            setBlockedDomains(prev => [...prev, domain]);
+                            setNewDomainInput('');
+                          }
+                        }
+                      }}
+                      className="flex-1 bg-slate-950 border-2 border-slate-950 rounded-xl px-3 py-1.5 text-[11px] text-slate-200 focus:outline-none focus:border-amber-400 font-mono"
+                    />
+                    <button
+                      onClick={() => {
+                        const domain = newDomainInput.trim().toLowerCase();
+                        if (domain && !blockedDomains.includes(domain)) {
+                          setBlockedDomains(prev => [...prev, domain]);
+                          setNewDomainInput('');
+                        }
+                      }}
+                      className="px-3 py-1.5 neo-btn neo-btn-success text-[10px] font-bold shrink-0"
+                    >
+                      THÊM
+                    </button>
+                  </div>
+
+                  {/* Blocked list */}
+                  <div className="bg-slate-950 p-2.5 rounded-xl border-2 border-slate-950 text-left space-y-1.5 max-h-28 overflow-y-auto font-mono text-[10px] text-slate-350 shadow-[1.5px_1.5px_0px_#000]">
+                    {blockedDomains.length > 0 ? (
+                      blockedDomains.map(domain => (
+                        <div key={domain} className="flex justify-between items-center bg-[#1e2638] px-2 py-1 rounded-md border border-slate-950">
+                          <span>🚫 {domain}</span>
+                           <button
+                             onClick={() => setBlockedDomains(prev => prev.filter(d => d !== domain))}
+                             className="text-rose-400 hover:text-rose-350 text-[9px] font-bold"
+                           >
+                             XÓA
+                           </button>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-4 text-slate-500 text-[9px] font-sans text-slate-550">Chưa chặn trang web nào.</div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Help instructions */}
+                {!isExtensionInstalled && (
+                  <div className="bg-[#1e2638] p-3 rounded-xl border border-slate-800 text-[9.5px] leading-relaxed text-slate-400 text-left space-y-1">
+                    <p className="font-extrabold text-amber-400 m-0">🛠️ Hướng dẫn cài đặt Trận Pháp:</p>
+                    <ol className="list-decimal pl-4 space-y-0.5 m-0 font-sans">
+                      <li>Mở tab mới trong Chrome và truy cập: <code className="bg-slate-950 px-1 py-0.5 rounded text-amber-500 select-all font-mono">chrome://extensions</code></li>
+                      <li>Bật nút <strong>Chế độ cho nhà phát triển (Developer mode)</strong> ở góc trên bên phải.</li>
+                      <li>Chọn <strong>Tải tiện ích đã giải nén (Load unpacked)</strong> ở góc trái.</li>
+                      <li>Chọn thư mục <code className="bg-slate-950 px-1 py-0.5 rounded text-amber-500 select-all font-mono">tien-lo-ky-extension</code> bên trong thư mục dự án này!</li>
+                    </ol>
+                  </div>
+                )}
+
+                <button
+                  onClick={() => setShowBlockerSettings(false)}
+                  className="w-full py-2 neo-btn neo-btn-primary text-[10px] font-bold"
+                >
+                  XÁC NHẬN PHÁP TRẬN
+                </button>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

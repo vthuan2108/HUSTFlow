@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Tâm Ma Xâm Nhập - Tiên Lộ Ký</title>
+  <link href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #0b0f17;
+      color: #f8fafc;
+      font-family: 'Space Grotesk', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      overflow: hidden;
+    }
+    /* Codédex / Neo-Brutalist card style */
+    .card {
+      background-color: #0f141c;
+      border: 3px solid #000;
+      border-radius: 16px;
+      padding: 30px;
+      max-width: 420px;
+      text-align: center;
+      box-shadow: 6px 6px 0px #000;
+      position: relative;
+    }
+    .warning-icon {
+      font-size: 50px;
+      margin-bottom: 10px;
+      animation: pulse 1.5s infinite alternate;
+    }
+    h1 {
+      font-family: 'Silkscreen', monospace;
+      font-size: 20px;
+      color: #f43f5e;
+      text-shadow: 2px 2px 0px #000;
+      margin: 10px 0;
+      letter-spacing: 2px;
+    }
+    p {
+      font-size: 13px;
+      color: #94a3b8;
+      line-height: 1.6;
+      margin-bottom: 25px;
+    }
+    .badge {
+      display: inline-block;
+      background-color: #f59e0b;
+      color: #000;
+      font-family: 'Silkscreen', monospace;
+      font-size: 10px;
+      font-weight: bold;
+      padding: 4px 10px;
+      border: 2px solid #000;
+      box-shadow: 2px 2px 0px #000;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+      background-color: #3b82f6;
+      color: #000;
+      border: 2px solid #000;
+      border-radius: 10px;
+      padding: 10px 20px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 12px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      box-shadow: 3px 3px 0px #000;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.1s ease;
+    }
+    .btn:hover {
+      transform: translate(-1px, -1px);
+      box-shadow: 4px 4px 0px #000;
+      background-color: #60a5fa;
+    }
+    .btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: none;
+    }
+    @keyframes pulse {
+      from { transform: scale(1); }
+      to { transform: scale(1.1); }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="warning-icon">💀</div>
+    <div class="badge">TRẬN PHÁP CHẶN TÂM MA</div>
+    <h1>TÂM MA XÂM NHẬP!</h1>
+    <p>Đạo tâm của đạo hữu đang bị lung lay bởi ngoại giới. Mau chóng quay lại Bế Quan tu luyện, tránh xa tạp niệm để sớm ngày đắc đạo phi thăng!</p>
+    <a href="http://localhost:3000/" class="btn">QUAY LẠI TU LUYỆN</a>
+  </div>
+</body>
+</html>

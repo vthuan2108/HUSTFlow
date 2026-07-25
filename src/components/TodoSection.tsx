@@ -426,7 +426,7 @@ export default function TodoSection({
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center gap-2">
             <CalendarDays className="w-4 h-4 text-amber-500" />
-            <h3 className="text-sm font-bold text-slate-100">Bảng Thống Kê 7 Ngày Thần Thông</h3>
+            <h3 className="text-sm font-bold text-slate-100">Bảng nhiệm vụ tông môn</h3>
           </div>
           <p className="text-[10px] text-slate-500">Kéo thả để dời ngày. Đồng bộ hai chiều với Google Tasks.</p>
           

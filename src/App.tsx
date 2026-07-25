@@ -34,6 +34,7 @@ import ForbiddenNotes from './components/ForbiddenNotes';
 import DailyRituals from './components/DailyRituals';
 import CultivationManualsSection from './components/CultivationManualsSection';
 import SpiritualGarden from './components/SpiritualGarden';
+import AIPanel from './components/AIPanel';
 import { initAuth, googleSignIn, logout as firebaseLogout, getAccessToken } from './lib/firebase';
 import { syncGoogleTasks, deleteTaskOnGoogle, patchTaskOnGoogle } from './lib/googleTasks';
 import { saveUserDataToCloud, loadUserDataFromCloud, fetchLeaderboardFromCloud } from './lib/firestoreSync';
@@ -1120,6 +1121,42 @@ export default function App() {
     setTodoItems(prev => prev.filter(t => t.id !== id));
   };
 
+  const handleUpdateTodo = (updatedTodo: TodoItem) => {
+    let tuViReward = 15;
+    let linhThachReward = 5;
+
+    if (updatedTodo.difficulty === 'TRUNG_CAP') {
+      tuViReward = 30;
+      linhThachReward = 15;
+    } else if (updatedTodo.difficulty === 'CAO_CAP') {
+      tuViReward = 60;
+      linhThachReward = 35;
+    } else if (updatedTodo.difficulty === 'THAN_CAP') {
+      tuViReward = 120;
+      linhThachReward = 75;
+    }
+
+    const finalTodo = {
+      ...updatedTodo,
+      tuViReward,
+      linhThachReward
+    };
+
+    setTodoItems(prev => prev.map(t => t.id === updatedTodo.id ? finalTodo : t));
+
+    if (finalTodo.googleTaskId) {
+      const token = getAccessToken();
+      if (token) {
+        patchTaskOnGoogle(token, finalTodo.googleTaskId, {
+          title: finalTodo.title,
+          dueDate: finalTodo.dueDate
+        }).catch(err => {
+          console.warn('Instant Google Task update patch failed:', err);
+        });
+      }
+    }
+  };
+
   // Shop & Consumables
   const handleBuyItem = (item: StoreItem) => {
     if (cultState.linhThach < item.cost) return;
@@ -1549,7 +1586,7 @@ export default function App() {
               <div className="flex items-center gap-2">
                 <CompassIcon className="w-5 h-5 text-amber-500 animate-spin-slow" />
                 <h1 className="text-sm font-extrabold uppercase tracking-widest text-slate-100 font-sans">
-                  Tiên Lộ Ký <span className="text-[9px] bg-amber-400 text-slate-950 px-2 py-0.5 rounded border-2 border-slate-950 font-bold ml-1.5 pixel-label">v1.1</span>
+                  Zenflow <span className="text-[9px] bg-amber-400 text-slate-950 px-2 py-0.5 rounded border-2 border-slate-950 font-bold ml-1.5 pixel-label">v1.1</span>
                 </h1>
               </div>
 
@@ -1776,12 +1813,12 @@ export default function App() {
                       onCompleteReflection={setReflectionCompletedDate}
                     />
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-                      <div className={isFocusMode ? "fixed inset-0 bg-[#05070a] z-50 flex flex-col items-center justify-center p-4 overflow-y-auto" : "w-full"}>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+                      <div className={isFocusMode ? "fixed inset-0 bg-[#05070a] z-50 flex flex-col items-center justify-center p-4 overflow-y-auto" : "w-full h-full flex flex-col"}>
                         {isFocusMode && (
                           <div className="absolute inset-0 bg-[radial-gradient(#10b981_1px,transparent_1px)] [background-size:32px_32px] opacity-5 -z-10" />
                         )}
-                        <div className={isFocusMode ? "max-w-xl w-full flex flex-col items-center space-y-6 my-auto z-10" : "w-full"}>
+                        <div className={isFocusMode ? "max-w-xl w-full flex flex-col items-center space-y-6 my-auto z-10" : "w-full h-full flex flex-col"}>
                           {isFocusMode && (
                             <div className="text-center space-y-1">
                               <span className="text-[10px] font-bold font-mono tracking-widest text-emerald-400 bg-emerald-950/40 border border-emerald-900 px-3 py-1 rounded-full uppercase">
@@ -1948,6 +1985,17 @@ export default function App() {
               </div>
             </main>
           </div>
+
+          {/* 🔮 Thiên Cơ Các (AI Planner) */}
+          <AIPanel
+            todoItems={todoItems}
+            tasks={tasks}
+            habits={habits}
+            manuals={manuals}
+            cultState={cultState}
+            onAddTodo={handleAddTodo}
+            onUpdateTodo={handleUpdateTodo}
+          />
     </div>
   );
 }
