@@ -11,12 +11,12 @@ window.addEventListener("TLK_BLOCKER_SYNC", (event) => {
           // Access lastError to suppress Chrome's default console warning
           const err = chrome.runtime.lastError;
           if (err) {
-            console.log("Tiên Lộ Ký Blocker: Relayer status message:", err.message);
+            console.log("Zenflow Blocker: Relayer status message:", err.message);
           }
         });
       }
     } catch (err) {
-      console.warn("Tiên Lộ Ký Blocker: Relayer context invalidated, please refresh page.", err);
+      console.warn("Zenflow Blocker: Relayer context invalidated, please refresh page.", err);
     }
   }
 });

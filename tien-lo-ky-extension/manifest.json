@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Tiên Lộ Ký - Trận Pháp Chặn Tâm Ma",
-  "version": "1.0.0",
-  "description": "Hộ pháp bế quan thiền định, ngăn chặn tâm ma xao nhãng.",
+  "name": "Zenflow - Trận Pháp Chặn Tâm Ma",
+  "version": "1.1.0",
+  "description": "Zenflow Hộ Pháp: Bế quan thiền định, ngăn chặn tâm ma xao nhãng tu luyện.",
   "permissions": [
     "declarativeNetRequest",
     "storage"
@@ -13,11 +13,16 @@
   "background": {
     "service_worker": "background.js"
   },
+  "externally_connectable": {
+    "matches": ["*://localhost/*", "*://*.vercel.app/*"]
+  },
   "content_scripts": [
     {
       "matches": [
         "http://localhost/*",
-        "http://127.0.0.1/*"
+        "https://localhost/*",
+        "http://127.0.0.1/*",
+        "https://*.vercel.app/*"
       ],
       "js": ["content.js"],
       "run_at": "document_start"

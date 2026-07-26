@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Task,
   Habit,
@@ -40,10 +40,8 @@ import { syncGoogleTasks, deleteTaskOnGoogle, patchTaskOnGoogle } from './lib/go
 import { saveUserDataToCloud, loadUserDataFromCloud, fetchLeaderboardFromCloud } from './lib/firestoreSync';
 import { User } from 'firebase/auth';
 import {
-  Download,
   Flame,
   LogOut,
-  Upload,
   CheckCircle,
   Compass as CompassIcon,
   ListTodo,
@@ -255,7 +253,7 @@ export default function App() {
     ];
   });
 
-  const [timeBlocks, setTimeBlocks] = useState<TimeBlock[]>(() => {
+  const [timeBlocks] = useState<TimeBlock[]>(() => {
     const saved = localStorage.getItem('tlk_timeblocks');
     if (saved) {
       try { return JSON.parse(saved); } catch (e) { /* fallback */ }
@@ -403,6 +401,13 @@ export default function App() {
     localStorage.setItem('tlk_reflection_completed_date', reflectionCompletedDate);
   }, [reflectionCompletedDate]);
 
+  // Save the current app URL so the extension's blocked.html can redirect back correctly
+  useEffect(() => {
+    try {
+      localStorage.setItem('zenflow_app_url', window.location.origin + '/');
+    } catch (e) {}
+  }, []);
+
   useEffect(() => {
     localStorage.setItem('tlk_active_tab', activeTab);
   }, [activeTab]);
@@ -516,8 +521,8 @@ export default function App() {
       if (cloudData) {
         // Silently and automatically sync progress
         setUserName(cloudData.userName);
-        setPlanningCompletedDate(cloudData.planningCompletedDate);
-        setReflectionCompletedDate(cloudData.reflectionCompletedDate);
+        setPlanningCompletedDate(cloudData.planningCompletedDate || planningCompletedDate);
+        setReflectionCompletedDate(cloudData.reflectionCompletedDate || reflectionCompletedDate);
         baseTodos = cloudData.todoItems || [];
         setTodoItems(baseTodos);
         setHabits(cloudData.habits || []);
@@ -531,8 +536,8 @@ export default function App() {
         setGardenPlants((cloudData as any).gardenPlants || []);
         
         localStorage.setItem('tlk_username', cloudData.userName);
-        localStorage.setItem('tlk_planning_completed_date', cloudData.planningCompletedDate);
-        localStorage.setItem('tlk_reflection_completed_date', cloudData.reflectionCompletedDate);
+        localStorage.setItem('tlk_planning_completed_date', cloudData.planningCompletedDate || localStorage.getItem('tlk_planning_completed_date') || '');
+        localStorage.setItem('tlk_reflection_completed_date', cloudData.reflectionCompletedDate || localStorage.getItem('tlk_reflection_completed_date') || '');
         localStorage.setItem('tlk_todos', JSON.stringify(cloudData.todoItems || []));
         localStorage.setItem('tlk_habits', JSON.stringify(cloudData.habits || []));
         localStorage.setItem('tlk_cult_state', JSON.stringify(cloudData.cultState));
@@ -688,12 +693,11 @@ export default function App() {
     // 1. Check if there are overdue tasks by 2 or more days
     const hasOverdue2Days = todoItems.some(todo => {
       if (todo.isCompleted) return false;
-      
-      const dueDateStr = todo.dueDate || (todo.createdAt ? todo.createdAt.split('T')[0] : today);
-      if (!dueDateStr) return false;
+      // Only check tasks that have an explicit dueDate — never use createdAt as fallback
+      if (!todo.dueDate) return false;
 
       try {
-        const timeDiff = new Date(today).getTime() - new Date(dueDateStr).getTime();
+        const timeDiff = new Date(today).getTime() - new Date(todo.dueDate).getTime();
         if (isNaN(timeDiff)) return false;
         const daysDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
         return daysDiff >= 2;
@@ -1043,7 +1047,7 @@ export default function App() {
     }
 
     const newTodo: TodoItem = {
-      id: `todo_${Date.now()}`,
+      id: `todo_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
       title,
       type: 'DAY',
       isCompleted: false,
@@ -1406,76 +1410,7 @@ export default function App() {
     setIeltsLogs(prev => prev.map(l => l.id === updatedLog.id ? updatedLog : l));
   };
 
-  // --- DATA BACKUP IMPORT/EXPORT ---
-  const handleExportData = () => {
-    const backupObj = {
-      userName,
-      cultState,
-      tasks,
-      habits,
-      timeBlocks,
-      ieltsLogs,
-      dailyLogs,
-      challenges,
-      todoItems,
-      manuals
-    };
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupObj, null, 2));
-    const downloadAnchor = document.createElement('a');
-    downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", `tien_lo_ky_backup_${new Date().toISOString().split('T')[0]}.json`);
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
-  };
 
-  const handleImportData = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const fileReader = new FileReader();
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    fileReader.onload = (event) => {
-      try {
-        const parsed = JSON.parse(event.target?.result as string);
-        if (parsed.userName) setUserName(parsed.userName);
-        if (parsed.cultState) setCultState(parsed.cultState);
-        if (parsed.habits) setHabits(parsed.habits);
-        if (parsed.timeBlocks) setTimeBlocks(parsed.timeBlocks);
-        if (parsed.ieltsLogs) setIeltsLogs(parsed.ieltsLogs);
-        if (parsed.dailyLogs) setDailyLogs(parsed.dailyLogs);
-        if (parsed.challenges) setChallenges(parsed.challenges);
-        if (parsed.manuals) setManuals(parsed.manuals);
-        
-        if (parsed.todoItems) {
-          setTodoItems(parsed.todoItems);
-        } else if (parsed.tasks) {
-          // Convert legacy tasks to todoItems
-          const converted: TodoItem[] = parsed.tasks.map((task: any) => {
-            let type: 'DAY' | 'WEEK' | 'MONTH' = 'DAY';
-            if (task.priority === 'CAO_CAP') type = 'WEEK';
-            else if (task.priority === 'THAN_CAP') type = 'MONTH';
-            return {
-              id: task.id,
-              title: task.title,
-              type,
-              isCompleted: task.isCompleted,
-              createdAt: task.createdAt || new Date().toISOString(),
-              completedAt: task.completedAt,
-              tuViReward: task.tuViReward,
-              linhThachReward: task.linhThachReward,
-              dueDate: task.dueDate
-            };
-          });
-          setTodoItems(converted);
-        }
-
-        alert('⚡ Chân truyền khôi phục thành công! Đạo phủ đã đồng bộ toàn bộ dữ liệu lưu trữ.');
-      } catch (err) {
-        alert('❌ Pháp bảo truyền tin thất bại. File JSON backup không hợp lệ.');
-      }
-    };
-    fileReader.readAsText(file);
-  };
 
   // Focus Mode checkbox completion
   const handleFocusTaskComplete = (taskId: string) => {
@@ -1590,35 +1525,7 @@ export default function App() {
                 </h1>
               </div>
 
-              {/* Import / Export & Notification Alert controllers */}
-              <div className="flex items-center gap-3">
-                {/* Backup buttons */}
-                <div className="flex bg-slate-950 border-2 border-slate-950 p-0.5 rounded-lg text-[10px] shadow-[1px_1px_0px_#000]">
-                  <button
-                    onClick={handleExportData}
-                    className="p-1 px-2 hover:bg-slate-900 text-slate-400 hover:text-slate-200 rounded transition-colors flex items-center gap-1 font-semibold cursor-pointer"
-                    title="Xuất sao lưu dữ liệu ra file JSON"
-                  >
-                    <Download className="w-3 h-3 text-slate-500" />
-                    Sao Lưu
-                  </button>
-
-                  <label
-                    className="p-1 px-2 hover:bg-slate-900 text-slate-400 hover:text-slate-200 rounded transition-colors flex items-center gap-1 font-semibold cursor-pointer"
-                    title="Khôi phục dữ liệu từ file backup JSON"
-                  >
-                    <Upload className="w-3 h-3 text-slate-500" />
-                    Khôi Phục
-                    <input
-                      type="file"
-                      accept=".json"
-                      onChange={handleImportData}
-                      className="hidden"
-                    />
-                  </label>
-                </div>
-
-                {/* Google Sign-in / Cloud Status Profile Widget */}
+              {/* Google Sign-in / Cloud Status Profile Widget */}
                 {currentUser ? (
                   <div className="flex items-center gap-2 bg-slate-950 border-2 border-slate-950 p-1.5 rounded-lg text-[10px] font-sans shadow-[1px_1px_0px_#000]">
                     {/* User Google Avatar */}
@@ -1670,7 +1577,6 @@ export default function App() {
                     Đăng Nhập Google
                   </button>
                 )}
-              </div>
             </header>
 
             {/* Profile Cultivation level banner */}

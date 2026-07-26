@@ -392,15 +392,32 @@ Note: For "action": "MODIFY", taskId must match one of the task IDs in the activ
         setAdvice(parsed.advice || '');
         
         const rawProposals = parsed.proposals || [];
-        const mappedProposals: ProposedAction[] = rawProposals.map((p: any, idx: number) => ({
-          id: `proposal_${Date.now()}_${idx}`,
-          action: p.action === 'MODIFY' ? 'MODIFY' : 'NEW',
-          taskId: p.taskId || undefined,
-          title: p.title || '',
-          priority: p.priority || 'SO_CAP',
-          dueDate: p.dueDate || new Date().toISOString().split('T')[0],
-          checked: true
-        }));
+        const mappedProposals: ProposedAction[] = rawProposals.map((p: any, idx: number) => {
+          let finalDueDate = new Date().toISOString().split('T')[0];
+          if (p.dueDate) {
+            try {
+              const parsedDate = new Date(p.dueDate);
+              if (!isNaN(parsedDate.getTime())) {
+                const y = parsedDate.getFullYear();
+                const m = String(parsedDate.getMonth() + 1).padStart(2, '0');
+                const d = String(parsedDate.getDate()).padStart(2, '0');
+                finalDueDate = `${y}-${m}-${d}`;
+              }
+            } catch (e) {
+              console.warn("AI returned unparsable date:", p.dueDate);
+            }
+          }
+
+          return {
+            id: `proposal_${Date.now()}_${idx}`,
+            action: p.action === 'MODIFY' ? 'MODIFY' : 'NEW',
+            taskId: p.taskId || undefined,
+            title: p.title || '',
+            priority: p.priority || 'SO_CAP',
+            dueDate: finalDueDate,
+            checked: true
+          };
+        });
         
         setProposals(mappedProposals);
         setPrompt('');
