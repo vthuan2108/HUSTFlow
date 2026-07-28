@@ -5,17 +5,13 @@
   "description": "Zenflow Hộ Pháp: Bế quan thiền định, ngăn chặn tâm ma xao nhãng tu luyện.",
   "permissions": [
     "declarativeNetRequest",
-    "storage",
-    "tabs"
+    "storage"
   ],
   "host_permissions": [
     "<all_urls>"
   ],
   "background": {
     "service_worker": "background.js"
-  },
-  "externally_connectable": {
-    "matches": ["*://localhost/*", "*://*.vercel.app/*"]
   },
   "content_scripts": [
     {
@@ -29,9 +25,6 @@
       "run_at": "document_start"
     }
   ],
-  "chrome_url_overrides": {
-    "newtab": "newtab.html"
-  },
   "web_accessible_resources": [
     {
       "resources": ["blocked.html"],

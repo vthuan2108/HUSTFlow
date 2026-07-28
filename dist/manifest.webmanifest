@@ -1,0 +1,30 @@
+{
+  "short_name": "Zenflow",
+  "name": "Zenflow - Cultivation & Productivity",
+  "description": "Zenflow - Ứng dụng quản lý tu luyện, thiền định Pomodoro và tăng năng suất cá nhân.",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512",
+      "purpose": "maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#070a0f",
+  "theme_color": "#070a0f",
+  "display": "standalone",
+  "orientation": "portrait"
+}

@@ -8,6 +8,7 @@ import { CultivationState } from '../types';
 import { Play, Pause, RotateCcw, Volume2, VolumeX, Eye, ShieldAlert } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { SPIRITUAL_SEEDS } from '../data';
+declare const chrome: any;
 
 export type SoundscapeType = 'NONE' | 'ZEN' | 'RAIN' | 'STREAM' | 'CHIMES' | 'THUNDER' | 'CAMPFIRE';
 
@@ -465,7 +466,8 @@ export default function MeditationTimer({
 
   useEffect(() => {
     const checkExt = () => {
-      if (document.documentElement.dataset.tlkExtensionInstalled === "true") {
+      const isExtensionUrl = typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id;
+      if (isExtensionUrl || document.documentElement.dataset.tlkExtensionInstalled === "true") {
         setIsExtensionInstalled(true);
       }
     };

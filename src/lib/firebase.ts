@@ -13,8 +13,10 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 
 export const provider = new GoogleAuthProvider();
-// Request Google Tasks scope
+// Request Google Tasks, Sheets & Calendar scope
 provider.addScope('https://www.googleapis.com/auth/tasks');
+provider.addScope('https://www.googleapis.com/auth/spreadsheets');
+provider.addScope('https://www.googleapis.com/auth/calendar');
 
 let isSigningIn = false;
 let cachedAccessToken: string | null = null;

@@ -4,6 +4,9 @@
  */
 
 import { useState, useEffect } from 'react';
+import AIPanel from './components/AIPanel';
+import GradeSection from './components/GradeSection';
+import { fetchGradesFromGoogle, saveGradesToGoogle } from './lib/googleSheets';
 import {
   Task,
   Habit,
@@ -18,7 +21,11 @@ import {
   TodoItem,
   CultivationManual,
   CultivationNote,
-  GardenPlant
+  GardenPlant,
+  GradeSubject,
+  SemesterGPA,
+  CalendarGroup,
+  CalendarEvent
 } from './types';
 import { DEFAULT_CHALLENGES, getRealmInfo, STORE_ITEMS } from './data';
 import CultivationHeader from './components/CultivationHeader';
@@ -30,11 +37,11 @@ import PerformanceStats from './components/PerformanceStats';
 import IeltsMockTestLog from './components/IeltsMockTestLog';
 import StreakGrid from './components/StreakGrid';
 import TodoSection from './components/TodoSection';
+import ScheduleSection from './components/ScheduleSection';
 import ForbiddenNotes from './components/ForbiddenNotes';
 import DailyRituals from './components/DailyRituals';
 import CultivationManualsSection from './components/CultivationManualsSection';
 import SpiritualGarden from './components/SpiritualGarden';
-import AIPanel from './components/AIPanel';
 import { initAuth, googleSignIn, logout as firebaseLogout, getAccessToken } from './lib/firebase';
 import { syncGoogleTasks, deleteTaskOnGoogle, patchTaskOnGoogle } from './lib/googleTasks';
 import { saveUserDataToCloud, loadUserDataFromCloud, fetchLeaderboardFromCloud } from './lib/firestoreSync';
@@ -50,7 +57,9 @@ import {
   BookOpen,
   Scroll,
   LogIn,
-  Cloud
+  Cloud,
+  GraduationCap,
+  Calendar
 } from 'lucide-react';
 
 
@@ -77,6 +86,25 @@ export default function App() {
 
   const [activeTab, setActiveTab] = useState<string>(() => {
     return localStorage.getItem('tlk_active_tab') || 'MEDITATION';
+  });
+
+  const [spreadsheetId, setSpreadsheetId] = useState<string>(() => {
+    return localStorage.getItem('tlk_spreadsheet_id') || '';
+  });
+  const [gradeSubjects, setGradeSubjects] = useState<GradeSubject[]>(() => {
+    const saved = localStorage.getItem('tlk_grade_subjects');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [semesterGpaList, setSemesterGpaList] = useState<SemesterGPA[]>(() => {
+    const saved = localStorage.getItem('tlk_semester_gpa_list');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [isSyncingGrades, setIsSyncingGrades] = useState(false);
+  const [cpaOverall, setCpaOverall] = useState<number>(() => {
+    return Number(localStorage.getItem('tlk_cpa_overall') || '0');
+  });
+  const [isDirty, setIsDirty] = useState<boolean>(() => {
+    return localStorage.getItem('tlk_grade_is_dirty') === 'true';
   });
 
   const [isFocusMode, setIsFocusMode] = useState<boolean>(() => {
@@ -253,7 +281,7 @@ export default function App() {
     ];
   });
 
-  const [timeBlocks] = useState<TimeBlock[]>(() => {
+  const [timeBlocks, setTimeBlocks] = useState<TimeBlock[]>(() => {
     const saved = localStorage.getItem('tlk_timeblocks');
     if (saved) {
       try { return JSON.parse(saved); } catch (e) { /* fallback */ }
@@ -335,6 +363,41 @@ export default function App() {
     ];
   });
 
+  const DEFAULT_CALENDAR_GROUPS: CalendarGroup[] = [
+    { id: 'group_sinhhoat', summary: 'Sinh hoạt', backgroundColor: '#f97316', isSelected: true },
+    { id: 'group_ielts', summary: 'Ielts', backgroundColor: '#6366f1', isSelected: true },
+    { id: 'group_ngaysinh', summary: 'Ngày sinh', backgroundColor: '#22c55e', isSelected: true },
+    { id: 'group_tasks', summary: 'Tasks', backgroundColor: '#06b6d4', isSelected: true, isPrimary: true },
+    { id: 'group_training', summary: 'Training', backgroundColor: '#f59e0b', isSelected: true },
+    { id: 'group_tuhoc', summary: 'Tự học', backgroundColor: '#84cc16', isSelected: true },
+    { id: 'group_school', summary: 'School', backgroundColor: '#f43f5e', isSelected: true },
+    { id: 'group_coding', summary: 'Coding', backgroundColor: '#a855f7', isSelected: true }
+  ];
+
+  const [calendarGroups, setCalendarGroups] = useState<CalendarGroup[]>(() => {
+    const saved = localStorage.getItem('tlk_calendar_groups');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { /* fallback */ }
+    }
+    return DEFAULT_CALENDAR_GROUPS;
+  });
+
+  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>(() => {
+    const saved = localStorage.getItem('tlk_calendar_events');
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { /* fallback */ }
+    }
+    return [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('tlk_calendar_groups', JSON.stringify(calendarGroups));
+  }, [calendarGroups]);
+
+  useEffect(() => {
+    localStorage.setItem('tlk_calendar_events', JSON.stringify(calendarEvents));
+  }, [calendarEvents]);
+
   const [notes, setNotes] = useState<CultivationNote[]>(() => {
     const saved = localStorage.getItem('tlk_forbidden_notes');
     if (saved) {
@@ -411,6 +474,26 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('tlk_active_tab', activeTab);
   }, [activeTab]);
+
+  useEffect(() => {
+    localStorage.setItem('tlk_spreadsheet_id', spreadsheetId);
+  }, [spreadsheetId]);
+
+  useEffect(() => {
+    localStorage.setItem('tlk_grade_subjects', JSON.stringify(gradeSubjects));
+  }, [gradeSubjects]);
+
+  useEffect(() => {
+    localStorage.setItem('tlk_semester_gpa_list', JSON.stringify(semesterGpaList));
+  }, [semesterGpaList]);
+
+  useEffect(() => {
+    localStorage.setItem('tlk_cpa_overall', String(cpaOverall));
+  }, [cpaOverall]);
+
+  useEffect(() => {
+    localStorage.setItem('tlk_grade_is_dirty', isDirty ? 'true' : 'false');
+  }, [isDirty]);
 
   useEffect(() => {
     localStorage.setItem('tlk_is_focus_mode', isFocusMode ? 'true' : 'false');
@@ -534,6 +617,9 @@ export default function App() {
         setManuals(cloudData.manuals || []);
         setNotes(cloudData.notes || []);
         setGardenPlants((cloudData as any).gardenPlants || []);
+        setTimeBlocks(cloudData.timeBlocks || []);
+        setCalendarGroups(cloudData.calendarGroups || DEFAULT_CALENDAR_GROUPS);
+        setCalendarEvents(cloudData.calendarEvents || []);
         
         localStorage.setItem('tlk_username', cloudData.userName);
         localStorage.setItem('tlk_planning_completed_date', cloudData.planningCompletedDate || localStorage.getItem('tlk_planning_completed_date') || '');
@@ -548,6 +634,38 @@ export default function App() {
         localStorage.setItem('tlk_manuals', JSON.stringify(cloudData.manuals || []));
         localStorage.setItem('tlk_forbidden_notes', JSON.stringify(cloudData.notes || []));
         localStorage.setItem('tlk_garden_plants', JSON.stringify((cloudData as any).gardenPlants || []));
+        localStorage.setItem('tlk_timeblocks', JSON.stringify(cloudData.timeBlocks || []));
+        localStorage.setItem('tlk_calendar_groups', JSON.stringify(cloudData.calendarGroups || DEFAULT_CALENDAR_GROUPS));
+        localStorage.setItem('tlk_calendar_events', JSON.stringify(cloudData.calendarEvents || []));
+
+        // Force immediate sync to Chrome Extension with fresh Firestore data
+        const now = Date.now();
+        localStorage.setItem('tlk_last_updated', String(now));
+        window.postMessage({
+          type: "TLK_STATE_SYNC",
+          state: {
+            userName: cloudData.userName,
+            todoItems: cloudData.todoItems || [],
+            habits: cloudData.habits || [],
+            cultState: cloudData.cultState,
+            gardenPlants: (cloudData as any).gardenPlants || [],
+            dailyLogs: cloudData.dailyLogs || [],
+            ieltsLogs: cloudData.ieltsLogs || [],
+            ieltsTargets: cloudData.ieltsTargets,
+            camBooksList: cloudData.camBooksList || [],
+            challenges,
+            manuals: cloudData.manuals || [],
+            notes: cloudData.notes || [],
+            spreadsheetId,
+            cpaOverall,
+            semesterGpaList,
+            timeBlocks: cloudData.timeBlocks || [],
+            calendarGroups: cloudData.calendarGroups || DEFAULT_CALENDAR_GROUPS,
+            calendarEvents: cloudData.calendarEvents || [],
+            lastUpdated: now,
+            sender: 'web'
+          }
+        }, "*");
       } else {
         // Initial upload of current local state
         const localData = {
@@ -569,6 +687,9 @@ export default function App() {
           manuals,
           notes,
           gardenPlants,
+          timeBlocks,
+          calendarGroups,
+          calendarEvents,
         };
         await saveUserDataToCloud(user.uid, localData);
       }
@@ -602,6 +723,9 @@ export default function App() {
             manuals: cloudData ? (cloudData.manuals || []) : manuals,
             notes: cloudData ? (cloudData.notes || []) : notes,
             gardenPlants: cloudData ? ((cloudData as any).gardenPlants || []) : gardenPlants,
+            timeBlocks: cloudData ? (cloudData.timeBlocks || []) : timeBlocks,
+            calendarGroups: cloudData ? (cloudData.calendarGroups || DEFAULT_CALENDAR_GROUPS) : calendarGroups,
+            calendarEvents: cloudData ? (cloudData.calendarEvents || []) : calendarEvents,
           };
           await saveUserDataToCloud(user.uid, updatedLocalData);
         } catch (syncErr) {
@@ -633,6 +757,208 @@ export default function App() {
     }
   }, [currentUser]);
 
+  // --- CHROME EXTENSION STATE SYNCHRONIZATION ---
+  // 1. Relay local state changes to Chrome Extension
+  useEffect(() => {
+    try {
+      const now = Date.now();
+      localStorage.setItem('tlk_last_updated', String(now));
+      
+      window.postMessage({
+        type: "TLK_STATE_SYNC",
+        state: {
+          userName,
+          todoItems,
+          habits,
+          cultState,
+          gardenPlants,
+          dailyLogs,
+          ieltsLogs,
+          ieltsTargets,
+          camBooksList,
+          challenges,
+          manuals,
+          notes,
+          spreadsheetId,
+          cpaOverall,
+          semesterGpaList,
+          timeBlocks,
+          calendarGroups,
+          calendarEvents,
+          lastUpdated: now,
+          sender: 'web'
+        }
+      }, "*");
+    } catch (e) {
+      console.warn("Failed to post message for state sync", e);
+    }
+  }, [
+    userName,
+    todoItems,
+    habits,
+    cultState,
+    gardenPlants,
+    dailyLogs,
+    ieltsLogs,
+    ieltsTargets,
+    camBooksList,
+    challenges,
+    manuals,
+    notes,
+    spreadsheetId,
+    cpaOverall,
+    semesterGpaList,
+    timeBlocks,
+    calendarGroups,
+    calendarEvents
+  ]);
+
+  // 2. Listen for state updates coming from Chrome Extension (2-way sync)
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.source !== window || !event.data) return;
+      const data = event.data;
+
+      if (data.type === 'TLK_EXTENSION_STATE_UPDATED' && data.state) {
+        const newState = data.state;
+        if (newState.sender === 'extension') {
+          console.log("Zenflow: Synchronized state from Extension New Tab action");
+          if (newState.userName !== undefined) setUserName(newState.userName);
+          if (newState.todoItems !== undefined) setTodoItems(newState.todoItems);
+          if (newState.habits !== undefined) setHabits(newState.habits);
+          if (newState.cultState !== undefined) setCultState(newState.cultState);
+          if (newState.gardenPlants !== undefined) setGardenPlants(newState.gardenPlants);
+          if (newState.dailyLogs !== undefined) setDailyLogs(newState.dailyLogs);
+          if (newState.timeBlocks !== undefined) setTimeBlocks(newState.timeBlocks);
+          if (newState.calendarGroups !== undefined) setCalendarGroups(newState.calendarGroups);
+          if (newState.calendarEvents !== undefined) setCalendarEvents(newState.calendarEvents);
+          
+          if (newState.lastUpdated) {
+            localStorage.setItem('tlk_last_updated', String(newState.lastUpdated));
+          }
+        }
+      } else if (data.type === 'TLK_EXTENSION_LOADED_STATE') {
+        if (!data.state) {
+          // If extension has no state, immediately push web state to initialize it
+          console.log("Zenflow: Startup sync - extension state is empty, pushing web state");
+          const now = Date.now();
+          localStorage.setItem('tlk_last_updated', String(now));
+          window.postMessage({
+            type: "TLK_STATE_SYNC",
+            state: {
+              userName,
+              todoItems,
+              habits,
+              cultState,
+              gardenPlants,
+              dailyLogs,
+              ieltsLogs,
+              ieltsTargets,
+              camBooksList,
+              challenges,
+              manuals,
+              notes,
+              spreadsheetId,
+              cpaOverall,
+              semesterGpaList,
+              timeBlocks,
+              calendarGroups,
+              calendarEvents,
+              lastUpdated: now,
+              sender: 'web'
+            }
+          }, "*");
+          return;
+        }
+
+        const extState = data.state;
+        const localLastUpdated = Number(localStorage.getItem('tlk_last_updated') || '0');
+        const extLastUpdated = extState.lastUpdated || 0;
+        
+        if (extLastUpdated > localLastUpdated) {
+          console.log("Zenflow: Startup sync - loading newer state from Chrome Extension");
+          if (extState.userName !== undefined) setUserName(extState.userName);
+          if (extState.todoItems !== undefined) setTodoItems(extState.todoItems);
+          if (extState.habits !== undefined) setHabits(extState.habits);
+          if (extState.cultState !== undefined) setCultState(extState.cultState);
+          if (extState.gardenPlants !== undefined) setGardenPlants(extState.gardenPlants);
+          if (extState.dailyLogs !== undefined) setDailyLogs(extState.dailyLogs);
+          if (extState.ieltsLogs !== undefined) setIeltsLogs(extState.ieltsLogs);
+          if (extState.ieltsTargets !== undefined) setIeltsTargets(extState.ieltsTargets);
+          if (extState.camBooksList !== undefined) setCamBooksList(extState.camBooksList);
+          if (extState.challenges !== undefined) setChallenges(extState.challenges);
+          if (extState.manuals !== undefined) setManuals(extState.manuals);
+          if (extState.notes !== undefined) setNotes(extState.notes);
+          if (extState.spreadsheetId !== undefined) setSpreadsheetId(extState.spreadsheetId);
+          if (extState.cpaOverall !== undefined) setCpaOverall(extState.cpaOverall);
+          if (extState.semesterGpaList !== undefined) setSemesterGpaList(extState.semesterGpaList);
+          if (extState.timeBlocks !== undefined) setTimeBlocks(extState.timeBlocks);
+          if (extState.calendarGroups !== undefined) setCalendarGroups(extState.calendarGroups);
+          if (extState.calendarEvents !== undefined) setCalendarEvents(extState.calendarEvents);
+          
+          localStorage.setItem('tlk_last_updated', String(extLastUpdated));
+        } else if (localLastUpdated > extLastUpdated) {
+          console.log("Zenflow: Startup sync - web app is newer, pushing to extension");
+          const now = Date.now();
+          localStorage.setItem('tlk_last_updated', String(now));
+          window.postMessage({
+            type: "TLK_STATE_SYNC",
+            state: {
+              userName,
+              todoItems,
+              habits,
+              cultState,
+              gardenPlants,
+              dailyLogs,
+              ieltsLogs,
+              ieltsTargets,
+              camBooksList,
+              challenges,
+              manuals,
+              notes,
+              spreadsheetId,
+              cpaOverall,
+              semesterGpaList,
+              timeBlocks,
+              calendarGroups,
+              calendarEvents,
+              lastUpdated: now,
+              sender: 'web'
+            }
+          }, "*");
+        }
+      }
+    };
+
+    window.addEventListener("message", handleMessage);
+    
+    // Request initial state from extension content script
+    window.postMessage({ type: "TLK_REQUEST_INITIAL_STATE" }, "*");
+
+    return () => {
+      window.removeEventListener("message", handleMessage);
+    };
+  }, [
+    userName,
+    todoItems,
+    habits,
+    cultState,
+    gardenPlants,
+    dailyLogs,
+    ieltsLogs,
+    ieltsTargets,
+    camBooksList,
+    challenges,
+    manuals,
+    notes,
+    spreadsheetId,
+    cpaOverall,
+    semesterGpaList,
+    timeBlocks,
+    calendarGroups,
+    calendarEvents
+  ]);
+
   // Debounced auto-sync to cloud when states change
   useEffect(() => {
     if (!currentUser) return;
@@ -658,6 +984,9 @@ export default function App() {
           manuals,
           notes,
           gardenPlants,
+          timeBlocks,
+          calendarGroups,
+          calendarEvents,
         };
         await saveUserDataToCloud(currentUser.uid, dataToSave);
         console.log('☁️ Auto-synced data to Firebase Firestore');
@@ -683,6 +1012,9 @@ export default function App() {
     manuals,
     notes,
     gardenPlants,
+    timeBlocks,
+    calendarGroups,
+    calendarEvents,
   ]);
 
   // --- CULTIVATION CORE ACTIONS ---
@@ -1410,6 +1742,71 @@ export default function App() {
     setIeltsLogs(prev => prev.map(l => l.id === updatedLog.id ? updatedLog : l));
   };
 
+  // --- GRADE SYSTEM HANDLERS ---
+  // 2-Way Sync: If Web has unsaved local modifications (isDirty), PUSH to sheet first, then PULL. Otherwise, only PULL from sheet.
+  const handleSyncGrades = async () => {
+    if (!spreadsheetId) {
+      alert('Đạo hữu vui lòng cấu hình Spreadsheet ID trước khi đồng bộ!');
+      return;
+    }
+    const token = getAccessToken();
+    if (!token) {
+      alert('Không tìm thấy Token xác thực Google. Vui lòng nhấn Đăng Nhập Google ở góc trên để cấp quyền.');
+      return;
+    }
+    setIsSyncingGrades(true);
+    try {
+      // 1. If Web has local modifications, push them to the Google Sheet first
+      if (isDirty && gradeSubjects.length > 0) {
+        await saveGradesToGoogle(spreadsheetId, token, gradeSubjects);
+      }
+
+      // 2. Pull the latest data from the Google Sheet (updates Web local data)
+      const data = await fetchGradesFromGoogle(spreadsheetId, token);
+      setGradeSubjects(data.subjects);
+      setSemesterGpaList(data.semesterGpaList);
+      setCpaOverall(data.cpaOverall);
+      
+      // Reset dirty state since everything is in sync now
+      setIsDirty(false);
+      alert('⚡ Đồng bộ bảng điểm 2 chiều thành công!');
+    } catch (e: any) {
+      console.error(e);
+      const is401 = e.status === 401 || 
+                    (e.message && (e.message.includes('401') || e.message.toLowerCase().includes('unauthorized') || e.message.toLowerCase().includes('invalid credential')));
+      if (is401) {
+        await firebaseLogout();
+        setCurrentUser(null);
+        alert('⚠️ Phiên đăng nhập Google của đạo hữu đã hết hạn (do token Google chỉ tồn tại trong 1 giờ).\n\nHệ thống đã đăng xuất tự động. Đạo hữu vui lòng nhấn nút "Đăng Nhập Google" ở góc trên cùng bên phải để cấp quyền mới và tiếp tục đồng bộ!');
+      } else {
+        alert(`❌ Đồng bộ thất bại: ${e.message || e}`);
+      }
+    } finally {
+      setIsSyncingGrades(false);
+    }
+  };
+
+  const handleAddSubject = (subj: Omit<GradeSubject, 'id'>) => {
+    const newSubj: GradeSubject = {
+      ...subj,
+      id: `grade_subj_local_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`
+    };
+    setGradeSubjects(prev => [...prev, newSubj]);
+    setIsDirty(true);
+  };
+
+  const handleUpdateSubject = (id: string, updates: Partial<GradeSubject>) => {
+    setGradeSubjects(prev => prev.map(s => s.id === id ? { ...s, ...updates } : s));
+    setIsDirty(true);
+  };
+
+  const handleDeleteSubject = (id: string) => {
+    if (confirm('Đạo hữu có chắc chắn muốn xóa môn học này?')) {
+      setGradeSubjects(prev => prev.filter(s => s.id !== id));
+      setIsDirty(true);
+    }
+  };
+
 
 
   // Focus Mode checkbox completion
@@ -1638,6 +2035,19 @@ export default function App() {
               </button>
 
               <button
+                onClick={() => setActiveTab('SCHEDULE')}
+                className={`py-2.5 px-4 border-2 border-slate-950 rounded-xl font-bold cursor-pointer shrink-0 flex items-center gap-1.5 transition-all active:translate-y-[2px] active:translate-x-[2px] active:shadow-none ${
+                  activeTab === 'SCHEDULE'
+                    ? 'bg-amber-400 text-slate-950 shadow-[3px_3px_0px_#000]'
+                    : 'bg-[#131924] text-slate-400 hover:text-slate-200'
+                }`}
+                id="tab-schedule"
+              >
+                <Calendar className="w-3.5 h-3.5" />
+                Lịch trình
+              </button>
+
+              <button
                 onClick={() => setActiveTab('IELTS_ARENA')}
                 className={`py-2.5 px-4 border-2 border-slate-950 rounded-xl font-bold cursor-pointer shrink-0 flex items-center gap-1.5 transition-all active:translate-y-[2px] active:translate-x-[2px] active:shadow-none ${
                   activeTab === 'IELTS_ARENA'
@@ -1674,6 +2084,19 @@ export default function App() {
               >
                 <CompassIcon className="w-3.5 h-3.5" />
                 Đạo Nhãn Thống Kê
+              </button>
+
+              <button
+                onClick={() => setActiveTab('GRADES')}
+                className={`py-2.5 px-4 border-2 border-slate-950 rounded-xl font-bold cursor-pointer shrink-0 flex items-center gap-1.5 transition-all active:translate-y-[2px] active:translate-x-[2px] active:shadow-none ${
+                  activeTab === 'GRADES'
+                    ? 'bg-blue-400 text-slate-950 shadow-[3px_3px_0px_#000]'
+                    : 'bg-[#131924] text-slate-400 hover:text-slate-200'
+                }`}
+                id="tab-grades"
+              >
+                <GraduationCap className="w-3.5 h-3.5" />
+                Điểm số
               </button>
 
               <button
@@ -1836,6 +2259,18 @@ export default function App() {
                 />
               </div>
 
+              <div className={activeTab !== 'SCHEDULE' ? 'hidden' : ''} id="schedule-tab-view">
+                <ScheduleSection
+                  manuals={manuals}
+                  onUpdateManuals={setManuals}
+                  calendarGroups={calendarGroups}
+                  onUpdateCalendarGroups={setCalendarGroups}
+                  calendarEvents={calendarEvents}
+                  onUpdateCalendarEvents={setCalendarEvents}
+                  todoItems={todoItems}
+                />
+              </div>
+
               <div className={activeTab !== 'STORE' ? 'hidden' : ''}>
                 <TreasureStore
                   state={cultState}
@@ -1887,6 +2322,21 @@ export default function App() {
                   isFetchingLeaderboard={isFetchingLeaderboard}
                   onRefreshLeaderboard={handleFetchLeaderboard}
                   state={cultState}
+                />
+              </div>
+
+              <div className={activeTab !== 'GRADES' ? 'hidden' : ''}>
+                <GradeSection
+                  subjects={gradeSubjects}
+                  semesterGpaList={semesterGpaList}
+                  cpaOverall={cpaOverall}
+                  spreadsheetId={spreadsheetId}
+                  isSyncing={isSyncingGrades}
+                  onSaveSpreadsheetId={setSpreadsheetId}
+                  onSync={handleSyncGrades}
+                  onAddSubject={handleAddSubject}
+                  onUpdateSubject={handleUpdateSubject}
+                  onDeleteSubject={handleDeleteSubject}
                 />
               </div>
             </main>

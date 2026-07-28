@@ -1,3 +1,8 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'START_BLOCKING') {
     const blocklist = message.blocklist || [];

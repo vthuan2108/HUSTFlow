@@ -21,6 +21,9 @@ export interface CultivationSaveData {
   camBooksList: any[];
   manuals: any[];
   notes: any[];
+  timeBlocks?: any[];
+  calendarGroups?: any[];
+  calendarEvents?: any[];
 }
 
 function sanitizeForFirestore(val: any): any {

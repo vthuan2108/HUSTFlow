@@ -107,6 +107,18 @@ export default function CultivationManualsSection({
     setEditingManual(null);
   };
 
+  const handleToggleMidtermLimit = (manualId: string, stageId: string) => {
+    const updated = manuals.map(m => {
+      if (m.id !== manualId) return m;
+      const newLimit = m.midtermLimitStageId === stageId ? undefined : stageId;
+      return {
+        ...m,
+        midtermLimitStageId: newLimit
+      };
+    });
+    onUpdateManuals(updated);
+  };
+
   const handleAddEditStage = () => {
     if (!editNewStageTitle.trim()) return;
     const newStage: CultivationStage = {
@@ -640,12 +652,25 @@ export default function CultivationManualsSection({
                               {stage.title}
                             </span>
                             
+                            {/* Midterm limit pin button */}
+                            <button
+                              onClick={() => handleToggleMidtermLimit(manual.id, stage.id)}
+                              className={`text-[8.5px] font-bold px-1.5 py-0.5 rounded border transition-colors cursor-pointer mr-1.5 flex items-center gap-0.5 shrink-0 ${
+                                manual.midtermLimitStageId === stage.id
+                                  ? 'bg-rose-950/60 border-rose-800/80 text-rose-300 font-extrabold shadow-[0_0_6px_rgba(244,63,94,0.15)]'
+                                  : 'bg-slate-900/60 border-slate-800/50 text-slate-500 hover:text-slate-350 hover:border-slate-700'
+                              }`}
+                              title={manual.midtermLimitStageId === stage.id ? 'Hủy giới hạn thi Giữa kỳ' : 'Đánh dấu làm giới hạn thi Giữa kỳ (học đến hết tầng này)'}
+                            >
+                              📌 {manual.midtermLimitStageId === stage.id ? 'Giữa kỳ' : 'Mốc GK'}
+                            </button>
+
                             {stage.isCompleted ? (
-                              <span className="text-emerald-400 font-bold text-[9px] flex items-center gap-0.5 bg-emerald-950/20 border border-emerald-900/30 px-1.5 py-0.5 rounded-md">
+                              <span className="text-emerald-400 font-bold text-[9px] flex items-center gap-0.5 bg-emerald-950/20 border border-emerald-900/30 px-1.5 py-0.5 rounded-md shrink-0">
                                 <CheckCircle className="w-2.5 h-2.5" /> Viên Mãn
                               </span>
                             ) : (
-                              <div className="flex items-center gap-1.5">
+                              <div className="flex items-center gap-1.5 shrink-0">
                                 {onAddTodo && (
                                   <button
                                     onClick={() => handleLinkStageToTodo(manual, stage)}
@@ -740,6 +765,19 @@ export default function CultivationManualsSection({
                                 </div>
 
                                 <div className="flex items-center gap-1.5 shrink-0">
+                                  {/* Midterm limit pin button */}
+                                  <button
+                                    onClick={() => handleToggleMidtermLimit(manual.id, stage.id)}
+                                    className={`text-[8.5px] font-bold px-1.5 py-0.5 rounded border transition-colors cursor-pointer flex items-center gap-0.5 ${
+                                      manual.midtermLimitStageId === stage.id
+                                        ? 'bg-rose-950/60 border-rose-800/80 text-rose-300 font-extrabold shadow-[0_0_6px_rgba(244,63,94,0.15)]'
+                                        : 'bg-slate-900/60 border-slate-800/50 text-slate-500 hover:text-slate-350 hover:border-slate-700'
+                                    }`}
+                                    title={manual.midtermLimitStageId === stage.id ? 'Hủy giới hạn thi Giữa kỳ' : 'Đánh dấu làm giới hạn thi Giữa kỳ (học đến hết tầng này)'}
+                                  >
+                                    📌 {manual.midtermLimitStageId === stage.id ? 'Giữa kỳ' : 'Mốc GK'}
+                                  </button>
+
                                   {isActive && (
                                     <>
                                       {onAddTodo && (

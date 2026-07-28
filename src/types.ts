@@ -159,6 +159,10 @@ export interface CultivationManual {
   status: 'CHUA_NHAP_MON' | 'DANG_TU_LUYEN' | 'DAI_VIEN_MAN';
   createdAt: string;
   completedAt?: string;
+  examDate?: string; // Keep for backward compatibility
+  midtermExamDate?: string; // YYYY-MM-DD
+  finalExamDate?: string; // YYYY-MM-DD
+  midtermLimitStageId?: string; // Stage ID marking the limit of the midterm exam
 }
 export interface GardenPlant {
   id: string;
@@ -168,4 +172,47 @@ export interface GardenPlant {
   harvestedAt: string; // YYYY-MM-DD
   xpGained: number;
   linhThachGained: number;
+}
+
+export interface GradeSubject {
+  id: string;
+  semester: string;       // Ví dụ: "2024.1"
+  name: string;           // Tên môn học
+  credits: number;        // Số tín chỉ
+  processWeight: number;  // Trọng số quá trình
+  processScore: number;   // Điểm quá trình
+  finalScore: number;     // Điểm cuối kì
+  letterGrade?: string;   // Điểm chữ (thang 4)
+  gpaScale4?: number;     // Điểm quy đổi (thang 4)
+}
+
+export interface SemesterGPA {
+  semester: string;
+  gpa: number;
+  cpa: number;
+}
+
+export interface CalendarGroup {
+  id: string;
+  summary: string;
+  backgroundColor: string;
+  color?: string;
+  isSelected: boolean;
+  isPrimary?: boolean;
+}
+
+export interface CalendarEvent {
+  id: string;
+  calendarId: string;
+  summary: string;
+  description?: string;
+  start: {
+    dateTime?: string;
+    date?: string;
+  };
+  end: {
+    dateTime?: string;
+    date?: string;
+  };
+  color?: string;
 }

@@ -203,12 +203,21 @@ export default function AIPanel({
     const formattedManuals = manuals.map(m => {
       const totalStages = m.stages.length;
       const completedStages = m.stages.filter(s => s.isCompleted).length;
+      const limitStage = m.midtermLimitStageId ? m.stages.find(s => s.id === m.midtermLimitStageId) : null;
       return {
         name: m.name,
         category: m.category,
         tier: m.tier,
         status: m.status,
-        progress: `${completedStages}/${totalStages} stages completed`
+        progress: `${completedStages}/${totalStages} stages completed`,
+        midtermExamDate: m.midtermExamDate || 'Not set',
+        finalExamDate: m.finalExamDate || 'Not set',
+        midtermLimitStage: limitStage ? limitStage.title : 'None (Full contents for midterm)',
+        stages: m.stages.map(s => ({
+          title: s.title,
+          isCompleted: s.isCompleted,
+          isMidtermLimit: s.id === m.midtermLimitStageId
+        }))
       };
     });
 
