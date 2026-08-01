@@ -689,9 +689,16 @@ export default function PerformanceStats({
                             )}
                           </td>
                           <td className="py-3 px-3">
-                            <span className={isMe ? 'text-amber-400 font-extrabold' : 'text-slate-200 font-medium'}>
-                              {user.userName} {isMe && <span className="text-[8px] bg-amber-500/10 text-amber-500 border border-amber-500/20 px-1 py-0.5 rounded-full ml-1 font-bold animate-pulse">Ta</span>}
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <img 
+                                src="/default_avatar.jpg" 
+                                alt="Avatar" 
+                                className="w-5 h-5 rounded-full border border-slate-750 shrink-0 object-cover select-none"
+                              />
+                              <span className={isMe ? 'text-amber-400 font-extrabold' : 'text-slate-200 font-medium'}>
+                                {user.userName} {isMe && <span className="text-[8px] bg-amber-500/10 text-amber-500 border border-amber-500/20 px-1 py-0.5 rounded-full ml-1 font-bold animate-pulse">Ta</span>}
+                              </span>
+                            </div>
                           </td>
                           <td className="py-3 px-3">
                             <span className={`text-[10px] border px-2 py-0.5 rounded-full font-bold ${realmInfo.colorClass} ${realmInfo.bgClass} ${realmInfo.borderClass}`}>

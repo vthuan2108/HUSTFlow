@@ -243,7 +243,7 @@ export default function AIPanel({
     const context = compileContext();
 
     const systemInstruction = `
-You are the "Tông chủ Thiên Cơ Các" (Sect Master of the Celestial Planning Sect), a wise, prestigious, and highly authoritative AI mentor guiding the user on their path to cultivation and high productivity (Zenflow).
+You are the "Tông chủ Thiên Cơ Các" (Sect Master of the Celestial Planning Sect), a wise, prestigious, and highly authoritative AI mentor guiding the user on their path to cultivation and high productivity (HUSTFlow).
 You speak in a grand, mystical, and encouraging cultivation (tu tiên) tone. Address the user as "đạo hữu" and refer to yourself as "Bản Tông chủ".
 Analyze the user's progress: level, stats, habits, and tasks. Suggest adjustments to their plans.
 
@@ -298,7 +298,7 @@ Note: For "action": "MODIFY", taskId must match one of the task IDs in the activ
           });
 
           if (!response.ok) {
-            console.log("Zenflow AI: Stable v1 endpoint failed, trying v1beta endpoint...");
+            console.log("HUSTFlow AI: Stable v1 endpoint failed, trying v1beta endpoint...");
             url = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${activeKey}`;
             response = await fetch(url, {
               method: 'POST',
@@ -319,7 +319,7 @@ Note: For "action": "MODIFY", taskId must match one of the task IDs in the activ
             });
           }
         } catch (fetchErr) {
-          console.warn("Zenflow AI: v1 fetch failed, falling back to v1beta...", fetchErr);
+          console.warn("HUSTFlow AI: v1 fetch failed, falling back to v1beta...", fetchErr);
           url = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${activeKey}`;
           response = await fetch(url, {
             method: 'POST',
@@ -365,7 +365,7 @@ Note: For "action": "MODIFY", taskId must match one of the task IDs in the activ
           endpoint = 'https://openrouter.ai/api/v1/chat/completions';
           modelName = 'google/gemini-2.0-flash-exp:free';
           headers['HTTP-Referer'] = window.location.origin;
-          headers['X-Title'] = 'Zenflow';
+          headers['X-Title'] = 'HUSTFlow';
         } else {
           endpoint = `${customUrl}/chat/completions`;
           modelName = customModel;

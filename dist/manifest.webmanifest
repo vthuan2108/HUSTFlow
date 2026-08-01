@@ -1,23 +1,23 @@
 {
-  "short_name": "Zenflow",
-  "name": "Zenflow - Cultivation & Productivity",
-  "description": "Zenflow - Ứng dụng quản lý tu luyện, thiền định Pomodoro và tăng năng suất cá nhân.",
+  "short_name": "HUSTFlow",
+  "name": "HUSTFlow - Cultivation & Productivity",
+  "description": "HUSTFlow - Ứng dụng quản lý tu luyện, thiền định Pomodoro và tăng năng suất cá nhân.",
   "icons": [
     {
-      "src": "/favicon.svg",
-      "type": "image/svg+xml",
+      "src": "/iconhust.png",
+      "type": "image/png",
       "sizes": "any",
       "purpose": "any"
     },
     {
-      "src": "/favicon.svg",
-      "type": "image/svg+xml",
+      "src": "/iconhust.png",
+      "type": "image/png",
       "sizes": "192x192",
       "purpose": "maskable"
     },
     {
-      "src": "/favicon.svg",
-      "type": "image/svg+xml",
+      "src": "/iconhust.png",
+      "type": "image/png",
       "sizes": "512x512",
       "purpose": "maskable"
     }

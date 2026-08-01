@@ -24,6 +24,7 @@ export interface CultivationSaveData {
   timeBlocks?: any[];
   calendarGroups?: any[];
   calendarEvents?: any[];
+  lastUpdated?: number;
 }
 
 function sanitizeForFirestore(val: any): any {

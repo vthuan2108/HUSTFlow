@@ -59,7 +59,11 @@ import {
   LogIn,
   Cloud,
   GraduationCap,
-  Calendar
+  Calendar,
+  Settings,
+  ArrowUp,
+  ArrowDown,
+  X
 } from 'lucide-react';
 
 
@@ -363,16 +367,7 @@ export default function App() {
     ];
   });
 
-  const DEFAULT_CALENDAR_GROUPS: CalendarGroup[] = [
-    { id: 'group_sinhhoat', summary: 'Sinh hoạt', backgroundColor: '#f97316', isSelected: true },
-    { id: 'group_ielts', summary: 'Ielts', backgroundColor: '#6366f1', isSelected: true },
-    { id: 'group_ngaysinh', summary: 'Ngày sinh', backgroundColor: '#22c55e', isSelected: true },
-    { id: 'group_tasks', summary: 'Tasks', backgroundColor: '#06b6d4', isSelected: true, isPrimary: true },
-    { id: 'group_training', summary: 'Training', backgroundColor: '#f59e0b', isSelected: true },
-    { id: 'group_tuhoc', summary: 'Tự học', backgroundColor: '#84cc16', isSelected: true },
-    { id: 'group_school', summary: 'School', backgroundColor: '#f43f5e', isSelected: true },
-    { id: 'group_coding', summary: 'Coding', backgroundColor: '#a855f7', isSelected: true }
-  ];
+  const DEFAULT_CALENDAR_GROUPS: CalendarGroup[] = [];
 
   const [calendarGroups, setCalendarGroups] = useState<CalendarGroup[]>(() => {
     const saved = localStorage.getItem('tlk_calendar_groups');
@@ -447,6 +442,47 @@ export default function App() {
   // --- GOOGLE LOGIN & CLOUD SYNC STATES ---
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isCloudSyncing, setIsCloudSyncing] = useState<boolean>(false);
+  const [hasLoadedFromCloud, setHasLoadedFromCloud] = useState<boolean>(false);
+  const [showTabCustomizeModal, setShowTabCustomizeModal] = useState<boolean>(false);
+  const [tabOrder, setTabOrder] = useState<string[]>(() => {
+    const saved = localStorage.getItem('tlk_tab_order');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch (e) {}
+    }
+    return ['MEDITATION', 'TODOS', 'SCHEDULE', 'IELTS_ARENA', 'CULT_PATH', 'ANALYTICS', 'GRADES', 'STORE', 'CAM_DIA'];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('tlk_tab_order', JSON.stringify(tabOrder));
+  }, [tabOrder]);
+
+  const getTabConfig = (id: string) => {
+    switch (id) {
+      case 'MEDITATION':
+        return { label: 'Thiền Định Pomodoro', icon: <Flame className="w-3.5 h-3.5" />, colorClass: 'bg-amber-400 text-slate-950 shadow-[3px_3px_0px_#000]' };
+      case 'TODOS':
+        return { label: 'Nhiệm Vụ Tông Môn', icon: <ListTodo className="w-3.5 h-3.5" />, colorClass: 'bg-emerald-400 text-slate-950 shadow-[3px_3px_0px_#000]' };
+      case 'SCHEDULE':
+        return { label: 'Lịch trình', icon: <Calendar className="w-3.5 h-3.5" />, colorClass: 'bg-amber-400 text-slate-950 shadow-[3px_3px_0px_#000]' };
+      case 'IELTS_ARENA':
+        return { label: 'Nghiên Cứu Cổ Kinh', icon: <BookOpen className="w-3.5 h-3.5" />, colorClass: 'bg-blue-400 text-slate-950 shadow-[3px_3px_0px_#000]' };
+      case 'CULT_PATH':
+        return { label: 'Tiên Lộ (Lộ Trình)', icon: <Scroll className="w-3.5 h-3.5" />, colorClass: 'bg-purple-400 text-slate-950 shadow-[3px_3px_0px_#000]' };
+      case 'ANALYTICS':
+        return { label: 'Đạo Nhãn Thống Kê', icon: <CompassIcon className="w-3.5 h-3.5" />, colorClass: 'bg-pink-400 text-slate-950 shadow-[3px_3px_0px_#000]' };
+      case 'GRADES':
+        return { label: 'Điểm số', icon: <GraduationCap className="w-3.5 h-3.5" />, colorClass: 'bg-blue-400 text-slate-950 shadow-[3px_3px_0px_#000]' };
+      case 'STORE':
+        return { label: 'Tàng Bảo Các (Shop)', icon: <Sparkles className="w-3.5 h-3.5" />, colorClass: 'bg-rose-400 text-slate-950 shadow-[3px_3px_0px_#000]' };
+      case 'CAM_DIA':
+        return { label: 'Cấm Địa Tông Môn', icon: <Lock className="w-3.5 h-3.5" />, colorClass: 'bg-red-500 text-slate-950 shadow-[3px_3px_0px_#000]' };
+      default:
+        return { label: '', icon: null, colorClass: '' };
+    }
+  };
 
   // Focus mode task focus state
   const [focusSelectedTaskId, setFocusSelectedTaskId] = useState<string>('');
@@ -467,6 +503,7 @@ export default function App() {
   // Save the current app URL so the extension's blocked.html can redirect back correctly
   useEffect(() => {
     try {
+      localStorage.setItem('hustflow_app_url', window.location.origin + '/');
       localStorage.setItem('zenflow_app_url', window.location.origin + '/');
     } catch (e) {}
   }, []);
@@ -602,72 +639,108 @@ export default function App() {
       const cloudData = await loadUserDataFromCloud(user.uid);
       let baseTodos = todoItems;
       if (cloudData) {
-        // Silently and automatically sync progress
-        setUserName(cloudData.userName);
-        setPlanningCompletedDate(cloudData.planningCompletedDate || planningCompletedDate);
-        setReflectionCompletedDate(cloudData.reflectionCompletedDate || reflectionCompletedDate);
-        baseTodos = cloudData.todoItems || [];
-        setTodoItems(baseTodos);
-        setHabits(cloudData.habits || []);
-        setCultState(cloudData.cultState);
-        setDailyLogs(cloudData.dailyLogs || []);
-        setIeltsLogs(cloudData.ieltsLogs || []);
-        setIeltsTargets(cloudData.ieltsTargets);
-        setCamBooksList(cloudData.camBooksList || []);
-        setManuals(cloudData.manuals || []);
-        setNotes(cloudData.notes || []);
-        setGardenPlants((cloudData as any).gardenPlants || []);
-        setTimeBlocks(cloudData.timeBlocks || []);
-        setCalendarGroups(cloudData.calendarGroups || DEFAULT_CALENDAR_GROUPS);
-        setCalendarEvents(cloudData.calendarEvents || []);
-        
-        localStorage.setItem('tlk_username', cloudData.userName);
-        localStorage.setItem('tlk_planning_completed_date', cloudData.planningCompletedDate || localStorage.getItem('tlk_planning_completed_date') || '');
-        localStorage.setItem('tlk_reflection_completed_date', cloudData.reflectionCompletedDate || localStorage.getItem('tlk_reflection_completed_date') || '');
-        localStorage.setItem('tlk_todos', JSON.stringify(cloudData.todoItems || []));
-        localStorage.setItem('tlk_habits', JSON.stringify(cloudData.habits || []));
-        localStorage.setItem('tlk_cult_state', JSON.stringify(cloudData.cultState));
-        localStorage.setItem('tlk_daily_logs', JSON.stringify(cloudData.dailyLogs || []));
-        localStorage.setItem('tlk_ielts_logs', JSON.stringify(cloudData.ieltsLogs || []));
-        localStorage.setItem('tlk_ielts_targets', JSON.stringify(cloudData.ieltsTargets));
-        localStorage.setItem('tlk_cam_books_list', JSON.stringify(cloudData.camBooksList || []));
-        localStorage.setItem('tlk_manuals', JSON.stringify(cloudData.manuals || []));
-        localStorage.setItem('tlk_forbidden_notes', JSON.stringify(cloudData.notes || []));
-        localStorage.setItem('tlk_garden_plants', JSON.stringify((cloudData as any).gardenPlants || []));
-        localStorage.setItem('tlk_timeblocks', JSON.stringify(cloudData.timeBlocks || []));
-        localStorage.setItem('tlk_calendar_groups', JSON.stringify(cloudData.calendarGroups || DEFAULT_CALENDAR_GROUPS));
-        localStorage.setItem('tlk_calendar_events', JSON.stringify(cloudData.calendarEvents || []));
+        const localLastUpdated = Number(localStorage.getItem('tlk_last_updated') || '0');
+        const cloudLastUpdated = cloudData.lastUpdated || 0;
 
-        // Force immediate sync to Chrome Extension with fresh Firestore data
+        if (cloudLastUpdated >= localLastUpdated) {
+          console.log(`☁️ Cloud is newer (${cloudLastUpdated} >= ${localLastUpdated}). Overwriting local state with cloud state.`);
+          setUserName(cloudData.userName);
+          setPlanningCompletedDate(cloudData.planningCompletedDate || planningCompletedDate);
+          setReflectionCompletedDate(cloudData.reflectionCompletedDate || reflectionCompletedDate);
+          baseTodos = cloudData.todoItems || [];
+          setTodoItems(baseTodos);
+          setHabits(cloudData.habits || []);
+          setChallenges(cloudData.challenges || DEFAULT_CHALLENGES);
+          setCultState(cloudData.cultState);
+          setDailyLogs(cloudData.dailyLogs || []);
+          setIeltsLogs(cloudData.ieltsLogs || []);
+          setIeltsTargets(cloudData.ieltsTargets);
+          setCamBooksList(cloudData.camBooksList || []);
+          setManuals(cloudData.manuals || []);
+          setNotes(cloudData.notes || []);
+          setGardenPlants((cloudData as any).gardenPlants || []);
+          setTimeBlocks(cloudData.timeBlocks || []);
+          setCalendarGroups(cloudData.calendarGroups || DEFAULT_CALENDAR_GROUPS);
+          setCalendarEvents(cloudData.calendarEvents || []);
+          
+          localStorage.setItem('tlk_username', cloudData.userName);
+          localStorage.setItem('tlk_planning_completed_date', cloudData.planningCompletedDate || localStorage.getItem('tlk_planning_completed_date') || '');
+          localStorage.setItem('tlk_reflection_completed_date', cloudData.reflectionCompletedDate || localStorage.getItem('tlk_reflection_completed_date') || '');
+          localStorage.setItem('tlk_todos', JSON.stringify(cloudData.todoItems || []));
+          localStorage.setItem('tlk_habits', JSON.stringify(cloudData.habits || []));
+          localStorage.setItem('tlk_challenges', JSON.stringify(cloudData.challenges || DEFAULT_CHALLENGES));
+          localStorage.setItem('tlk_cult_state', JSON.stringify(cloudData.cultState));
+          localStorage.setItem('tlk_daily_logs', JSON.stringify(cloudData.dailyLogs || []));
+          localStorage.setItem('tlk_ielts_logs', JSON.stringify(cloudData.ieltsLogs || []));
+          localStorage.setItem('tlk_ielts_targets', JSON.stringify(cloudData.ieltsTargets));
+          localStorage.setItem('tlk_cam_books_list', JSON.stringify(cloudData.camBooksList || []));
+          localStorage.setItem('tlk_manuals', JSON.stringify(cloudData.manuals || []));
+          localStorage.setItem('tlk_forbidden_notes', JSON.stringify(cloudData.notes || []));
+          localStorage.setItem('tlk_garden_plants', JSON.stringify((cloudData as any).gardenPlants || []));
+          localStorage.setItem('tlk_timeblocks', JSON.stringify(cloudData.timeBlocks || []));
+          localStorage.setItem('tlk_calendar_groups', JSON.stringify(cloudData.calendarGroups || DEFAULT_CALENDAR_GROUPS));
+          localStorage.setItem('tlk_calendar_events', JSON.stringify(cloudData.calendarEvents || []));
+          localStorage.setItem('tlk_last_updated', String(cloudLastUpdated));
+
+          // Force immediate sync to Chrome Extension with fresh Firestore data
+          const now = Date.now();
+          window.postMessage({
+            type: "TLK_STATE_SYNC",
+            state: {
+              userName: cloudData.userName,
+              todoItems: cloudData.todoItems || [],
+              habits: cloudData.habits || [],
+              cultState: cloudData.cultState,
+              gardenPlants: (cloudData as any).gardenPlants || [],
+              dailyLogs: cloudData.dailyLogs || [],
+              ieltsLogs: cloudData.ieltsLogs || [],
+              ieltsTargets: cloudData.ieltsTargets,
+              camBooksList: cloudData.camBooksList || [],
+              challenges: cloudData.challenges || DEFAULT_CHALLENGES,
+              manuals: cloudData.manuals || [],
+              notes: cloudData.notes || [],
+              spreadsheetId,
+              cpaOverall,
+              semesterGpaList,
+              timeBlocks: cloudData.timeBlocks || [],
+              calendarGroups: cloudData.calendarGroups || DEFAULT_CALENDAR_GROUPS,
+              calendarEvents: cloudData.calendarEvents || [],
+              lastUpdated: now,
+              sender: 'web'
+            }
+          }, "*");
+        } else {
+          console.log(`☁️ Local is newer (${localLastUpdated} > ${cloudLastUpdated}). Push local state to Firestore.`);
+          const localData = {
+            userName,
+            planningCompletedDate,
+            reflectionCompletedDate,
+            todoItems,
+            tasks: [],
+            habits,
+            challenges,
+            cultState: {
+              ...cultState,
+              currentStreak: getStreakFromLogs(dailyLogs),
+            },
+            dailyLogs,
+            ieltsLogs,
+            ieltsTargets,
+            camBooksList,
+            manuals,
+            notes,
+            gardenPlants,
+            timeBlocks,
+            calendarGroups,
+            calendarEvents,
+            lastUpdated: localLastUpdated,
+          };
+          await saveUserDataToCloud(user.uid, localData);
+        }
+      } else {
+        // Initial upload of current local state for new user
         const now = Date.now();
         localStorage.setItem('tlk_last_updated', String(now));
-        window.postMessage({
-          type: "TLK_STATE_SYNC",
-          state: {
-            userName: cloudData.userName,
-            todoItems: cloudData.todoItems || [],
-            habits: cloudData.habits || [],
-            cultState: cloudData.cultState,
-            gardenPlants: (cloudData as any).gardenPlants || [],
-            dailyLogs: cloudData.dailyLogs || [],
-            ieltsLogs: cloudData.ieltsLogs || [],
-            ieltsTargets: cloudData.ieltsTargets,
-            camBooksList: cloudData.camBooksList || [],
-            challenges,
-            manuals: cloudData.manuals || [],
-            notes: cloudData.notes || [],
-            spreadsheetId,
-            cpaOverall,
-            semesterGpaList,
-            timeBlocks: cloudData.timeBlocks || [],
-            calendarGroups: cloudData.calendarGroups || DEFAULT_CALENDAR_GROUPS,
-            calendarEvents: cloudData.calendarEvents || [],
-            lastUpdated: now,
-            sender: 'web'
-          }
-        }, "*");
-      } else {
-        // Initial upload of current local state
         const localData = {
           userName,
           planningCompletedDate,
@@ -690,6 +763,7 @@ export default function App() {
           timeBlocks,
           calendarGroups,
           calendarEvents,
+          lastUpdated: now,
         };
         await saveUserDataToCloud(user.uid, localData);
       }
@@ -703,9 +777,12 @@ export default function App() {
           setDeletedGoogleTaskIds([]);
           localStorage.setItem('tlk_todos', JSON.stringify(result.syncedTodos));
           
+          const now = Date.now();
+          localStorage.setItem('tlk_last_updated', String(now));
+
           // Instantly sync the new todo list back to Firestore
           const updatedLocalData = {
-            userName: cloudData ? cloudData.userName : userName,
+            userName: cloudData ? (cloudData.lastUpdated && cloudData.lastUpdated >= Number(localStorage.getItem('tlk_last_updated') || '0') ? cloudData.userName : userName) : userName,
             planningCompletedDate: cloudData ? cloudData.planningCompletedDate : planningCompletedDate,
             reflectionCompletedDate: cloudData ? cloudData.reflectionCompletedDate : reflectionCompletedDate,
             todoItems: result.syncedTodos,
@@ -726,12 +803,14 @@ export default function App() {
             timeBlocks: cloudData ? (cloudData.timeBlocks || []) : timeBlocks,
             calendarGroups: cloudData ? (cloudData.calendarGroups || DEFAULT_CALENDAR_GROUPS) : calendarGroups,
             calendarEvents: cloudData ? (cloudData.calendarEvents || []) : calendarEvents,
+            lastUpdated: now,
           };
           await saveUserDataToCloud(user.uid, updatedLocalData);
         } catch (syncErr) {
           console.error('Google Tasks automatic sync on reload failed:', syncErr);
         }
       }
+      setHasLoadedFromCloud(true);
     } catch (error) {
       console.error('Error loading user data from cloud:', error);
     } finally {
@@ -746,6 +825,7 @@ export default function App() {
       },
       () => {
         setCurrentUser(null);
+        setHasLoadedFromCloud(false);
       }
     );
     return () => unsubscribe();
@@ -822,7 +902,7 @@ export default function App() {
       if (data.type === 'TLK_EXTENSION_STATE_UPDATED' && data.state) {
         const newState = data.state;
         if (newState.sender === 'extension') {
-          console.log("Zenflow: Synchronized state from Extension New Tab action");
+          console.log("HUSTFlow: Synchronized state from Extension New Tab action");
           if (newState.userName !== undefined) setUserName(newState.userName);
           if (newState.todoItems !== undefined) setTodoItems(newState.todoItems);
           if (newState.habits !== undefined) setHabits(newState.habits);
@@ -840,7 +920,7 @@ export default function App() {
       } else if (data.type === 'TLK_EXTENSION_LOADED_STATE') {
         if (!data.state) {
           // If extension has no state, immediately push web state to initialize it
-          console.log("Zenflow: Startup sync - extension state is empty, pushing web state");
+          console.log("HUSTFlow: Startup sync - extension state is empty, pushing web state");
           const now = Date.now();
           localStorage.setItem('tlk_last_updated', String(now));
           window.postMessage({
@@ -876,7 +956,7 @@ export default function App() {
         const extLastUpdated = extState.lastUpdated || 0;
         
         if (extLastUpdated > localLastUpdated) {
-          console.log("Zenflow: Startup sync - loading newer state from Chrome Extension");
+          console.log("HUSTFlow: Startup sync - loading newer state from Chrome Extension");
           if (extState.userName !== undefined) setUserName(extState.userName);
           if (extState.todoItems !== undefined) setTodoItems(extState.todoItems);
           if (extState.habits !== undefined) setHabits(extState.habits);
@@ -898,7 +978,7 @@ export default function App() {
           
           localStorage.setItem('tlk_last_updated', String(extLastUpdated));
         } else if (localLastUpdated > extLastUpdated) {
-          console.log("Zenflow: Startup sync - web app is newer, pushing to extension");
+          console.log("HUSTFlow: Startup sync - web app is newer, pushing to extension");
           const now = Date.now();
           localStorage.setItem('tlk_last_updated', String(now));
           window.postMessage({
@@ -961,10 +1041,12 @@ export default function App() {
 
   // Debounced auto-sync to cloud when states change
   useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUser || !hasLoadedFromCloud) return;
     
     const timeoutId = setTimeout(async () => {
       try {
+        const now = Date.now();
+        localStorage.setItem('tlk_last_updated', String(now));
         const dataToSave = {
           userName,
           planningCompletedDate,
@@ -987,9 +1069,10 @@ export default function App() {
           timeBlocks,
           calendarGroups,
           calendarEvents,
+          lastUpdated: now,
         };
         await saveUserDataToCloud(currentUser.uid, dataToSave);
-        console.log('☁️ Auto-synced data to Firebase Firestore');
+        console.log('☁️ Auto-synced data to Firebase Firestore at ' + now);
       } catch (e) {
         console.error('Auto-sync failed:', e);
       }
@@ -998,6 +1081,7 @@ export default function App() {
     return () => clearTimeout(timeoutId);
   }, [
     currentUser,
+    hasLoadedFromCloud,
     userName,
     planningCompletedDate,
     reflectionCompletedDate,
@@ -1918,7 +2002,7 @@ export default function App() {
               <div className="flex items-center gap-2">
                 <CompassIcon className="w-5 h-5 text-amber-500 animate-spin-slow" />
                 <h1 className="text-sm font-extrabold uppercase tracking-widest text-slate-100 font-sans">
-                  Zenflow <span className="text-[9px] bg-amber-400 text-slate-950 px-2 py-0.5 rounded border-2 border-slate-950 font-bold ml-1.5 pixel-label">v1.1</span>
+                  HUSTFlow <span className="text-[9px] bg-amber-400 text-slate-950 px-2 py-0.5 rounded border-2 border-slate-950 font-bold ml-1.5 pixel-label">v1.1</span>
                 </h1>
               </div>
 
@@ -2007,122 +2091,38 @@ export default function App() {
             )}
 
             {/* Main Tabs switcher */}
-            <nav className="flex pb-3 text-xs font-bold gap-2 overflow-x-auto scrollbar-none">
-              <button
-                onClick={() => setActiveTab('MEDITATION')}
-                className={`py-2.5 px-4 border-2 border-slate-950 rounded-xl font-bold cursor-pointer shrink-0 flex items-center gap-1.5 transition-all active:translate-y-[2px] active:translate-x-[2px] active:shadow-none ${
-                  activeTab === 'MEDITATION'
-                    ? 'bg-amber-400 text-slate-950 shadow-[3px_3px_0px_#000]'
-                    : 'bg-[#131924] text-slate-400 hover:text-slate-200'
-                }`}
-                id="tab-meditation"
-              >
-                <Flame className="w-3.5 h-3.5" />
-                Thiền Định Pomodoro
-              </button>
+            <nav className="flex flex-wrap pb-3 text-[11px] font-bold gap-2 items-center select-none">
+              {tabOrder.map(tabId => {
+                const config = getTabConfig(tabId);
+                if (!config.label) return null;
+                const isSelected = activeTab === tabId;
+                
+                return (
+                  <button
+                    key={tabId}
+                    onClick={() => setActiveTab(tabId)}
+                    className={`py-2.5 px-4 border-2 border-slate-950 rounded-xl font-black cursor-pointer shrink-0 flex items-center gap-1.5 transition-all active:translate-y-[1.5px] active:translate-x-[1.5px] active:shadow-none ${
+                      isSelected
+                        ? `${config.colorClass}`
+                        : 'bg-[#131924] text-slate-400 hover:text-slate-250 hover:bg-[#18202e]'
+                    }`}
+                    id={`tab-${tabId.toLowerCase().replace('_', '-')}`}
+                  >
+                    {config.icon}
+                    {config.label}
+                  </button>
+                );
+              })}
 
+              {/* Customize Tab Order trigger button */}
               <button
-                onClick={() => setActiveTab('TODOS')}
-                className={`py-2.5 px-4 border-2 border-slate-950 rounded-xl font-bold cursor-pointer shrink-0 flex items-center gap-1.5 transition-all active:translate-y-[2px] active:translate-x-[2px] active:shadow-none ${
-                  activeTab === 'TODOS'
-                    ? 'bg-emerald-400 text-slate-950 shadow-[3px_3px_0px_#000]'
-                    : 'bg-[#131924] text-slate-400 hover:text-slate-200'
-                }`}
-                id="tab-todos"
+                type="button"
+                onClick={() => setShowTabCustomizeModal(true)}
+                className="py-2.5 px-4 border-2 border-slate-950 bg-[#0f141c]/80 hover:bg-[#17202e] text-slate-400 hover:text-slate-200 rounded-xl font-black cursor-pointer shrink-0 flex items-center gap-1.5 transition-all shadow-[2.5px_2.5px_0px_#000] active:translate-y-[1.5px] active:shadow-none border-dashed border-slate-750"
+                title="Tùy chỉnh thứ tự các tab"
               >
-                <ListTodo className="w-3.5 h-3.5" />
-                Nhiệm Vụ Tông Môn
-              </button>
-
-              <button
-                onClick={() => setActiveTab('SCHEDULE')}
-                className={`py-2.5 px-4 border-2 border-slate-950 rounded-xl font-bold cursor-pointer shrink-0 flex items-center gap-1.5 transition-all active:translate-y-[2px] active:translate-x-[2px] active:shadow-none ${
-                  activeTab === 'SCHEDULE'
-                    ? 'bg-amber-400 text-slate-950 shadow-[3px_3px_0px_#000]'
-                    : 'bg-[#131924] text-slate-400 hover:text-slate-200'
-                }`}
-                id="tab-schedule"
-              >
-                <Calendar className="w-3.5 h-3.5" />
-                Lịch trình
-              </button>
-
-              <button
-                onClick={() => setActiveTab('IELTS_ARENA')}
-                className={`py-2.5 px-4 border-2 border-slate-950 rounded-xl font-bold cursor-pointer shrink-0 flex items-center gap-1.5 transition-all active:translate-y-[2px] active:translate-x-[2px] active:shadow-none ${
-                  activeTab === 'IELTS_ARENA'
-                    ? 'bg-blue-400 text-slate-950 shadow-[3px_3px_0px_#000]'
-                    : 'bg-[#131924] text-slate-400 hover:text-slate-200'
-                }`}
-                id="tab-ielts"
-              >
-                <BookOpen className="w-3.5 h-3.5" />
-                Nghiên Cứu Cổ Kinh
-              </button>
-
-              <button
-                onClick={() => setActiveTab('CULT_PATH')}
-                className={`py-2.5 px-4 border-2 border-slate-950 rounded-xl font-bold cursor-pointer shrink-0 flex items-center gap-1.5 transition-all active:translate-y-[2px] active:translate-x-[2px] active:shadow-none ${
-                  activeTab === 'CULT_PATH'
-                    ? 'bg-purple-400 text-slate-950 shadow-[3px_3px_0px_#000]'
-                    : 'bg-[#131924] text-slate-400 hover:text-slate-200'
-                }`}
-                id="tab-cult-path"
-              >
-                <Scroll className="w-3.5 h-3.5" />
-                Tiên Lộ (Lộ Trình)
-              </button>
-
-              <button
-                onClick={() => setActiveTab('ANALYTICS')}
-                className={`py-2.5 px-4 border-2 border-slate-950 rounded-xl font-bold cursor-pointer shrink-0 flex items-center gap-1.5 transition-all active:translate-y-[2px] active:translate-x-[2px] active:shadow-none ${
-                  activeTab === 'ANALYTICS'
-                    ? 'bg-pink-400 text-slate-950 shadow-[3px_3px_0px_#000]'
-                    : 'bg-[#131924] text-slate-400 hover:text-slate-200'
-                }`}
-                id="tab-analytics"
-              >
-                <CompassIcon className="w-3.5 h-3.5" />
-                Đạo Nhãn Thống Kê
-              </button>
-
-              <button
-                onClick={() => setActiveTab('GRADES')}
-                className={`py-2.5 px-4 border-2 border-slate-950 rounded-xl font-bold cursor-pointer shrink-0 flex items-center gap-1.5 transition-all active:translate-y-[2px] active:translate-x-[2px] active:shadow-none ${
-                  activeTab === 'GRADES'
-                    ? 'bg-blue-400 text-slate-950 shadow-[3px_3px_0px_#000]'
-                    : 'bg-[#131924] text-slate-400 hover:text-slate-200'
-                }`}
-                id="tab-grades"
-              >
-                <GraduationCap className="w-3.5 h-3.5" />
-                Điểm số
-              </button>
-
-              <button
-                onClick={() => setActiveTab('STORE')}
-                className={`py-2.5 px-4 border-2 border-slate-950 rounded-xl font-bold cursor-pointer shrink-0 flex items-center gap-1.5 transition-all active:translate-y-[2px] active:translate-x-[2px] active:shadow-none ${
-                  activeTab === 'STORE'
-                    ? 'bg-rose-400 text-slate-950 shadow-[3px_3px_0px_#000]'
-                    : 'bg-[#131924] text-slate-400 hover:text-slate-200'
-                }`}
-                id="tab-store"
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                Tàng Bảo Các (Shop)
-              </button>
-
-              <button
-                onClick={() => setActiveTab('CAM_DIA')}
-                className={`py-2.5 px-4 border-2 border-slate-950 rounded-xl font-bold cursor-pointer shrink-0 flex items-center gap-1.5 transition-all active:translate-y-[2px] active:translate-x-[2px] active:shadow-none ${
-                  activeTab === 'CAM_DIA'
-                    ? 'bg-red-500 text-slate-950 shadow-[3px_3px_0px_#000]'
-                    : 'bg-[#131924] text-slate-400 hover:text-slate-200'
-                }`}
-                id="tab-cam-dia"
-              >
-                <Lock className="w-3.5 h-3.5" />
-                Cấm Địa Tông Môn
+                <Settings className="w-3.5 h-3.5 text-amber-400 animate-spin-slow" />
+                Sắp xếp Tab
               </button>
             </nav>
 
@@ -2352,6 +2352,104 @@ export default function App() {
             onAddTodo={handleAddTodo}
             onUpdateTodo={handleUpdateTodo}
           />
-    </div>
-  );
-}
+          {/* ==================== CUSTOMIZE TAB ORDER MODAL ==================== */}
+          {showTabCustomizeModal && (
+            <div className="fixed inset-0 bg-slate-950/85 flex items-center justify-center z-50 p-4 select-none animate-fadeIn">
+              <div className="bg-[#0f141c] border-2 border-slate-950 p-6 rounded-2xl w-full max-w-md shadow-[6px_6px_0px_#000] relative flex flex-col max-h-[85vh]">
+                <button
+                  onClick={() => setShowTabCustomizeModal(false)}
+                  className="absolute top-4 right-4 text-slate-400 hover:text-slate-200 cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+
+                <div className="mb-4">
+                  <h3 className="text-xs font-black text-slate-100 uppercase tracking-widest font-mono flex items-center gap-2">
+                    <Settings className="w-5 h-5 text-amber-400 animate-spin-slow" />
+                    Sắp Xếp Vị Trí Tab Chức Năng
+                  </h3>
+                  <p className="text-[10px] text-slate-500 mt-1">Thay đổi thứ tự hiển thị các tab theo ý muốn. Sử dụng mũi tên lên/xuống để chuyển vị trí.</p>
+                </div>
+
+                <div className="flex-1 overflow-y-auto pr-1 space-y-2 min-h-0">
+                  {tabOrder.map((tabId, idx) => {
+                    const config = getTabConfig(tabId);
+                    if (!config.label) return null;
+
+                    const moveUp = () => {
+                      if (idx === 0) return;
+                      const nextOrder = [...tabOrder];
+                      const temp = nextOrder[idx];
+                      nextOrder[idx] = nextOrder[idx - 1];
+                      nextOrder[idx - 1] = temp;
+                      setTabOrder(nextOrder);
+                    };
+
+                    const moveDown = () => {
+                      if (idx === tabOrder.length - 1) return;
+                      const nextOrder = [...tabOrder];
+                      const temp = nextOrder[idx];
+                      nextOrder[idx] = nextOrder[idx + 1];
+                      nextOrder[idx + 1] = temp;
+                      setTabOrder(nextOrder);
+                    };
+
+                    return (
+                      <div 
+                        key={tabId}
+                        className="bg-slate-950/60 border border-slate-900 p-2.5 rounded-xl flex items-center justify-between gap-3 text-xs"
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="text-[10px] text-slate-600 font-mono font-bold w-4">#{idx + 1}</span>
+                          <span className="shrink-0">{config.icon}</span>
+                          <span className="font-extrabold text-slate-250 truncate">{config.label}</span>
+                        </div>
+
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            type="button"
+                            onClick={moveUp}
+                            disabled={idx === 0}
+                            className={`p-1.5 rounded-lg border border-slate-900 flex items-center justify-center transition-colors ${
+                              idx === 0
+                                ? 'bg-slate-950 text-slate-700 cursor-not-allowed opacity-40'
+                                : 'bg-[#131924] text-slate-400 hover:text-slate-200 hover:bg-slate-900 cursor-pointer'
+                            }`}
+                            title="Di chuyển lên"
+                          >
+                            <ArrowUp className="w-3.5 h-3.5" />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={moveDown}
+                            disabled={idx === tabOrder.length - 1}
+                            className={`p-1.5 rounded-lg border border-slate-900 flex items-center justify-center transition-colors ${
+                              idx === tabOrder.length - 1
+                                ? 'bg-slate-950 text-slate-700 cursor-not-allowed opacity-40'
+                                : 'bg-[#131924] text-slate-400 hover:text-slate-200 hover:bg-slate-900 cursor-pointer'
+                            }`}
+                            title="Di chuyển xuống"
+                          >
+                            <ArrowDown className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="pt-4 border-t border-slate-900 shrink-0 mt-4">
+                  <button
+                    onClick={() => setShowTabCustomizeModal(false)}
+                    className="w-full py-2 bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black rounded-xl border-2 border-slate-950 uppercase tracking-wider text-[11px] transition-all shadow-[2px_2px_0px_#000] active:translate-y-[1px] active:shadow-none cursor-pointer"
+                  >
+                    Hoàn Tất Sắp Xếp
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }

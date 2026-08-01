@@ -6,7 +6,7 @@
 import React, { useState } from 'react';
 import { CultivationState } from '../types';
 import { getRealmInfo, RealmInfo, STORE_ITEMS } from '../data';
-import { Shield, Sparkles, Gem, User, Trophy, Flame, Compass } from 'lucide-react';
+import { Shield, Sparkles, Gem, Trophy, Flame, Compass } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface CultivationHeaderProps {
@@ -127,20 +127,24 @@ export default function CultivationHeader({ state, onRename, onBreakthrough, use
         {/* Cultivator Profile */}
         <div className="flex items-center gap-3.5">
           {/* Avatar core */}
-          <div className="relative w-12 h-12 flex items-center justify-center shrink-0 select-none">
+          <div className="relative w-18 h-18 flex items-center justify-center shrink-0 select-none">
             {/* Ambient rotating aura behind */}
             <div className={`absolute inset-0 rounded-full blur-md opacity-40 animate-pulse ${style.particle}`} />
             {/* Spinning ring */}
             <div className="absolute inset-0 rounded-full border border-dashed border-slate-700/40 animate-spin-slow" />
             
             {/* Glowing orb center */}
-            <div className={`w-9 h-9 rounded-full bg-slate-950 border-2 border-slate-950 flex items-center justify-center relative z-10 transition-all`}>
-              <User className={`w-4 h-4 transition-colors ${realm.colorClass}`} />
+            <div className="w-14 h-14 rounded-full bg-slate-950 border-2 border-slate-950 flex items-center justify-center relative z-10 overflow-hidden select-none shadow-inner">
+              <img 
+                src="/default_avatar.jpg" 
+                alt="Avatar" 
+                className="w-full h-full object-cover"
+              />
             </div>
             
             {/* Orbiting particles */}
-            <span className={`absolute top-0 right-1 w-1.5 h-1.5 rounded-full animate-ping ${style.particle} opacity-60`} />
-            <span className={`absolute bottom-1 left-0 w-1 h-1 rounded-full animate-pulse ${style.particle} opacity-40`} />
+            <span className={`absolute top-0.5 right-1.5 w-1.5 h-1.5 rounded-full animate-ping ${style.particle} opacity-60`} />
+            <span className={`absolute bottom-1.5 left-0.5 w-1 h-1 rounded-full animate-pulse ${style.particle} opacity-40`} />
           </div>
 
           <div>

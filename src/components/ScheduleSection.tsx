@@ -32,7 +32,7 @@ interface ScheduleSectionProps {
 }
 
 const HOUR_HEIGHT = 60; // 60px per hour
-const START_HOUR = 0; // Grid starts at 12 AM (00:00)
+const START_HOUR = 5; // Grid starts at 5 AM
 const END_HOUR = 23; // Grid ends at 11 PM (23:00)
 
 const CALENDAR_COLORS = [
@@ -732,6 +732,8 @@ export default function ScheduleSection({
             {miniCalendarDays.map((c, idx) => {
               const isActive = getLocalDateString(c.date) === getLocalDateString(anchorDate);
               const isToday = getLocalDateString(c.date) === getLocalDateString();
+              const dateStr = getLocalDateString(c.date);
+              const hasExam = manuals.some(m => m.midtermExamDate === dateStr || m.finalExamDate === dateStr || m.examDate === dateStr);
               
               return (
                 <button
@@ -742,13 +744,16 @@ export default function ScheduleSection({
                   }}
                   className={`w-6 h-5.5 rounded font-bold flex items-center justify-center transition-all cursor-pointer ${
                     isActive 
-                      ? 'bg-amber-400 text-slate-950' 
+                      ? 'bg-amber-400 text-slate-950 shadow-[0_0_8px_rgba(251,191,36,0.4)]' 
                       : isToday 
                       ? 'border border-amber-400 text-amber-400' 
+                      : hasExam
+                      ? 'bg-rose-950/70 border border-rose-800/80 text-rose-300 font-extrabold shadow-[0_0_6px_rgba(244,63,94,0.15)] hover:bg-rose-900'
                       : c.isCurrent 
                       ? 'text-slate-350 hover:bg-slate-900' 
                       : 'text-slate-650 opacity-40 hover:bg-slate-900'
                   }`}
+                  title={hasExam ? 'Có lịch thi môn công pháp' : undefined}
                 >
                   {c.day}
                 </button>

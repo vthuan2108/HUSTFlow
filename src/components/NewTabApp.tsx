@@ -221,7 +221,7 @@ export default function NewTabApp() {
         chrome.runtime.sendMessage(customEvent.detail, (_response: any) => {
           const err = chrome.runtime.lastError;
           if (err) {
-            console.log("Zenflow NewTab Blocker: status:", err.message);
+            console.log("HUSTFlow NewTab Blocker: status:", err.message);
           }
         });
       }
@@ -504,7 +504,7 @@ export default function NewTabApp() {
   };
 
   // Retrieve app home URL (saved in localStorage or default to localhost:3000)
-  const appHomeUrl = localStorage.getItem('zenflow_app_url') || 'http://localhost:3000/';
+  const appHomeUrl = localStorage.getItem('hustflow_app_url') || localStorage.getItem('zenflow_app_url') || 'http://localhost:3000/';
 
   return (
     <div className="min-h-screen w-screen text-slate-300 relative flex flex-col justify-between p-6 bg-[#070a0f] overflow-y-auto">
@@ -514,7 +514,7 @@ export default function NewTabApp() {
         <div className="flex items-center gap-2">
           <Flame className="w-4 h-4 text-amber-500 animate-pulse" />
           <span className="text-xs font-extrabold uppercase tracking-widest text-slate-100 font-mono">
-            Zenflow Hộ Pháp
+            HUSTFlow Hộ Pháp
           </span>
         </div>
         <a 
@@ -585,7 +585,7 @@ export default function NewTabApp() {
 
       {/* Footer */}
       <footer className="w-full text-center py-2 text-[8px] text-slate-700 font-mono z-10 uppercase select-none shrink-0 border-t border-slate-900 mt-4 pt-4">
-        Zenflow Hộ Pháp © 2026 • Đồng Bộ Cảnh Giới 2 Chiều
+        HUSTFlow Hộ Pháp © 2026 • Đồng Bộ Cảnh Giới 2 Chiều
         {dailyLogs.length === -1 && <span>{userName}</span>}
       </footer>
 
