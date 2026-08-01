@@ -4,25 +4,31 @@
   "description": "HUSTFlow - Ứng dụng quản lý tu luyện, thiền định Pomodoro và tăng năng suất cá nhân.",
   "icons": [
     {
-      "src": "/iconhust.png",
+      "src": "iconhust.png",
       "type": "image/png",
-      "sizes": "any",
+      "sizes": "192x192",
       "purpose": "any"
     },
     {
-      "src": "/iconhust.png",
+      "src": "iconhust.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any"
+    },
+    {
+      "src": "iconhust.png",
       "type": "image/png",
       "sizes": "192x192",
       "purpose": "maskable"
     },
     {
-      "src": "/iconhust.png",
+      "src": "iconhust.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "maskable"
     }
   ],
-  "start_url": "/",
+  "start_url": "./",
   "background_color": "#070a0f",
   "theme_color": "#070a0f",
   "display": "standalone",
