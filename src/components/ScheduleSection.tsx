@@ -193,7 +193,8 @@ export default function ScheduleSection({
     const events = calendarEvents.filter(e => selectedIds.has(e.calendarId));
 
     // Inject calculated exam events dynamically (virtual events)
-    const schoolGroupId = calendarGroups.find(g => g.summary.toLowerCase() === 'school') ? calendarGroups.find(g => g.summary.toLowerCase() === 'school')!.id : calendarGroups[0].id;
+    const schoolGroupObj = calendarGroups.find(g => g.summary.toLowerCase() === 'school') ?? calendarGroups[0];
+    const schoolGroupId = schoolGroupObj?.id ?? '';
     manuals.forEach(manual => {
       // 1. Midterm Exam
       if (manual.midtermExamDate) {
