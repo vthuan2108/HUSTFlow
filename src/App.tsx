@@ -841,9 +841,13 @@ export default function App() {
   // 1. Relay local state changes to Chrome Extension
   useEffect(() => {
     try {
-      const now = Date.now();
-      localStorage.setItem('tlk_last_updated', String(now));
-      
+      // NOTE: Do NOT set tlk_last_updated here.
+      // This effect fires on every render (including the first render on a new machine),
+      // which would set localLastUpdated to "now" and falsely make local data appear
+      // newer than cloud data, causing handleAuthSuccess to push empty state to Firestore.
+      // tlk_last_updated is only updated in the auto-save debounce (after hasLoadedFromCloud=true).
+      const lastUpdated = Number(localStorage.getItem('tlk_last_updated') || '0');
+
       window.postMessage({
         type: "TLK_STATE_SYNC",
         state: {
@@ -865,7 +869,7 @@ export default function App() {
           timeBlocks,
           calendarGroups,
           calendarEvents,
-          lastUpdated: now,
+          lastUpdated,
           sender: 'web'
         }
       }, "*");
@@ -921,8 +925,7 @@ export default function App() {
         if (!data.state) {
           // If extension has no state, immediately push web state to initialize it
           console.log("HUSTFlow: Startup sync - extension state is empty, pushing web state");
-          const now = Date.now();
-          localStorage.setItem('tlk_last_updated', String(now));
+          const existingLastUpdated = Number(localStorage.getItem('tlk_last_updated') || '0');
           window.postMessage({
             type: "TLK_STATE_SYNC",
             state: {
@@ -944,7 +947,7 @@ export default function App() {
               timeBlocks,
               calendarGroups,
               calendarEvents,
-              lastUpdated: now,
+              lastUpdated: existingLastUpdated,
               sender: 'web'
             }
           }, "*");
@@ -979,8 +982,6 @@ export default function App() {
           localStorage.setItem('tlk_last_updated', String(extLastUpdated));
         } else if (localLastUpdated > extLastUpdated) {
           console.log("HUSTFlow: Startup sync - web app is newer, pushing to extension");
-          const now = Date.now();
-          localStorage.setItem('tlk_last_updated', String(now));
           window.postMessage({
             type: "TLK_STATE_SYNC",
             state: {
@@ -1002,7 +1003,7 @@ export default function App() {
               timeBlocks,
               calendarGroups,
               calendarEvents,
-              lastUpdated: now,
+              lastUpdated: localLastUpdated,
               sender: 'web'
             }
           }, "*");
