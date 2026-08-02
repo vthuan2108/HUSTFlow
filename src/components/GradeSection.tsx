@@ -474,7 +474,7 @@ export default function GradeSection({
             <div className="border-b-2 border-slate-950 pb-2 mb-4">
               <h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-1.5 font-sans">
                 <TrendingUp className="w-4 h-4 text-sky-400 stroke-[2]" />
-                Đường Đao Cảnh Giới (GPA theo kì)
+                GPA theo kì
               </h3>
             </div>
             
