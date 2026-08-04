@@ -5,6 +5,16 @@
 
 import { CalendarGroup, CalendarEvent } from '../types';
 
+async function checkResponse(res: Response, errorLabel: string) {
+  if (!res.ok) {
+    if (res.status === 401) {
+      localStorage.removeItem('tlk_google_access_token');
+      throw new Error('GOOGLE_AUTH_401');
+    }
+    throw new Error(`${errorLabel}: ${res.statusText}`);
+  }
+}
+
 /**
  * Fetch list of calendars from Google Calendar
  */
@@ -12,9 +22,7 @@ export async function fetchGoogleCalendars(token: string): Promise<any[]> {
   const res = await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList', {
     headers: { Authorization: `Bearer ${token}` }
   });
-  if (!res.ok) {
-    throw new Error(`Failed to fetch calendar list: ${res.statusText}`);
-  }
+  await checkResponse(res, 'Failed to fetch calendar list');
   const data = await res.json();
   return data.items || [];
 }
@@ -31,9 +39,7 @@ export async function createGoogleCalendar(token: string, summary: string): Prom
     },
     body: JSON.stringify({ summary })
   });
-  if (!res.ok) {
-    throw new Error(`Failed to create Google Calendar: ${res.statusText}`);
-  }
+  await checkResponse(res, 'Failed to create Google Calendar');
   return await res.json();
 }
 
@@ -50,10 +56,7 @@ export async function fetchGoogleEvents(
   const res = await fetch(url, {
     headers: { Authorization: `Bearer ${token}` }
   });
-  if (!res.ok) {
-    console.error(`Failed to fetch events for calendar ${calendarId}:`, res.statusText);
-    return [];
-  }
+  await checkResponse(res, `Failed to fetch events for calendar ${calendarId}`);
   const data = await res.json();
   return data.items || [];
 }
@@ -81,9 +84,7 @@ export async function insertGoogleEvent(
     },
     body: JSON.stringify(resource)
   });
-  if (!res.ok) {
-    throw new Error(`Failed to insert Google Calendar event: ${res.statusText}`);
-  }
+  await checkResponse(res, 'Failed to insert Google Calendar event');
   return await res.json();
 }
 
@@ -111,9 +112,7 @@ export async function updateGoogleEvent(
     },
     body: JSON.stringify(resource)
   });
-  if (!res.ok) {
-    throw new Error(`Failed to update Google Calendar event: ${res.statusText}`);
-  }
+  await checkResponse(res, 'Failed to update Google Calendar event');
   return await res.json();
 }
 
@@ -130,7 +129,7 @@ export async function deleteGoogleEvent(
     headers: { Authorization: `Bearer ${token}` }
   });
   if (!res.ok && res.status !== 410 && res.status !== 404) {
-    throw new Error(`Failed to delete Google Calendar event: ${res.statusText}`);
+    await checkResponse(res, 'Failed to delete Google Calendar event');
   }
 }
 

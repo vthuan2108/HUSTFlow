@@ -102,12 +102,16 @@
     <a href="#" onclick="window.location.href=zenflowUrl;return false;" class="btn">QUAY LẠI TU LUYỆN</a>
   </div>
   <script>
-    // Dynamically resolve the Zenflow app URL (works for both localhost and Vercel)
-    var zenflowUrl = (function() {
-      var stored = null;
-      try { stored = localStorage.getItem('zenflow_app_url'); } catch(e) {}
-      return stored || 'http://localhost:3000/';
-    })();
+    var zenflowUrl = 'http://localhost:3000/';
+    try {
+      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+        chrome.storage.local.get(['zenflow_app_url'], function(result) {
+          if (result && result.zenflow_app_url) {
+            zenflowUrl = result.zenflow_app_url;
+          }
+        });
+      }
+    } catch(e) {}
   </script>
 </body>
 </html>

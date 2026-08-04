@@ -477,27 +477,18 @@ export default function MeditationTimer({
   }, []);
 
   useEffect(() => {
-    if (isBlockerEnabled) {
-      if (isRunning && mode === 'FOCUS') {
-        window.dispatchEvent(
-          new CustomEvent('TLK_BLOCKER_SYNC', {
-            detail: { action: 'START_BLOCKING', blocklist: blockedDomains }
-          })
-        );
-      } else {
-        window.dispatchEvent(
-          new CustomEvent('TLK_BLOCKER_SYNC', {
-            detail: { action: 'STOP_BLOCKING' }
-          })
-        );
-      }
-    } else {
-      window.dispatchEvent(
-        new CustomEvent('TLK_BLOCKER_SYNC', {
-          detail: { action: 'STOP_BLOCKING' }
-        })
-      );
-    }
+    const detail = (isBlockerEnabled && isRunning && mode === 'FOCUS')
+      ? { action: 'START_BLOCKING', blocklist: blockedDomains }
+      : { action: 'STOP_BLOCKING' };
+
+    window.dispatchEvent(
+      new CustomEvent('TLK_BLOCKER_SYNC', { detail })
+    );
+
+    window.postMessage(
+      { type: 'TLK_BLOCKER_SYNC', detail },
+      '*'
+    );
   }, [isRunning, mode, isBlockerEnabled, blockedDomains]);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);

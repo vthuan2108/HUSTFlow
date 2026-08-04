@@ -35,62 +35,9 @@ export default function NewTabApp() {
   // --- STATE SYSTEM (Mirrors App.tsx but synced via chrome.storage.local) ---
   const [userName, setUserName] = useState<string>('Tiêu Đạo Hữu');
   
-  // Default values matching App.tsx to ensure rendering works even if storage is blank
-  const [todoItems, setTodoItems] = useState<TodoItem[]>(() => {
-    return [
-      {
-        id: 'todo_def_1',
-        title: 'Tập trung luyện đề IELTS Listening Cam 18 Test 2',
-        type: 'DAY',
-        isCompleted: false,
-        createdAt: new Date().toISOString(),
-        tuViReward: 30,
-        linhThachReward: 10,
-        dueDate: getLocalDateString()
-      },
-      {
-        id: 'todo_def_2',
-        title: 'Học 20 từ vựng chủ đề Environment qua Flashcard',
-        type: 'DAY',
-        isCompleted: false,
-        createdAt: new Date().toISOString(),
-        tuViReward: 15,
-        linhThachReward: 5,
-        dueDate: getLocalDateString()
-      },
-      {
-        id: 'todo_def_3',
-        title: 'Hoàn thành bứt phá mục tiêu IELTS Overall tăng 0.5 band',
-        type: 'MONTH',
-        isCompleted: false,
-        createdAt: new Date().toISOString(),
-        tuViReward: 120,
-        linhThachReward: 40,
-        dueDate: getLocalDateString()
-      }
-    ];
-  });
+  const [todoItems, setTodoItems] = useState<TodoItem[]>([]);
   
-  const [habits, setHabits] = useState<Habit[]>(() => {
-    return [
-      {
-        id: 'default_habit_1',
-        title: 'Tập phát âm IPA chuẩn IELTS Speaking',
-        description: 'Luyện 15 phút gương mặt & cơ miệng',
-        createdAt: new Date().toISOString(),
-        streak: 0,
-        history: {}
-      },
-      {
-        id: 'default_habit_2',
-        title: 'Viết nhật ký Tiếng Anh',
-        description: 'Viết 5 câu kể về ngày hôm nay',
-        createdAt: new Date().toISOString(),
-        streak: 0,
-        history: {}
-      }
-    ];
-  });
+  const [habits, setHabits] = useState<Habit[]>([]);
 
   const [gardenPlants, setGardenPlants] = useState<GardenPlant[]>([]);
   const [dailyLogs, setDailyLogs] = useState<DailyLog[]>([]);

@@ -185,38 +185,7 @@ export default function App() {
       });
     }
 
-    return [
-      {
-        id: 'todo_def_1',
-        title: 'Bế quan nghe chép chính tả IELTS Section 2',
-        type: 'DAY',
-        isCompleted: false,
-        createdAt: new Date().toISOString(),
-        tuViReward: 15,
-        linhThachReward: 5,
-        dueDate: getLocalDateString()
-      },
-      {
-        id: 'todo_def_2',
-        title: 'Luyện 1 Đề Cam 19 full Reading & phân tích đáp án',
-        type: 'WEEK',
-        isCompleted: false,
-        createdAt: new Date().toISOString(),
-        tuViReward: 45,
-        linhThachReward: 15,
-        dueDate: getLocalDateString()
-      },
-      {
-        id: 'todo_def_3',
-        title: 'Hoàn thành bứt phá mục tiêu IELTS Overall tăng 0.5 band',
-        type: 'MONTH',
-        isCompleted: false,
-        createdAt: new Date().toISOString(),
-        tuViReward: 120,
-        linhThachReward: 40,
-        dueDate: getLocalDateString()
-      }
-    ];
+    return [];
   });
 
   const [cultState, setCultState] = useState<CultivationState>(() => {
@@ -265,24 +234,7 @@ export default function App() {
     if (saved) {
       try { return JSON.parse(saved); } catch (e) { /* fallback */ }
     }
-    return [
-      {
-        id: 'default_habit_1',
-        title: 'Tập phát âm IPA chuẩn IELTS Speaking',
-        description: 'Luyện 15 phút gương mặt & cơ miệng',
-        createdAt: new Date().toISOString(),
-        streak: 0,
-        history: {}
-      },
-      {
-        id: 'default_habit_2',
-        title: 'Viết nhật ký Tiếng Anh',
-        description: 'Viết 5 câu kể về ngày hôm nay',
-        createdAt: new Date().toISOString(),
-        streak: 0,
-        history: {}
-      }
-    ];
+    return [];
   });
 
   const [timeBlocks, setTimeBlocks] = useState<TimeBlock[]>(() => {
@@ -298,19 +250,7 @@ export default function App() {
     if (saved) {
       try { return JSON.parse(saved); } catch (e) { /* fallback */ }
     }
-    return [
-      {
-        id: 'log_initial',
-        testName: 'IELTS Cambridge 18 Test 1 (Luyện Tập)',
-        listening: 6.5,
-        reading: 7.0,
-        writing: 6.0,
-        speaking: 6.5,
-        overall: 6.5,
-        date: getLocalDateString(),
-        notes: 'Cần trau dồi bài thi viết nhiều hơn.'
-      }
-    ];
+    return [];
   });
 
   const [ieltsTargets, setIeltsTargets] = useState<IeltsTargets>(() => {
@@ -350,21 +290,7 @@ export default function App() {
     if (saved) {
       try { return JSON.parse(saved); } catch (e) { /* fallback */ }
     }
-    return [
-      {
-        id: 'manual_initial',
-        name: 'Thái Cổ Thần Quyết - Luyện IELTS Reading',
-        category: 'Ngoại Ngữ',
-        tier: 'THIEN',
-        stages: [
-          { id: 'stage_init_1', title: 'Tầng 1: Lĩnh hội kỹ nghệ Skimming & Scanning', isCompleted: true, tuViReward: 35 },
-          { id: 'stage_init_2', title: 'Tầng 2: Vượt ải Multiple Choice & Matching Headings', isCompleted: false, tuViReward: 35 },
-          { id: 'stage_init_3', title: 'Tầng 3: Đoạt cơ duyên True/False/Not Given', isCompleted: false, tuViReward: 35 }
-        ],
-        status: 'DANG_TU_LUYEN',
-        createdAt: getLocalDateString()
-      }
-    ];
+    return [];
   });
 
   const DEFAULT_CALENDAR_GROUPS: CalendarGroup[] = [];
@@ -398,17 +324,7 @@ export default function App() {
     if (saved) {
       try { return JSON.parse(saved); } catch (e) { /* fallback */ }
     }
-    return [
-      {
-        id: 'welcome_note_1',
-        title: 'Bí Kíp Tu Tiên Vô Song',
-        content: 'Chào mừng Đạo hữu đến với Cấm Địa Tông Môn. Nơi đây dùng để lưu trữ các mật thư, công pháp và bí kíp tu luyện riêng tư.\n\n- Ấn nút ghim để Trấn điện mật thư lên đầu trang.\n- Thay đổi linh lực màu sắc của mật tịch theo các phẩm cấp.\n- Tìm kiếm dễ dàng bằng Thần Nhãn Tìm Kiếm.\n- Nhấp trực tiếp vào mật tịch để tinh sửa.',
-        isPinned: true,
-        color: 'indigo',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      }
-    ];
+    return [];
   });
 
   useEffect(() => {
@@ -1858,11 +1774,19 @@ export default function App() {
     } catch (e: any) {
       console.error(e);
       const is401 = e.status === 401 || 
+                    e.message === 'GOOGLE_AUTH_401' ||
                     (e.message && (e.message.includes('401') || e.message.toLowerCase().includes('unauthorized') || e.message.toLowerCase().includes('invalid credential')));
       if (is401) {
-        await firebaseLogout();
-        setCurrentUser(null);
-        alert('⚠️ Phiên đăng nhập Google của đạo hữu đã hết hạn (do token Google chỉ tồn tại trong 1 giờ).\n\nHệ thống đã đăng xuất tự động. Đạo hữu vui lòng nhấn nút "Đăng Nhập Google" ở góc trên cùng bên phải để cấp quyền mới và tiếp tục đồng bộ!');
+        if (confirm('⚠️ Phiên đăng nhập Google của đạo hữu đã hết hạn (Token 60 phút).\n\nĐạo hữu có muốn đăng nhập lại để cấp Token mới cho cả 3 dịch vụ (Tasks, Sheets, Calendar) và đồng bộ lại ngay không?')) {
+          try {
+            const res = await googleSignIn();
+            if (res?.accessToken) {
+              handleSyncGrades();
+            }
+          } catch (loginErr) {
+            alert('❌ Đăng nhập cấp lại Token thất bại!');
+          }
+        }
       } else {
         alert(`❌ Đồng bộ thất bại: ${e.message || e}`);
       }

@@ -272,12 +272,23 @@ export default function ScheduleSection({
       
       // Save locally
       localStorage.setItem('tlk_calendar_groups', JSON.stringify(result.syncedGroups));
-      localStorage.setItem('tlk_calendar_events', JSON.stringify(result.syncedEvents));
-
       alert('⚡ Đồng bộ hóa dữ liệu Google Calendar thành công!');
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert('⚠️ Gặp lỗi trong quá trình đồng bộ hóa Google Calendar.');
+      if (err?.message === 'GOOGLE_AUTH_401' || err?.message?.includes('401')) {
+        if (confirm('⚠️ Phiên làm việc Google của đạo hữu đã hết hạn (Token 60 phút).\n\nĐạo hữu có muốn đăng nhập lại để cấp Token mới cho cả 3 dịch vụ (Tasks, Sheets, Calendar) và đồng bộ lại ngay không?')) {
+          try {
+            const res = await googleSignIn();
+            if (res?.accessToken) {
+              handleSyncGoogleCalendar();
+            }
+          } catch (loginErr) {
+            alert('❌ Đăng nhập cấp lại Token thất bại!');
+          }
+        }
+      } else {
+        alert(`⚠️ Gặp lỗi trong quá trình đồng bộ hóa Google Calendar: ${err?.message || err}`);
+      }
     } finally {
       setIsSyncing(false);
     }
