@@ -28,6 +28,10 @@ async function sheetsApiCall(
   if (!response.ok) {
     const errorText = await response.text();
     console.error(`Google Sheets API Error on ${endpoint}:`, errorText);
+    if (response.status === 401) {
+      localStorage.removeItem('tlk_google_access_token');
+      throw new Error('GOOGLE_AUTH_401');
+    }
     throw new Error(`Google Sheets API Error: ${response.status} ${response.statusText}`);
   }
 

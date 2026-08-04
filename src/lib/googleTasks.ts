@@ -22,6 +22,10 @@ async function apiCall(endpoint: string, token: string, options: RequestInit = {
   if (!response.ok) {
     const errorText = await response.text();
     console.error(`Google Tasks API Error on ${endpoint}:`, errorText);
+    if (response.status === 401) {
+      localStorage.removeItem('tlk_google_access_token');
+      throw new Error('GOOGLE_AUTH_401');
+    }
     throw new Error(`Google Tasks API Error: ${response.status} ${response.statusText}`);
   }
 
@@ -29,9 +33,10 @@ async function apiCall(endpoint: string, token: string, options: RequestInit = {
   return response.json();
 }
 
-// Find or create the "Tiên Lộ Ký - Đạo Tràng" task list
+// Find or create the "Nhiệm Vụ Tông Môn" task list
 export async function getOrCreateTaskList(token: string): Promise<string> {
-  const targetTitle = 'Tiên Lộ Ký - Đạo Tràng';
+  const targetTitle = 'Nhiệm Vụ Tông Môn';
+  const legacyTitle = 'Tiên Lộ Ký - Đạo Tràng';
   
   // 1. List all task lists
   const data = await apiCall('/users/@me/lists', token);
@@ -40,6 +45,20 @@ export async function getOrCreateTaskList(token: string): Promise<string> {
   const existingList = lists.find((l: any) => l.title === targetTitle);
   if (existingList) {
     return existingList.id;
+  }
+
+  // If user has the legacy list name, reuse and rename it automatically
+  const legacyList = lists.find((l: any) => l.title === legacyTitle);
+  if (legacyList) {
+    try {
+      await apiCall(`/users/@me/lists/${legacyList.id}`, token, {
+        method: 'PATCH',
+        body: JSON.stringify({ title: targetTitle }),
+      });
+    } catch (e) {
+      console.warn('Failed to update legacy task list name:', e);
+    }
+    return legacyList.id;
   }
   
   // 2. Create list if not found
@@ -51,10 +70,12 @@ export async function getOrCreateTaskList(token: string): Promise<string> {
   return newList.id;
 }
 
-// Format date to RFC3339 UTC timestamp required by Google Tasks
+// Format date to RFC3339 UTC timestamp required by Google Tasks.
+// We use T12:00:00.000Z (noon UTC) so that in any timezone (like GMT+7),
+// the date does NOT lurch back to the previous day when displayed in Google Tasks UI.
 function formatToRFC3339(dateStr: string): string {
   // dateStr is in YYYY-MM-DD
-  return `${dateStr}T00:00:00.000Z`;
+  return `${dateStr}T12:00:00.000Z`;
 }
 
 // Sync local todos with Google Tasks
@@ -203,7 +224,7 @@ export async function pushTaskToGoogle(
   try {
     const listId = await getOrCreateTaskList(token);
     const dueDateStr = todo.dueDate || todo.createdAt.split('T')[0];
-    const notes = '[Tiên Lộ Ký] Chu kỳ: Hằng Ngày';
+    const notes = '[HUSTFlow] Nhiệm Vụ Tông Môn';
     
     const createdGT = await apiCall(`/lists/${listId}/tasks`, token, {
       method: 'POST',
