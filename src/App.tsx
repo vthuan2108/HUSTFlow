@@ -42,6 +42,7 @@ import ForbiddenNotes from './components/ForbiddenNotes';
 import DailyRituals from './components/DailyRituals';
 import CultivationManualsSection from './components/CultivationManualsSection';
 import SpiritualGarden from './components/SpiritualGarden';
+import { AchievementsModal } from './components/AchievementsModal';
 import { initAuth, googleSignIn, logout as firebaseLogout, getAccessToken } from './lib/firebase';
 import { syncGoogleTasks, deleteTaskOnGoogle, patchTaskOnGoogle } from './lib/googleTasks';
 import { saveUserDataToCloud, loadUserDataFromCloud, fetchLeaderboardFromCloud } from './lib/firestoreSync';
@@ -126,38 +127,43 @@ export default function App() {
     let parsedTodos: TodoItem[] = [];
     if (savedTodos) {
       try { 
-        parsedTodos = JSON.parse(savedTodos); 
-        parsedTodos = parsedTodos.map(todo => ({
-          ...todo,
-          createdAt: todo.createdAt || new Date().toISOString()
-        }));
+        const res = JSON.parse(savedTodos);
+        if (Array.isArray(res)) {
+          parsedTodos = res.map(todo => ({
+            ...todo,
+            createdAt: todo?.createdAt || new Date().toISOString()
+          }));
+        }
       } catch (e) {}
     }
     
     let parsedTasks: Task[] = [];
     if (savedTasks) {
-      try { parsedTasks = JSON.parse(savedTasks); } catch (e) {}
+      try {
+        const res = JSON.parse(savedTasks);
+        if (Array.isArray(res)) parsedTasks = res;
+      } catch (e) {}
     }
     
     if (parsedTodos.length > 0) {
       // If there are saved tasks that aren't represented in todos by title, merge them in!
-      const todoTitles = new Set(parsedTodos.map(t => t.title.toLowerCase().trim()));
+      const todoTitles = new Set(parsedTodos.map(t => (t?.title || '').toLowerCase().trim()));
       parsedTasks.forEach(task => {
-        const cleanedTitle = task.title.toLowerCase().trim();
-        if (!todoTitles.has(cleanedTitle)) {
+        const cleanedTitle = (task?.title || '').toLowerCase().trim();
+        if (cleanedTitle && !todoTitles.has(cleanedTitle)) {
           let type: 'DAY' | 'WEEK' | 'MONTH' = 'DAY';
           if (task.priority === 'CAO_CAP') type = 'WEEK';
           else if (task.priority === 'THAN_CAP') type = 'MONTH';
           
           parsedTodos.push({
-            id: task.id,
+            id: task.id || `todo_${Date.now()}_${Math.random()}`,
             title: task.title,
             type,
-            isCompleted: task.isCompleted,
+            isCompleted: !!task.isCompleted,
             createdAt: task.createdAt || new Date().toISOString(),
             completedAt: task.completedAt,
-            tuViReward: task.tuViReward,
-            linhThachReward: task.linhThachReward,
+            tuViReward: task.tuViReward || 15,
+            linhThachReward: task.linhThachReward || 5,
             dueDate: task.dueDate
           });
           todoTitles.add(cleanedTitle);
@@ -172,14 +178,14 @@ export default function App() {
         if (task.priority === 'CAO_CAP') type = 'WEEK';
         else if (task.priority === 'THAN_CAP') type = 'MONTH';
         return {
-          id: task.id,
+          id: task.id || `todo_${Date.now()}_${Math.random()}`,
           title: task.title,
           type,
-          isCompleted: task.isCompleted,
+          isCompleted: !!task.isCompleted,
           createdAt: task.createdAt || new Date().toISOString(),
           completedAt: task.completedAt,
-          tuViReward: task.tuViReward,
-          linhThachReward: task.linhThachReward,
+          tuViReward: task.tuViReward || 15,
+          linhThachReward: task.linhThachReward || 5,
           dueDate: task.dueDate
         };
       });
@@ -191,7 +197,24 @@ export default function App() {
   const [cultState, setCultState] = useState<CultivationState>(() => {
     const saved = localStorage.getItem('tlk_cult_state');
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) { /* fallback */ }
+      try {
+        const parsed = JSON.parse(saved);
+        return {
+          totalExp: 0,
+          currentExp: 0,
+          level: 1,
+          linhThach: 100,
+          spiritStonesEarned: 100,
+          meditationMinutes: 0,
+          tasksCompletedCount: 0,
+          habitsCompletedCount: 0,
+          shieldActive: false,
+          ...parsed,
+          inventory: Array.isArray(parsed?.inventory) ? parsed.inventory : [],
+          unlockedRealms: Array.isArray(parsed?.unlockedRealms) ? parsed.unlockedRealms : ['Ngưng Khí Kỳ'],
+          claimedAchievements: Array.isArray(parsed?.claimedAchievements) ? parsed.claimedAchievements : [],
+        };
+      } catch (e) { /* fallback */ }
     }
     return {
       totalExp: 0,
@@ -204,16 +227,17 @@ export default function App() {
       habitsCompletedCount: 0,
       shieldActive: false,
       inventory: [],
-      unlockedRealms: ['Luyện Khí Kỳ']
+      unlockedRealms: ['Ngưng Khí Kỳ'],
+      claimedAchievements: []
     };
   });
 
-  const tasks: Task[] = todoItems
+  const tasks: Task[] = (todoItems || [])
     .map(todo => {
       let priority: Priority = 'SO_CAP';
-      if (todo.tuViReward >= 120) priority = 'THAN_CAP';
-      else if (todo.tuViReward >= 60) priority = 'CAO_CAP';
-      else if (todo.tuViReward >= 30) priority = 'TRUNG_CAP';
+      if ((todo?.tuViReward || 0) >= 120) priority = 'THAN_CAP';
+      else if ((todo?.tuViReward || 0) >= 60) priority = 'CAO_CAP';
+      else if ((todo?.tuViReward || 0) >= 30) priority = 'TRUNG_CAP';
 
       return {
         id: todo.id,
@@ -221,18 +245,18 @@ export default function App() {
         description: todo.type === 'WEEK' ? 'Nhiệm Vụ Hàng Tuần' : todo.type === 'MONTH' ? 'Nhiệm Vụ Hàng Tháng' : 'Nhiệm Vụ Hằng Ngày',
         priority,
         isCompleted: todo.isCompleted,
-        dueDate: todo.dueDate || getLocalDateString(new Date(todo.createdAt)),
+        dueDate: todo.dueDate || getLocalDateString(new Date(todo.createdAt || Date.now())),
         createdAt: todo.createdAt,
         completedAt: todo.completedAt,
-        tuViReward: todo.tuViReward,
-        linhThachReward: todo.linhThachReward
+        tuViReward: todo.tuViReward || 15,
+        linhThachReward: todo.linhThachReward || 5
       };
     });
 
   const [habits, setHabits] = useState<Habit[]>(() => {
     const saved = localStorage.getItem('tlk_habits');
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) { /* fallback */ }
+      try { const res = JSON.parse(saved); if (Array.isArray(res)) return res; } catch (e) { /* fallback */ }
     }
     return [];
   });
@@ -240,7 +264,7 @@ export default function App() {
   const [timeBlocks, setTimeBlocks] = useState<TimeBlock[]>(() => {
     const saved = localStorage.getItem('tlk_timeblocks');
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) { /* fallback */ }
+      try { const res = JSON.parse(saved); if (Array.isArray(res)) return res; } catch (e) { /* fallback */ }
     }
     return [];
   });
@@ -248,7 +272,7 @@ export default function App() {
   const [ieltsLogs, setIeltsLogs] = useState<IeltsTestLog[]>(() => {
     const saved = localStorage.getItem('tlk_ielts_logs');
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) { /* fallback */ }
+      try { const res = JSON.parse(saved); if (Array.isArray(res)) return res; } catch (e) { /* fallback */ }
     }
     return [];
   });
@@ -256,7 +280,7 @@ export default function App() {
   const [ieltsTargets, setIeltsTargets] = useState<IeltsTargets>(() => {
     const saved = localStorage.getItem('tlk_ielts_targets');
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) { /* fallback */ }
+      try { const res = JSON.parse(saved); if (res && typeof res === 'object') return res; } catch (e) { /* fallback */ }
     }
     return { listening: 7.0, reading: 7.0, writing: 6.5, speaking: 6.5, overall: 7.0 };
   });
@@ -264,7 +288,7 @@ export default function App() {
   const [camBooksList, setCamBooksList] = useState<number[]>(() => {
     const saved = localStorage.getItem('tlk_cam_books_list');
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) { /* fallback */ }
+      try { const res = JSON.parse(saved); if (Array.isArray(res)) return res; } catch (e) { /* fallback */ }
     }
     return [19, 18, 17, 16, 15];
   });
@@ -272,7 +296,7 @@ export default function App() {
   const [dailyLogs, setDailyLogs] = useState<DailyLog[]>(() => {
     const saved = localStorage.getItem('tlk_daily_logs');
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) { /* fallback */ }
+      try { const res = JSON.parse(saved); if (Array.isArray(res)) return res; } catch (e) { /* fallback */ }
     }
     return [];
   });
@@ -280,7 +304,7 @@ export default function App() {
   const [challenges, setChallenges] = useState<WeeklyChallenge[]>(() => {
     const saved = localStorage.getItem('tlk_challenges');
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) { /* fallback */ }
+      try { const res = JSON.parse(saved); if (Array.isArray(res)) return res; } catch (e) { /* fallback */ }
     }
     return DEFAULT_CHALLENGES;
   });
@@ -288,7 +312,7 @@ export default function App() {
   const [manuals, setManuals] = useState<CultivationManual[]>(() => {
     const saved = localStorage.getItem('tlk_manuals');
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) { /* fallback */ }
+      try { const res = JSON.parse(saved); if (Array.isArray(res)) return res; } catch (e) { /* fallback */ }
     }
     return [];
   });
@@ -298,7 +322,7 @@ export default function App() {
   const [calendarGroups, setCalendarGroups] = useState<CalendarGroup[]>(() => {
     const saved = localStorage.getItem('tlk_calendar_groups');
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) { /* fallback */ }
+      try { const res = JSON.parse(saved); if (Array.isArray(res)) return res; } catch (e) { /* fallback */ }
     }
     return DEFAULT_CALENDAR_GROUPS;
   });
@@ -306,7 +330,7 @@ export default function App() {
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>(() => {
     const saved = localStorage.getItem('tlk_calendar_events');
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) { /* fallback */ }
+      try { const res = JSON.parse(saved); if (Array.isArray(res)) return res; } catch (e) { /* fallback */ }
     }
     return [];
   });
@@ -322,7 +346,7 @@ export default function App() {
   const [notes, setNotes] = useState<CultivationNote[]>(() => {
     const saved = localStorage.getItem('tlk_forbidden_notes');
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) { /* fallback */ }
+      try { const res = JSON.parse(saved); if (Array.isArray(res)) return res; } catch (e) { /* fallback */ }
     }
     return [];
   });
@@ -334,7 +358,7 @@ export default function App() {
   const [gardenPlants, setGardenPlants] = useState<GardenPlant[]>(() => {
     const saved = localStorage.getItem('tlk_garden_plants');
     if (saved) {
-      try { return JSON.parse(saved); } catch (e) { /* fallback */ }
+      try { const res = JSON.parse(saved); if (Array.isArray(res)) return res; } catch (e) { /* fallback */ }
     }
     return [];
   });
@@ -402,6 +426,27 @@ export default function App() {
 
   // Focus mode task focus state
   const [focusSelectedTaskId, setFocusSelectedTaskId] = useState<string>('');
+  const [isAchievementsModalOpen, setIsAchievementsModalOpen] = useState<boolean>(false);
+
+  const handleClaimAchievement = (achievementId: string, rewardStones: number) => {
+    setCultState(prev => {
+      const currentClaimed = prev.claimedAchievements || [];
+      if (currentClaimed.includes(achievementId)) return prev;
+      return {
+        ...prev,
+        linhThach: prev.linhThach + rewardStones,
+        spiritStonesEarned: prev.spiritStonesEarned + rewardStones,
+        claimedAchievements: [...currentClaimed, achievementId]
+      };
+    });
+  };
+
+  const handleEquipTitle = (title: string) => {
+    setCultState(prev => ({
+      ...prev,
+      equippedTitle: title
+    }));
+  };
 
   // --- SAVE SYSTEM SYNC ---
   useEffect(() => {
@@ -1130,10 +1175,11 @@ export default function App() {
   const handleBreakthrough = (success: boolean) => {
     const realmInfo = getRealmInfo(cultState.level);
     const xpNeeded = realmInfo.xpNeeded;
+    const isBottleneck = !!realmInfo.bottleneck;
 
     if (success) {
       setCultState(prev => {
-        const nextLevel = prev.level + 1;
+        const nextLevel = Math.min(prev.level + 1, 100);
         const remainingExp = Math.max(prev.currentExp - xpNeeded, 0);
         const unlockedRealms = [...prev.unlockedRealms];
         const nextRealmInfo = getRealmInfo(nextLevel);
@@ -1142,10 +1188,21 @@ export default function App() {
           unlockedRealms.push(nextRealmInfo.name);
         }
 
+        // Consume required bottleneck item if present
+        let newInventory = [...prev.inventory];
+        if (isBottleneck && realmInfo.bottleneck?.requiredItemId) {
+          const reqId = realmInfo.bottleneck.requiredItemId;
+          newInventory = newInventory.map(item =>
+            item.itemId === reqId ? { ...item, quantity: Math.max(0, item.quantity - 1) } : item
+          ).filter(item => item.quantity > 0);
+        }
+
         return {
           ...prev,
           level: nextLevel,
           currentExp: remainingExp,
+          inventory: newInventory,
+          breakthroughCount: (prev.breakthroughCount || 0) + 1,
           unlockedRealms
         };
       });
@@ -1159,13 +1216,24 @@ export default function App() {
             shieldActive: false // consume shield
           };
         } else {
-          // Lose 10% of xpNeeded as a penalty
-          const penalty = Math.round(xpNeeded * 0.1);
-          const newExp = Math.max(prev.currentExp - penalty, 0);
-          return {
-            ...prev,
-            currentExp: newExp
-          };
+          if (isBottleneck) {
+            // Demote by 2 levels and wipe overflow EXP on bottleneck failure without shield!
+            const demotedLevel = Math.max(1, prev.level - 2);
+            return {
+              ...prev,
+              level: demotedLevel,
+              currentExp: 0,
+              tonThuongDanDienDate: getLocalDateString()
+            };
+          } else {
+            // Lose 10% of xpNeeded as a penalty
+            const penalty = Math.round(xpNeeded * 0.1);
+            const newExp = Math.max(prev.currentExp - penalty, 0);
+            return {
+              ...prev,
+              currentExp: newExp
+            };
+          }
         }
       });
     }
@@ -1510,6 +1578,7 @@ export default function App() {
       return {
         ...prev,
         linhThach: prev.linhThach - item.cost,
+        itemsBoughtCount: (prev.itemsBoughtCount || 0) + 1,
         inventory
       };
     });
@@ -1991,6 +2060,7 @@ export default function App() {
               onRename={setUserName}
               onBreakthrough={handleBreakthrough}
               userName={userName}
+              onOpenAchievements={() => setIsAchievementsModalOpen(true)}
             />
 
             {/* Cảnh báo Tâm Ma Xâm Nhập */}
@@ -2274,8 +2344,44 @@ export default function App() {
             habits={habits}
             manuals={manuals}
             cultState={cultState}
+            gradeSubjects={gradeSubjects}
+            cpaOverall={cpaOverall}
+            semesterGpaList={semesterGpaList}
+            calendarEvents={calendarEvents}
+            calendarGroups={calendarGroups}
+            ieltsLogs={ieltsLogs}
+            notes={notes}
             onAddTodo={handleAddTodo}
             onUpdateTodo={handleUpdateTodo}
+            onAddCalendarEvent={(summary, startDate, endDate) => {
+              const primaryGroup = calendarGroups.find(g => g.isPrimary) || calendarGroups[0];
+              const targetGroupId = primaryGroup ? primaryGroup.id : 'group_tasks';
+              const newEvent: CalendarEvent = {
+                id: `event_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+                calendarId: targetGroupId,
+                summary,
+                start: { dateTime: startDate },
+                end: { dateTime: endDate }
+              };
+              setCalendarEvents(prev => [...prev, newEvent]);
+            }}
+            onCreateManual={(name, category, stages) => {
+              const newManual: CultivationManual = {
+                id: `manual_${Date.now()}`,
+                name,
+                category: (category as any) || 'Bách Khoa',
+                tier: 'HUYEN',
+                status: 'DANG_TU_LUYEN',
+                createdAt: getLocalDateString(),
+                stages: stages.map((title, idx) => ({
+                  id: `stage_${Date.now()}_${idx}`,
+                  title,
+                  isCompleted: false,
+                  tuViReward: 35
+                }))
+              };
+              setManuals(prev => [newManual, ...prev]);
+            }}
           />
           {/* ==================== CUSTOMIZE TAB ORDER MODAL ==================== */}
           {showTabCustomizeModal && (
@@ -2375,6 +2481,21 @@ export default function App() {
               </div>
             </div>
           )}
+
+          {/* Achievements Modal */}
+          <AchievementsModal
+            isOpen={isAchievementsModalOpen}
+            onClose={() => setIsAchievementsModalOpen(false)}
+            state={cultState}
+            currentStreak={getStreakFromLogs(dailyLogs)}
+            gardenPlantsCount={gardenPlants.length}
+            notesCount={notes.length}
+            timeBlocksCount={timeBlocks.length}
+            manualsCount={manuals.length}
+            cpaScore={cpaOverall}
+            onClaimAchievement={handleClaimAchievement}
+            onEquipTitle={handleEquipTitle}
+          />
         </div>
       );
     }

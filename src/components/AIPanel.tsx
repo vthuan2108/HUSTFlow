@@ -3,35 +3,85 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect } from 'react';
-import { TodoItem, Task, Habit, CultivationState, Priority, CultivationManual } from '../types';
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  TodoItem, 
+  Task, 
+  Habit, 
+  CultivationState, 
+  Priority, 
+  CultivationManual,
+  GradeSubject,
+  SemesterGPA,
+  CalendarEvent,
+  CalendarGroup,
+  IeltsTestLog,
+  CultivationNote
+} from '../types';
 import { 
   Send, 
   Settings, 
   Check, 
   CheckSquare, 
-  Square
+  Square,
+  Sparkles,
+  ChevronDown,
+  ChevronUp,
+  Brain,
+  Bot,
+  User as UserIcon,
+  Calendar as CalendarIcon,
+  BookOpen,
+  Trash2,
+  RotateCcw,
+  X,
+  Compass,
+  Zap,
+  GraduationCap
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
-interface AIPanelProps {
+export interface AIPanelProps {
   todoItems: TodoItem[];
   tasks: Task[];
   habits: Habit[];
   manuals: CultivationManual[];
   cultState: CultivationState;
+  gradeSubjects?: GradeSubject[];
+  cpaOverall?: number;
+  semesterGpaList?: SemesterGPA[];
+  calendarEvents?: CalendarEvent[];
+  calendarGroups?: CalendarGroup[];
+  ieltsLogs?: IeltsTestLog[];
+  notes?: CultivationNote[];
   onAddTodo: (title: string, priority: Priority, dueDate: string, description?: string) => void;
   onUpdateTodo: (updatedTodo: TodoItem) => void;
+  onAddCalendarEvent?: (summary: string, startDate: string, endDate: string) => void;
+  onCreateManual?: (name: string, category: string, stages: string[]) => void;
 }
 
-interface ProposedAction {
-  id: string; // client-side rendering ID
-  action: 'NEW' | 'MODIFY';
+export interface ProposedAction {
+  id: string; // Client rendering ID
+  type: 'TASK' | 'CALENDAR' | 'MANUAL';
+  action?: 'NEW' | 'MODIFY';
   taskId?: string;
   title: string;
-  priority: Priority;
-  dueDate: string;
+  priority?: Priority;
+  dueDate?: string;
+  startDate?: string;
+  endDate?: string;
+  category?: string;
+  stages?: string[];
   checked: boolean;
+}
+
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  reasoning?: string; // DeepSeek R1 <think> block
+  proposals?: ProposedAction[];
+  timestamp: string;
 }
 
 type ProviderType = 'gemini' | 'groq' | 'openrouter' | 'custom';
@@ -42,15 +92,25 @@ export default function AIPanel({
   habits,
   manuals,
   cultState,
+  gradeSubjects = [],
+  cpaOverall = 0,
+  semesterGpaList = [],
+  calendarEvents = [],
+  calendarGroups = [],
+  ieltsLogs = [],
+  notes = [],
   onAddTodo,
-  onUpdateTodo
+  onUpdateTodo,
+  onAddCalendarEvent,
+  onCreateManual
 }: AIPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   
   // Multi-provider settings
   const [provider, setProvider] = useState<ProviderType>(() => {
-    return (localStorage.getItem('tlk_ai_provider') as ProviderType) || 'gemini';
+    return (localStorage.getItem('tlk_ai_provider') as ProviderType) || 'groq';
   });
 
   const [geminiKey, setGeminiKey] = useState(() => localStorage.getItem('tlk_gemini_api_key') || '');
@@ -60,48 +120,43 @@ export default function AIPanel({
   const [customUrl, setCustomUrl] = useState(() => localStorage.getItem('tlk_custom_api_url') || 'https://api.openai.com/v1');
   const [customModel, setCustomModel] = useState(() => localStorage.getItem('tlk_custom_model') || 'gpt-4o-mini');
 
+  // Groq Model Selector
+  const VALID_GROQ_MODELS = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'mixtral-8x7b-32768', 'gemma2-9b-it'];
+  const [groqModel, setGroqModel] = useState<string>(() => {
+    const saved = localStorage.getItem('tlk_groq_model');
+    if (!saved || !VALID_GROQ_MODELS.includes(saved)) return 'llama-3.3-70b-versatile';
+    return saved;
+  });
+
+  // Gemini Model Selector
   const [selectedModel, setSelectedModel] = useState<string>(() => {
     const saved = localStorage.getItem('tlk_gemini_model');
     if (saved === 'gemini-2.5-flash') return 'gemini-1.5-flash';
     return saved || 'gemini-1.5-flash';
   });
 
-  const [advice, setAdvice] = useState<string>(() => {
-    const cached = localStorage.getItem('tlk_ai_advice');
-    if (cached && (cached.includes('gặp trục trặc') || cached.includes('error') || cached.includes('Quota exceeded') || cached.includes('not found'))) {
-      return 'Chào mừng đạo hữu đến với Thiên Cơ Các! Hãy cấu hình API Key để triệu hồi Tông chủ lên kế hoạch tu luyện.';
+  // Multi-turn Chat Messages History (Resets fresh on page reload)
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>(() => [
+    {
+      id: 'init_msg',
+      role: 'assistant',
+      content: 'Tại hạ là Tông chủ Thiên Cơ Các. Đạo hữu cần trao đổi hay tính toán điều gì, xin cứ nói!',
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
-    return cached || 'Chào mừng đạo hữu đến với Thiên Cơ Các! Hãy cấu hình API Key để triệu hồi Tông chủ lên kế hoạch tu luyện.';
-  });
+  ]);
 
-  const [proposals, setProposals] = useState<ProposedAction[]>(() => {
-    try {
-      const stored = localStorage.getItem('tlk_ai_proposals');
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
-  });
+  // Active reasoning visibility toggles
+  const [expandedReasoning, setExpandedReasoning] = useState<Record<string, boolean>>({});
 
   // Local key inputs for settings UI
   const [inputKeyTemp, setInputKeyTemp] = useState('');
-
-  // Auto-fill temp input on provider or keys change
-  useEffect(() => {
-    if (provider === 'gemini') setInputKeyTemp(geminiKey);
-    else if (provider === 'groq') setInputKeyTemp(groqKey);
-    else if (provider === 'openrouter') setInputKeyTemp(openRouterKey);
-    else if (provider === 'custom') setInputKeyTemp(customKey);
-  }, [provider, geminiKey, groqKey, openRouterKey, customKey]);
-
+  const [prompt, setPrompt] = useState('');
   const activeKey = provider === 'gemini' ? geminiKey 
                   : provider === 'groq' ? groqKey 
                   : provider === 'openrouter' ? openRouterKey 
                   : customKey;
 
   const [isConfiguringKey, setIsConfiguringKey] = useState(!activeKey);
-
-  const [prompt, setPrompt] = useState('');
 
   // Persists settings
   useEffect(() => {
@@ -133,16 +188,29 @@ export default function AIPanel({
   }, [customModel]);
 
   useEffect(() => {
+    localStorage.setItem('tlk_groq_model', groqModel);
+  }, [groqModel]);
+
+  useEffect(() => {
     localStorage.setItem('tlk_gemini_model', selectedModel);
   }, [selectedModel]);
 
-  useEffect(() => {
-    localStorage.setItem('tlk_ai_advice', advice);
-  }, [advice]);
 
+
+  // Auto-scroll chat to bottom
   useEffect(() => {
-    localStorage.setItem('tlk_ai_proposals', JSON.stringify(proposals));
-  }, [proposals]);
+    if (isOpen) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [chatHistory, isOpen, isLoading]);
+
+  // Auto-fill temp input on provider change
+  useEffect(() => {
+    if (provider === 'gemini') setInputKeyTemp(geminiKey);
+    else if (provider === 'groq') setInputKeyTemp(groqKey);
+    else if (provider === 'openrouter') setInputKeyTemp(openRouterKey);
+    else if (provider === 'custom') setInputKeyTemp(customKey);
+  }, [provider, geminiKey, groqKey, openRouterKey, customKey]);
 
   const saveApiKey = () => {
     const key = inputKeyTemp.trim();
@@ -162,195 +230,137 @@ export default function AIPanel({
     setIsConfiguringKey(true);
   };
 
-  const handleQuickSuggestion = (text: string) => {
-    setPrompt(text);
+  const handleClearHistory = () => {
+    if (confirm('Đạo hữu có chắc chắn muốn xóa toàn bộ lịch sử trò chuyện Thiên Cơ Các?')) {
+      setChatHistory([
+        {
+          id: `init_${Date.now()}`,
+          role: 'assistant',
+          content: 'Lịch sử trò chuyện đã được làm sạch. Bản Tông Chủ sẵn sàng nhận lệnh mới!',
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }
+      ]);
+    }
+  };
+
+  const toggleReasoning = (msgId: string) => {
+    setExpandedReasoning(prev => ({ ...prev, [msgId]: !prev[msgId] }));
   };
 
   const compileContext = () => {
-    const formattedStats = {
-      level: cultState.level,
-      totalExp: cultState.totalExp,
-      linhThach: cultState.linhThach,
-      stats: {
-        focus: 50 + (cultState.meditationMinutes / 10),
-        willpower: 50 + (cultState.habitsCompletedCount * 2),
-        mindset: 50 + (cultState.tasksCompletedCount * 3),
-        wealth: 50 + (cultState.linhThach / 10),
-        wisdom: 50 + (cultState.level * 2)
-      }
-    };
-
     const pendingTasks = todoItems
       .filter(t => !t.isCompleted)
-      .map(t => ({ id: t.id, title: t.title, dueDate: t.dueDate || 'No Date', priority: t.difficulty || 'SO_CAP' }));
-
-    const completedTasks = todoItems
-      .filter(t => t.isCompleted)
-      .map(t => ({ title: t.title, completedAt: t.completedAt }));
+      .slice(0, 6)
+      .map(t => ({ id: t.id, title: t.title, dueDate: t.dueDate || 'Chưa có', priority: t.difficulty || 'SO_CAP' }));
 
     const formattedHabits = habits.map(h => ({
       title: h.title,
-      streak: h.streak,
-      completionRate: Object.values(h.history).filter(Boolean).length
+      streak: h.streak
     }));
 
-    const pomodoroTasks = tasks.map(t => ({
-      title: t.title,
-      isCompleted: t.isCompleted,
-      priority: t.priority
+    const formattedManuals = manuals.map(m => `${m.name} (${m.stages.filter(s => s.isCompleted).length}/${m.stages.length})`);
+
+    const formattedGrades = gradeSubjects.slice(0, 6).map(g => ({
+      code: g.code,
+      name: g.name,
+      midterm: g.midtermScore ?? 'chưa có',
+      final: g.finalScore ?? 'chưa có'
     }));
 
-    const formattedManuals = manuals.map(m => {
-      const totalStages = m.stages.length;
-      const completedStages = m.stages.filter(s => s.isCompleted).length;
-      const limitStage = m.midtermLimitStageId ? m.stages.find(s => s.id === m.midtermLimitStageId) : null;
-      return {
-        name: m.name,
-        category: m.category,
-        tier: m.tier,
-        status: m.status,
-        progress: `${completedStages}/${totalStages} stages completed`,
-        midtermExamDate: m.midtermExamDate || 'Not set',
-        finalExamDate: m.finalExamDate || 'Not set',
-        midtermLimitStage: limitStage ? limitStage.title : 'None (Full contents for midterm)',
-        stages: m.stages.map(s => ({
-          title: s.title,
-          isCompleted: s.isCompleted,
-          isMidtermLimit: s.id === m.midtermLimitStageId
-        }))
-      };
-    });
+    const formattedEvents = calendarEvents.slice(0, 3).map(e => ({
+      summary: e.summary,
+      start: e.start?.dateTime?.split('T')[0] || e.start?.date
+    }));
 
     return `
-=== USER CULTIVATION CONTEXT ===
-- Level: ${formattedStats.level}
-- Linh Thach: ${formattedStats.linhThach}
-- Core Attributes: Focus: ${Math.min(100, Math.round(formattedStats.stats.focus))}, Willpower: ${Math.min(100, Math.round(formattedStats.stats.willpower))}, Mindset: ${Math.min(100, Math.round(formattedStats.stats.mindset))}, Wealth: ${Math.min(100, Math.round(formattedStats.stats.wealth))}, Wisdom: ${Math.min(100, Math.round(formattedStats.stats.wisdom))}
-- Active Tasks (Nhiệm Vụ): ${JSON.stringify(pendingTasks)}
-- Completed Tasks: ${JSON.stringify(completedTasks.slice(0, 10))}
-- Habits (Công Pháp): ${JSON.stringify(formattedHabits)}
-- Pomodoro Day Tasks: ${JSON.stringify(pomodoroTasks)}
-- Spells/Manuals (Môn Công Pháp Đang Học): ${JSON.stringify(formattedManuals)}
-- Current Date (Hôm nay): ${new Date().toISOString().split('T')[0]}
+=== CONTEXT ===
+- Level: ${cultState.level} | Linh Thạch: ${cultState.linhThach} | CPA Bách Khoa: ${cpaOverall.toFixed(2)}
+- Tasks đang chờ: ${JSON.stringify(pendingTasks)}
+- Thói quen: ${JSON.stringify(formattedHabits)}
+- Môn học: ${formattedManuals.join(', ')}
+- Điểm thi: ${JSON.stringify(formattedGrades)}
+- Lịch học sắp tới: ${JSON.stringify(formattedEvents)}
+- Ngày hiện tại: ${new Date().toISOString().split('T')[0]}
 `;
   };
 
-  const executeAIPlanning = async () => {
+  const executeAIPlanning = async (customPrompt?: string) => {
     if (!activeKey) return;
-    if (!prompt.trim()) return;
+    const userQuery = (customPrompt || prompt).trim();
+    if (!userQuery) return;
+    setPrompt('');
 
+    const userMessage: ChatMessage = {
+      id: `msg_${Date.now()}`,
+      role: 'user',
+      content: userQuery,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+
+    const newHistory = [...chatHistory, userMessage];
+    setChatHistory(newHistory);
     setIsLoading(true);
+
     const context = compileContext();
 
     const systemInstruction = `
-You are the "Tông chủ Thiên Cơ Các" (Sect Master of the Celestial Planning Sect), a wise, prestigious, and highly authoritative AI mentor guiding the user on their path to cultivation and high productivity (HUSTFlow).
-You speak in a grand, mystical, and encouraging cultivation (tu tiên) tone. Address the user as "đạo hữu" and refer to yourself as "Bản Tông chủ".
-Analyze the user's progress: level, stats, habits, and tasks. Suggest adjustments to their plans.
+You are "Tông chủ Thiên Cơ Các" (Sect Master of the Celestial Planning Sect), an AI companion in HUSTFlow.
 
-- If the user is just chatting, asking general questions, seeking advice, or discussing topics without explicitly requesting to plan, schedule, add, edit, or reschedule tasks, respond in a helpful, conversational tu-tiên tone in the "advice" field, and return "proposals": [] (an empty array). DO NOT suggest or create any task proposals in this case.
-- Only populate the "proposals" array when the user explicitly requests to create, add, modify, schedule, reschedule, or organize tasks/activities.
+PERSONALITY & SPEAKING STYLE (MANDATORY):
+- **PRONOUNS**: You MUST strictly refer to yourself as "Tại hạ" (or "Bản Tông chủ") and refer to the user as "Đạo hữu". NEVER use "Ta", "Ngươi", "Tôi", "Bạn", "Cậu".
+- **DIRECT & NATURAL ("Nói chuyện tự nhiên, ngắn gọn")**: Answer naturally, directly, and concisely to whatever the user says.
+- **NO PREACHING / NO MORALIZING ("KHÔNG NÓI ĐẠO LÝ")**: Absolutely DO NOT preach philosophy, proverbs, life lessons, or moralizing lectures ("Tuyệt đối không nói đạo lý hay dạy đời"). Speak simply, helpfully, and practically.
+- **FREE CONVERSATION**: Talk naturally about any topic (gaming, life, thoughts, school) without forcing study lectures.
 
-You MUST respond strictly in the following JSON format. Do not return any other text, markdown blocks, or notes. Your output must be a single parsable JSON object.
+RULES FOR RESPONDING:
+1. Respond directly and naturally to whatever the user is talking about.
+2. Do NOT generate proposals unless the user explicitly asks to create/schedule tasks or events.
 
-Format:
+You MUST respond strictly in a valid JSON object format (no extra markdown outside the JSON block unless using <think> tags for reasoning):
 {
-  "advice": "Your response, feedback, or general conversation in tu-tiên style in Vietnamese.",
-  "proposals": [
-    {
-      "action": "NEW" | "MODIFY",
-      "taskId": "If action is MODIFY, provide the corresponding task id from Active Tasks",
-      "title": "Title of the task",
-      "priority": "SO_CAP" | "TRUNG_CAP" | "CAO_CAP" | "THAN_CAP",
-      "dueDate": "YYYY-MM-DD"
-    }
-  ]
+  "reasoning": "Step by step reasoning logic in Vietnamese (optional)",
+  "advice": "Your natural, concise response using 'Tại hạ' and 'Đạo hữu' in Vietnamese.",
+  "proposals": []
 }
-
-Note: For "action": "MODIFY", taskId must match one of the task IDs in the active tasks. Ensure dates are realistic and relative to the Current Date.
 `;
 
     try {
       let rawText = '';
 
       if (provider === 'gemini') {
-        // --- GOOGLE GEMINI PROVIDER ---
         let targetModel = selectedModel === 'gemini-2.5-flash' ? 'gemini-1.5-flash' : selectedModel;
-        let response;
-        let url = `https://generativelanguage.googleapis.com/v1/models/${targetModel}:generateContent?key=${activeKey}`;
-        
-        try {
-          response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [
-                {
-                  role: 'user',
-                  parts: [
-                    { text: systemInstruction },
-                    { text: context },
-                    { text: `USER REQUEST: ${prompt}` }
-                  ]
-                }
-              ],
-              generationConfig: { responseMimeType: "application/json" }
-            })
-          });
+        let url = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${activeKey}`;
 
-          if (!response.ok) {
-            console.log("HUSTFlow AI: Stable v1 endpoint failed, trying v1beta endpoint...");
-            url = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${activeKey}`;
-            response = await fetch(url, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                contents: [
-                  {
-                    role: 'user',
-                    parts: [
-                      { text: systemInstruction },
-                      { text: context },
-                      { text: `USER REQUEST: ${prompt}` }
-                    ]
-                  }
-                ],
-                generationConfig: { responseMimeType: "application/json" }
-              })
-            });
+        const contentsPayload = [
+          {
+            role: 'user',
+            parts: [
+              { text: systemInstruction },
+              { text: context },
+              ...chatHistory.slice(-6).map(m => ({ text: `${m.role.toUpperCase()}: ${m.content}` })),
+              { text: `USER REQUEST: ${userQuery}` }
+            ]
           }
-        } catch (fetchErr) {
-          console.warn("HUSTFlow AI: v1 fetch failed, falling back to v1beta...", fetchErr);
-          url = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${activeKey}`;
-          response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [
-                {
-                  role: 'user',
-                  parts: [
-                    { text: systemInstruction },
-                    { text: context },
-                    { text: `USER REQUEST: ${prompt}` }
-                  ]
-                }
-              ],
-              generationConfig: { responseMimeType: "application/json" }
-            })
-          });
-        }
+        ];
+
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: contentsPayload,
+            generationConfig: { responseMimeType: "application/json" }
+          })
+        });
 
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          const msg = errorData?.error?.message || `HTTP error ${response.status}`;
-          throw new Error(msg);
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData?.error?.message || `HTTP ${response.status}`);
         }
 
         const data = await response.json();
         rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-
       } else {
-        // --- OPENAI-COMPATIBLE PROVIDERS (Groq, OpenRouter, Custom) ---
+        // OpenAI-compatible Providers (Groq, OpenRouter, Custom)
         let endpoint = '';
         let modelName = '';
         const headers: HeadersInit = {
@@ -360,7 +370,7 @@ Note: For "action": "MODIFY", taskId must match one of the task IDs in the activ
 
         if (provider === 'groq') {
           endpoint = 'https://api.groq.com/openai/v1/chat/completions';
-          modelName = 'llama-3.3-70b-versatile';
+          modelName = groqModel;
         } else if (provider === 'openrouter') {
           endpoint = 'https://openrouter.ai/api/v1/chat/completions';
           modelName = 'google/gemini-2.0-flash-exp:free';
@@ -371,485 +381,470 @@ Note: For "action": "MODIFY", taskId must match one of the task IDs in the activ
           modelName = customModel;
         }
 
-        const response = await fetch(endpoint, {
+        const historyPayload = chatHistory.slice(-6).map(m => ({
+          role: m.role === 'user' ? 'user' : 'assistant',
+          content: m.content
+        }));
+
+        const bodyData: any = {
+          model: modelName,
+          messages: [
+            { role: 'system', content: systemInstruction },
+            ...historyPayload,
+            { role: 'user', content: `${context}\n\nUSER REQUEST: ${userQuery}` }
+          ]
+        };
+
+        if (provider === 'groq' && modelName.includes('llama-3')) {
+          bodyData.response_format = { type: "json_object" };
+        }
+
+        let response = await fetch(endpoint, {
           method: 'POST',
-          headers: headers,
-          body: JSON.stringify({
-            model: modelName,
-            messages: [
-              { role: 'system', content: systemInstruction },
-              { role: 'user', content: `${context}\n\nUSER REQUEST: ${prompt}` }
-            ],
-            response_format: { type: "json_object" }
-          })
+          headers,
+          body: JSON.stringify(bodyData)
         });
 
+        if (!response.ok && provider === 'groq' && modelName === 'llama-3.3-70b-versatile') {
+          const errData = await response.json().catch(() => ({}));
+          const isRateLimit = response.status === 429 || errData?.error?.message?.includes('Rate limit');
+          if (isRateLimit) {
+            console.warn('Llama 3.3 70B Rate Limited! Auto-falling back to llama-3.1-8b-instant...');
+            bodyData.model = 'llama-3.1-8b-instant';
+            response = await fetch(endpoint, {
+              method: 'POST',
+              headers,
+              body: JSON.stringify(bodyData)
+            });
+          }
+        }
+
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          const msg = errorData?.error?.message || errorData?.error || `HTTP error ${response.status}`;
-          throw new Error(typeof msg === 'string' ? msg : JSON.stringify(msg));
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData?.error?.message || `HTTP ${response.status}`);
         }
 
         const data = await response.json();
         rawText = data?.choices?.[0]?.message?.content || '';
       }
 
-      // Parse JSON from response
-      const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+      // 1. Extract <think> reasoning tags if present (e.g., DeepSeek R1)
+      let extractedReasoning = '';
+      let jsonText = rawText;
+
+      const thinkMatch = rawText.match(/<think>([\s\S]*?)<\/think>/i);
+      if (thinkMatch) {
+        extractedReasoning = thinkMatch[1].trim();
+        jsonText = rawText.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+      }
+
+      // 2. Extract JSON block
+      const jsonMatch = jsonText.match(/\{[\s\S]*\}/);
+      let parsedAdvice = jsonText;
+      let parsedProposals: ProposedAction[] = [];
+
       if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-        setAdvice(parsed.advice || '');
-        
-        const rawProposals = parsed.proposals || [];
-        const mappedProposals: ProposedAction[] = rawProposals.map((p: any, idx: number) => {
-          let finalDueDate = new Date().toISOString().split('T')[0];
-          if (p.dueDate) {
-            try {
-              const parsedDate = new Date(p.dueDate);
-              if (!isNaN(parsedDate.getTime())) {
-                const y = parsedDate.getFullYear();
-                const m = String(parsedDate.getMonth() + 1).padStart(2, '0');
-                const d = String(parsedDate.getDate()).padStart(2, '0');
-                finalDueDate = `${y}-${m}-${d}`;
-              }
-            } catch (e) {
-              console.warn("AI returned unparsable date:", p.dueDate);
-            }
+        try {
+          const parsed = JSON.parse(jsonMatch[0]);
+          parsedAdvice = parsed.advice || jsonText;
+          if (parsed.reasoning && !extractedReasoning) {
+            extractedReasoning = parsed.reasoning;
           }
 
-          return {
-            id: `proposal_${Date.now()}_${idx}`,
-            action: p.action === 'MODIFY' ? 'MODIFY' : 'NEW',
-            taskId: p.taskId || undefined,
-            title: p.title || '',
-            priority: p.priority || 'SO_CAP',
-            dueDate: finalDueDate,
-            checked: true
-          };
-        });
-        
-        setProposals(mappedProposals);
-        setPrompt('');
-      } else {
-        throw new Error('AI output did not contain valid JSON.');
+          const rawProps = parsed.proposals || [];
+          parsedProposals = rawProps.map((p: any, idx: number) => {
+            return {
+              id: `prop_${Date.now()}_${idx}`,
+              type: p.type || 'TASK',
+              action: p.action === 'MODIFY' ? 'MODIFY' : 'NEW',
+              taskId: p.taskId || undefined,
+              title: p.title || 'Nhiệm Vụ Mới',
+              priority: p.priority || 'SO_CAP',
+              dueDate: p.dueDate || new Date().toISOString().split('T')[0],
+              startDate: p.startDate || undefined,
+              endDate: p.endDate || undefined,
+              category: p.category || 'Bách Khoa',
+              stages: Array.isArray(p.stages) ? p.stages : [],
+              checked: true
+            };
+          });
+        } catch (e) {
+          console.warn("JSON parsing failed, falling back to raw text", e);
+        }
       }
+
+      const assistantMessage: ChatMessage = {
+        id: `msg_${Date.now()}_resp`,
+        role: 'assistant',
+        content: parsedAdvice,
+        reasoning: extractedReasoning || undefined,
+        proposals: parsedProposals.length > 0 ? parsedProposals : undefined,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+
+      setChatHistory(prev => [...prev, assistantMessage]);
     } catch (err: any) {
-      console.error('AI Planning Error:', err);
-      setAdvice(`Bản Tông chủ gặp trục trặc khi dò tìm thiên cơ cát hung. Có thể do linh thạch (API Key) không hợp lệ hoặc kết nối bị nhiễu loạn. Chi tiết: ${err.message}`);
+      console.error('AI Error:', err);
+      const errorMessage: ChatMessage = {
+        id: `msg_err_${Date.now()}`,
+        role: 'assistant',
+        content: `Bản Tông chủ gặp trục trặc khi dò tìm thiên cơ. Chi tiết lỗi: ${err.message || err}`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      setChatHistory(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleUpdateProposal = (id: string, updates: Partial<ProposedAction>) => {
-    setProposals(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
+  const handleToggleProposal = (msgId: string, propId: string) => {
+    setChatHistory(prev => prev.map(m => {
+      if (m.id === msgId && m.proposals) {
+        return {
+          ...m,
+          proposals: m.proposals.map(p => p.id === propId ? { ...p, checked: !p.checked } : p)
+        };
+      }
+      return m;
+    }));
   };
 
-  const handleApplyChanges = () => {
-    const selectedProposals = proposals.filter(p => p.checked);
-    if (selectedProposals.length === 0) return;
+  const handleApplyProposals = (msgId: string) => {
+    const msg = chatHistory.find(m => m.id === msgId);
+    if (!msg || !msg.proposals) return;
 
-    let addedCount = 0;
-    let modifiedCount = 0;
+    const selected = msg.proposals.filter(p => p.checked);
+    if (selected.length === 0) return;
 
-    selectedProposals.forEach(p => {
-      if (p.action === 'NEW') {
-        onAddTodo(p.title, p.priority, p.dueDate);
-        addedCount++;
-      } else if (p.action === 'MODIFY' && p.taskId) {
-        const original = todoItems.find(item => item.id === p.taskId);
-        if (original) {
-          onUpdateTodo({
-            ...original,
-            title: p.title,
-            difficulty: p.priority,
-            dueDate: p.dueDate
-          });
-          modifiedCount++;
+    let appliedCount = 0;
+    selected.forEach(p => {
+      if (p.type === 'TASK' || !p.type) {
+        if (p.action === 'MODIFY' && p.taskId) {
+          const existing = todoItems.find(t => t.id === p.taskId);
+          if (existing) {
+            onUpdateTodo({
+              ...existing,
+              title: p.title,
+              difficulty: p.priority,
+              dueDate: p.dueDate
+            });
+            appliedCount++;
+          }
+        } else {
+          onAddTodo(p.title, p.priority || 'SO_CAP', p.dueDate || new Date().toISOString().split('T')[0]);
+          appliedCount++;
         }
+      } else if (p.type === 'CALENDAR' && onAddCalendarEvent) {
+        onAddCalendarEvent(
+          p.title,
+          p.startDate || new Date().toISOString(),
+          p.endDate || new Date(Date.now() + 3600000).toISOString()
+        );
+        appliedCount++;
+      } else if (p.type === 'MANUAL' && onCreateManual) {
+        onCreateManual(p.title, p.category || 'Bách Khoa', p.stages || ['Tầng 1: Nhập Môn']);
+        appliedCount++;
       }
     });
 
-    setProposals([]);
-    setAdvice(`Khởi bẩm đạo hữu! Pháp trận Thiên Cơ đã vận hành hoàn chỉnh. Đã thêm mới thành công ${addedCount} nhiệm vụ, điều chỉnh ${modifiedCount} nhiệm vụ trên bảng chính!`);
+    // Mark applied
+    setChatHistory(prev => prev.map(m => {
+      if (m.id === msgId) {
+        return { ...m, proposals: undefined };
+      }
+      return m;
+    }));
+
+    alert(`⚡ Đã áp dụng thành công ${appliedCount} đề xuất từ Thiên Cơ Các!`);
   };
 
   return (
     <>
-      {/* 📜 Floating Jade Slip Button */}
-      <div 
+      {/* Floating Trigger Button (Matching Image 2 style) */}
+      <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 z-40 p-3 bg-emerald-500 border-3 border-slate-950 text-slate-950 rounded-2xl shadow-[3px_3px_0px_#000] active:translate-y-[2px] active:shadow-none animate-float cursor-pointer flex flex-col items-center justify-center gap-0.5 hover:bg-emerald-450 group transition-all duration-300 shadow-[0_0_15px_rgba(16,185,129,0.55)]"
-        title="Thiên Cơ Các (AI Planner)"
+        className="fixed bottom-6 right-6 z-40 w-16 h-16 bg-[#10b981] hover:bg-emerald-400 text-slate-950 rounded-2xl border-3 border-slate-950 shadow-[4px_4px_0px_#000] active:translate-y-1 active:shadow-none cursor-pointer flex flex-col items-center justify-center gap-0.5 transition-all select-none group"
+        title="Mở Thiên Cơ Các"
       >
-        <span className="text-xl">📜</span>
-        <span className="text-[7.5px] font-black tracking-wider uppercase font-mono group-hover:text-emerald-950">Thiên Cơ</span>
-      </div>
+        <span className="text-xl leading-none">📜</span>
+        <span className="text-[9px] font-black text-slate-950 uppercase tracking-widest font-mono pixel-label">
+          THIÊN CƠ
+        </span>
+      </button>
 
-      {/* Slide-out Sidebar Panel */}
+      {/* Slide-over AI Panel with Backdrop Click Outside */}
       <AnimatePresence>
         {isOpen && (
-          <>
-            {/* Backdrop */}
-            <div 
-              onClick={() => setIsOpen(false)}
-              className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 transition-opacity"
-            />
-
-            {/* Main Side Drawer */}
+          <div 
+            className="fixed inset-0 bg-slate-950/40 backdrop-blur-[2px] z-50 flex justify-end"
+            onClick={() => setIsOpen(false)}
+          >
             <motion.div
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 220 }}
-              className="fixed right-0 top-0 h-full w-full sm:w-[440px] bg-[#0d1420] border-l-[3px] border-slate-950 shadow-[-5px_0_0_rgba(0,0,0,0.5)] z-50 p-5 flex flex-col justify-between overflow-y-auto"
+              initial={{ opacity: 0, x: 400 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 400 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 250 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full sm:w-[480px] bg-[#070a0f] border-l-3 border-slate-950 shadow-[-10px_0_30px_rgba(0,0,0,0.8)] flex flex-col font-sans h-full"
             >
-              {/* Header */}
-              <div className="flex items-center justify-between border-b-2 border-slate-950 pb-3 mb-4 shrink-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">🔮</span>
+              {/* Panel Header */}
+              <div className="p-4 bg-[#0f141c] border-b-2 border-slate-950 flex items-center justify-between gap-3 shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-300 shadow-[2px_2px_0px_#000]">
+                    🔮
+                  </div>
                   <div>
-                    <h3 className="text-sm font-black text-slate-100 uppercase tracking-widest pixel-label">
-                      Thiên Cơ Các
-                    </h3>
-                    <p className="text-[9px] text-slate-500 font-mono">Tông Chủ: AI Quân Sư Tu Luyện</p>
+                    <h2 className="text-xs font-black text-slate-100 uppercase tracking-widest font-mono flex items-center gap-1.5">
+                      THIÊN CƠ CÁC
+                    </h2>
+                    <p className="text-[9.5px] text-slate-400 font-mono">Tông Chủ: AI Quân Sư Tu Luyện</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+
+                <div className="flex items-center gap-1.5">
                   <button
-                    onClick={() => setIsConfiguringKey(prev => !prev)}
-                    className="p-1.5 rounded-lg border border-slate-800 hover:border-slate-700 text-slate-450 hover:text-slate-300 cursor-pointer"
-                    title="Thiết lập Trận Pháp Key"
+                    onClick={handleClearHistory}
+                    className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-900 rounded-lg transition-colors cursor-pointer"
+                    title="Xóa lịch sử trò chuyện"
                   >
-                    <Settings className="w-3.5 h-3.5" />
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setIsConfiguringKey(!isConfiguringKey)}
+                    className={`p-1.5 rounded-lg border-2 border-slate-950 transition-all cursor-pointer ${
+                      isConfiguringKey ? 'bg-amber-400 text-slate-950' : 'bg-slate-900 text-slate-300 hover:bg-slate-800'
+                    }`}
+                    title="Cấu hình API Key & Provider"
+                  >
+                    <Settings className="w-4 h-4 stroke-[2.5]" />
                   </button>
                   <button
                     onClick={() => setIsOpen(false)}
-                    className="p-1.5 rounded-lg border border-slate-800 hover:border-slate-700 text-slate-450 hover:text-rose-400 cursor-pointer text-xs font-bold"
+                    className="p-1.5 text-slate-400 hover:text-slate-100 hover:bg-slate-900 rounded-lg transition-colors cursor-pointer"
                   >
-                    ✕
+                    <X className="w-5 h-5" />
                   </button>
                 </div>
               </div>
 
-              {/* Scrollable Content Container */}
-              <div className="flex-1 overflow-y-auto pr-1 space-y-4">
-                {/* 🔑 API Configurations */}
+              {/* API Key & Provider Config Panel */}
+              <AnimatePresence>
                 {isConfiguringKey && (
-                  <div className="neo-card p-4 bg-slate-950 space-y-3">
-                    <h4 className="text-[11px] font-black text-amber-400 flex items-center gap-1.5 uppercase">
-                      ⚙️ Cấu Hình Trận Pháp AI
-                    </h4>
-                    
-                    {/* Provider Select */}
-                    <div className="space-y-1 text-left">
-                      <label className="text-[8px] text-slate-550 block font-bold uppercase">Nhà Cung Cấp (Provider)</label>
-                      <select
-                        value={provider}
-                        onChange={(e) => setProvider(e.target.value as ProviderType)}
-                        className="w-full bg-slate-900 border-2 border-slate-950 rounded-lg px-2 py-1 text-[10px] text-slate-300 font-bold focus:outline-none focus:border-amber-400 cursor-pointer"
-                      >
-                        <option value="gemini">Google Gemini (Miễn phí)</option>
-                        <option value="groq">Groq (Miễn phí - Không giới hạn - Khuyên dùng)</option>
-                        <option value="openrouter">OpenRouter (Nhiều mô hình miễn phí)</option>
-                        <option value="custom">Custom (OpenAI-compatible)</option>
-                      </select>
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="bg-[#0f141c] border-b-2 border-slate-950 p-4 space-y-3 shrink-0 overflow-hidden text-xs"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-slate-200 uppercase text-[10px] tracking-wider font-mono">Nguồn AI Provider</span>
+                      {activeKey && (
+                        <span className="text-[9px] text-emerald-400 bg-emerald-950/60 border border-emerald-900 px-2 py-0.5 rounded-full font-mono">
+                          ✓ Đã kết nối API Key
+                        </span>
+                      )}
                     </div>
 
-                    {/* API Key Input */}
-                    <div className="space-y-1 text-left">
-                      <label className="text-[8px] text-slate-550 block font-bold uppercase">
-                        {provider === 'gemini' ? 'Gemini API Key (AIzaSy...)'
-                         : provider === 'groq' ? 'Groq API Key (gsk_...)'
-                         : provider === 'openrouter' ? 'OpenRouter API Key (sk-or-...)'
-                         : 'Custom API Key'}
-                      </label>
-                      <div className="flex gap-2">
-                        <input
-                          type="password"
-                          placeholder={
-                            provider === 'gemini' ? 'AIzaSy...' 
-                            : provider === 'groq' ? 'gsk_...' 
-                            : provider === 'openrouter' ? 'sk-or-...' 
-                            : 'sk-...'
-                          }
-                          value={inputKeyTemp}
-                          onChange={(e) => setInputKeyTemp(e.target.value)}
-                          className="flex-1 bg-slate-900 border-2 border-slate-950 rounded-lg px-2.5 py-1 text-[10px] text-slate-200 focus:outline-none focus:border-amber-400 font-mono"
-                        />
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                      {(['groq', 'gemini', 'openrouter', 'custom'] as ProviderType[]).map(p => (
                         <button
-                          onClick={saveApiKey}
-                          className="px-3 py-1 neo-btn neo-btn-success text-[10px] font-bold"
+                          key={p}
+                          onClick={() => setProvider(p)}
+                          className={`py-1.5 px-2 rounded-lg border-2 border-slate-950 font-extrabold uppercase text-[9px] transition-all cursor-pointer ${
+                            provider === p
+                              ? 'bg-amber-400 text-slate-950 shadow-[1px_1px_0px_#000]'
+                              : 'bg-slate-950 text-slate-400 hover:text-slate-200'
+                          }`}
                         >
-                          LƯU
+                          {p === 'groq' ? 'Groq Free' : p === 'gemini' ? 'Gemini' : p === 'openrouter' ? 'OpenRouter' : 'Custom'}
                         </button>
-                      </div>
+                      ))}
                     </div>
 
-                    {/* Gemini Specific settings */}
-                    {provider === 'gemini' && (
-                      <div className="space-y-1 text-left">
-                        <label className="text-[8.5px] text-slate-500 font-bold uppercase block">Mô Hình (Model)</label>
+                    {/* Groq Model Selector */}
+                    {provider === 'groq' && (
+                      <div className="space-y-1 pt-1">
+                        <label className="text-[9.5px] font-bold text-slate-400 font-mono">Chọn Model Groq Free:</label>
                         <select
-                          value={selectedModel}
-                          onChange={(e) => setSelectedModel(e.target.value)}
-                          className="w-full bg-slate-900 border-2 border-slate-950 rounded-lg px-2 py-1 text-[10px] text-slate-350 focus:outline-none focus:border-amber-400 font-mono font-bold cursor-pointer"
+                          value={groqModel}
+                          onChange={(e) => setGroqModel(e.target.value)}
+                          className="w-full bg-slate-950 border-2 border-slate-900 rounded-lg px-2 py-1.5 text-[10px] font-mono text-amber-300 font-bold focus:outline-none focus:border-amber-500"
                         >
-                          <option value="gemini-1.5-flash">Gemini 1.5 Flash (Mặc định)</option>
-                          <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
-                          <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
-                          <option value="gemini-2.0-flash-exp">Gemini 2.0 Flash Exp</option>
+                          <option value="llama-3.3-70b-versatile">🚀 Llama 3.3 70B (Khuyên dùng - Siêu tốc & Thông minh nhất)</option>
+                          <option value="llama-3.1-8b-instant">⚡ Llama 3.1 8B (Phản hồi tốc độ cực đại)</option>
                         </select>
                       </div>
                     )}
 
-                    {/* Custom Specific settings */}
-                    {provider === 'custom' && (
-                      <div className="space-y-2 text-left">
-                        <div className="space-y-1">
-                          <label className="text-[8px] text-slate-550 block font-bold uppercase">Endpoint URL</label>
-                          <input
-                            type="text"
-                            placeholder="https://api.openai.com/v1"
-                            value={customUrl}
-                            onChange={(e) => setCustomUrl(e.target.value)}
-                            className="w-full bg-slate-900 border-2 border-slate-950 rounded-lg px-2 py-1 text-[10px] text-slate-250 focus:outline-none focus:border-amber-400 font-mono"
-                          />
+                    {/* API Key Input */}
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between text-[9.5px] text-slate-400 font-mono">
+                        <span>API Key ({provider.toUpperCase()}):</span>
+                        {provider === 'groq' && (
+                          <a href="https://console.groq.com/keys" target="_blank" rel="noreferrer" className="text-amber-400 underline">Lấy key Groq miễn phí</a>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <input
+                          type="password"
+                          placeholder={provider === 'groq' ? 'Dán Groq Key (gsk_...)' : 'Dán API Key...'}
+                          value={inputKeyTemp}
+                          onChange={(e) => setInputKeyTemp(e.target.value)}
+                          className="flex-1 bg-slate-950 border-2 border-slate-900 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500 font-mono"
+                        />
+                        <button
+                          onClick={saveApiKey}
+                          className="px-3 py-1.5 bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black rounded-lg border-2 border-slate-950 text-xs uppercase transition-all shadow-[1px_1px_0px_#000] cursor-pointer"
+                        >
+                          Lưu
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Chat History View */}
+              <div className="flex-1 p-4 overflow-y-auto space-y-4 font-sans text-xs bg-[#080b12]">
+                {chatHistory.map((msg) => (
+                  <div
+                    key={msg.id}
+                    className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} space-y-1`}
+                  >
+                    {msg.role === 'user' ? (
+                      /* User Message Bubble */
+                      <div className="max-w-[85%] bg-slate-900 border-2 border-slate-950 text-slate-100 p-3.5 rounded-2xl shadow-[3px_3px_0px_#000] text-xs leading-relaxed whitespace-pre-wrap font-sans">
+                        {msg.content}
+                      </div>
+                    ) : (
+                      /* Assistant Message Card (Matching Screenshot Exactly) */
+                      <div className="w-full bg-[#121622] border-2 border-slate-950 rounded-2xl p-4.5 shadow-[4px_4px_0px_#000] text-xs leading-relaxed space-y-3.5">
+                        {/* Card Header matching screenshot */}
+                        <div className="flex items-center justify-between pb-2 border-b border-slate-800/80 font-mono">
+                          <div className="flex items-center gap-2">
+                            <span className="text-base">📜</span>
+                            <span className="text-[12px] font-extrabold text-purple-400 uppercase tracking-wider font-mono pixel-label">
+                              TÔNG CHỦ THIÊN CƠ CÁC:
+                            </span>
+                          </div>
+                          <span className="px-2 py-0.5 bg-purple-950/80 text-purple-300 border border-purple-800/80 rounded-md text-[9px] font-extrabold font-mono uppercase tracking-wider">
+                            {provider.toUpperCase()}
+                          </span>
                         </div>
-                        <div className="space-y-1">
-                          <label className="text-[8px] text-slate-550 block font-bold uppercase">Model Name</label>
-                          <input
-                            type="text"
-                            placeholder="gpt-4o-mini"
-                            value={customModel}
-                            onChange={(e) => setCustomModel(e.target.value)}
-                            className="w-full bg-slate-900 border-2 border-slate-950 rounded-lg px-2 py-1 text-[10px] text-slate-250 focus:outline-none focus:border-amber-400 font-mono"
-                          />
+
+                        {/* Text Message Content */}
+                        <div className="text-slate-200 leading-relaxed whitespace-pre-wrap font-sans text-xs">
+                          {msg.content}
                         </div>
+
+                        {/* Interactive Proposals list if attached */}
+                        {msg.proposals && msg.proposals.length > 0 && (
+                          <div className="pt-3 border-t border-slate-800/80 space-y-2 text-[11px] text-left">
+                            <div className="font-extrabold uppercase text-[9.5px] tracking-wider text-amber-400 font-mono flex items-center gap-1">
+                              <Sparkles className="w-3 h-3" /> Đề xuất tự động từ Thiên Cơ Các:
+                            </div>
+                            
+                            <div className="space-y-1.5">
+                              {msg.proposals.map((p) => (
+                                <div
+                                  key={p.id}
+                                  onClick={() => handleToggleProposal(msg.id, p.id)}
+                                  className={`p-2.5 rounded-xl border border-slate-900 flex items-center justify-between gap-2 cursor-pointer transition-all ${
+                                    p.checked ? 'bg-slate-950 border-amber-500/50' : 'bg-slate-950/40 opacity-60'
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                                    {p.checked ? (
+                                      <CheckSquare className="w-4 h-4 text-amber-400 shrink-0" />
+                                    ) : (
+                                      <Square className="w-4 h-4 text-slate-600 shrink-0" />
+                                    )}
+                                    <div className="truncate text-left">
+                                      <span className="font-bold text-slate-200 block truncate">{p.title}</span>
+                                      <span className="text-[9px] text-slate-400 font-mono">
+                                        {p.type === 'TASK' && `Nhiệm Vụ • ${p.priority || 'SƠ CẤP'} • Hạn: ${p.dueDate}`}
+                                        {p.type === 'CALENDAR' && `Lịch • Start: ${p.startDate?.split('T')[0]}`}
+                                        {p.type === 'MANUAL' && `Môn Học (${p.category}) • ${p.stages?.length || 0} Tầng`}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+
+                            <button
+                              onClick={() => handleApplyProposals(msg.id)}
+                              className="w-full py-2.5 mt-2 bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black rounded-xl border-2 border-slate-950 uppercase tracking-wider text-[10px] shadow-[2px_2px_0px_#000] active:translate-y-0.5 active:shadow-none transition-all cursor-pointer"
+                            >
+                              ⚡ Áp Dụng Các Đề Xuất Đã Chọn
+                            </button>
+                          </div>
+                        )}
                       </div>
                     )}
+                  </div>
+                ))}
 
-                    {/* Helpers link */}
-                    <div className="flex items-center justify-between text-[9px] pt-1">
-                      <a
-                        href={
-                          provider === 'gemini' ? 'https://aistudio.google.com/app/apikey'
-                          : provider === 'groq' ? 'https://console.groq.com/keys'
-                          : 'https://openrouter.ai/keys'
-                        }
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-amber-500 hover:underline flex items-center gap-0.5"
-                      >
-                        🔗 Lấy API Key miễn phí tại đây
-                      </a>
-                      {((provider === 'gemini' && geminiKey) || 
-                        (provider === 'groq' && groqKey) || 
-                        (provider === 'openrouter' && openRouterKey) || 
-                        (provider === 'custom' && customKey)) && (
-                        <button
-                          onClick={removeApiKey}
-                          className="text-rose-400 hover:text-rose-350 font-bold"
-                        >
-                          Xóa Key
-                        </button>
-                      )}
-                    </div>
+                {/* Loading Indicator Bubble */}
+                {isLoading && (
+                  <div className="flex items-center gap-2 text-slate-400 text-xs font-mono p-3 bg-[#141a29] border-2 border-slate-950 rounded-2xl max-w-[85%] shadow-[2px_2px_0px_#000]">
+                    <Compass className="w-4 h-4 text-purple-400 animate-spin" />
+                    <span>Bản Tông Chủ đang bấm ngón tay tính toán thiên cơ...</span>
                   </div>
                 )}
-
-                {/* 📜 Tông Chủ's Advice Box */}
-                <div className="neo-card p-4 bg-[#141b29] border-l-4 border-l-purple-500 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-black text-purple-400 tracking-wider pixel-label">
-                      📜 Tông Chủ Thiên Cơ Các:
-                    </span>
-                    <span className="text-[9.5px] px-1.5 py-0.5 rounded bg-purple-950/65 text-purple-300 font-mono uppercase font-black">
-                      {provider}
-                    </span>
-                  </div>
-                  <p className="text-xs sm:text-sm text-slate-200 leading-relaxed whitespace-pre-line font-sans">
-                    {advice}
-                  </p>
-                </div>
-
-                {/* 📋 Interactive Proposed Tasks */}
-                {proposals.length > 0 && (
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-[11px] font-black text-slate-300 uppercase tracking-wider pixel-label">
-                        📋 Trận Pháp Đề Xuất Nhiệm Vụ:
-                      </h4>
-                      <button
-                        onClick={() => setProposals([])}
-                        className="text-[9px] text-slate-500 hover:text-rose-400 font-bold"
-                      >
-                        Xóa tất cả
-                      </button>
-                    </div>
-
-                    <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
-                      {proposals.map((p) => (
-                        <div 
-                          key={p.id} 
-                          className={`p-3 border-2 border-slate-950 rounded-xl flex items-start gap-2.5 transition-all shadow-[1.5px_1.5px_0px_#000] ${
-                            p.checked ? 'bg-[#182334]' : 'bg-slate-950/40 opacity-60'
-                          }`}
-                        >
-                          {/* Checkbox */}
-                          <button
-                            onClick={() => handleUpdateProposal(p.id, { checked: !p.checked })}
-                            className="mt-0.5 text-slate-450 hover:text-slate-200 cursor-pointer shrink-0"
-                          >
-                            {p.checked ? (
-                              <CheckSquare className="w-4 h-4 text-emerald-400" />
-                            ) : (
-                              <Square className="w-4 h-4" />
-                            )}
-                          </button>
-
-                          {/* Editable fields */}
-                          <div className="flex-1 space-y-2 text-left">
-                            <div className="flex items-center gap-1.5">
-                              <span className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase ${
-                                p.action === 'NEW'
-                                  ? 'bg-emerald-950/40 text-emerald-400 border border-emerald-900/60'
-                                  : 'bg-blue-950/40 text-blue-400 border border-blue-900/60'
-                              }`}>
-                                {p.action === 'NEW' ? 'Thêm mới' : 'Sửa đổi'}
-                              </span>
-                              {p.action === 'MODIFY' && (
-                                <span className="text-[8px] text-slate-500 truncate max-w-[80px]">
-                                  (ID: {p.taskId?.slice(-5)})
-                                </span>
-                              )}
-                            </div>
-
-                            {/* Title input */}
-                            <input
-                              type="text"
-                              value={p.title}
-                              onChange={(e) => handleUpdateProposal(p.id, { title: e.target.value })}
-                              placeholder="Tiêu đề nhiệm vụ..."
-                              className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-[10px] text-slate-200 focus:outline-none focus:border-amber-400"
-                            />
-
-                            {/* Date and Priority row */}
-                            <div className="grid grid-cols-2 gap-2">
-                              <div>
-                                <label className="text-[7.5px] text-slate-550 block mb-0.5 font-bold uppercase">Hạn Chót</label>
-                                <input
-                                  type="date"
-                                  value={p.dueDate}
-                                  onChange={(e) => handleUpdateProposal(p.id, { dueDate: e.target.value })}
-                                  className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-0.5 text-[9px] text-slate-300 focus:outline-none focus:border-amber-400 font-mono"
-                                />
-                              </div>
-                              <div>
-                                <label className="text-[7.5px] text-slate-550 block mb-0.5 font-bold uppercase">Phẩm Cấp</label>
-                                <select
-                                  value={p.priority}
-                                  onChange={(e) => handleUpdateProposal(p.id, { priority: e.target.value as Priority })}
-                                  className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-0.5 text-[9px] text-slate-300 focus:outline-none focus:border-amber-400 font-bold"
-                                >
-                                  <option value="SO_CAP">Sơ Cấp</option>
-                                  <option value="TRUNG_CAP">Trung Cấp</option>
-                                  <option value="CAO_CAP">Địa Cấp</option>
-                                  <option value="THAN_CAP">Thiên Cấp</option>
-                                </select>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <button
-                      onClick={handleApplyChanges}
-                      className="w-full py-2.5 neo-btn neo-btn-success text-[10.5px] font-black tracking-wider flex items-center justify-center gap-1.5"
-                    >
-                      <Check className="w-4 h-4" />
-                      THỰC THI PHÁP TRẬN (APPLY PLAN)
-                    </button>
-                  </div>
-                )}
+                <div ref={messagesEndRef} />
               </div>
 
-              {/* Chat Input area */}
-              <div className="mt-4 pt-3 border-t-2 border-slate-950 space-y-3 shrink-0">
-                {/* Quick suggestions */}
-                <div className="flex flex-wrap gap-1.5 justify-start">
-                  <button
-                    onClick={() => handleQuickSuggestion('Hãy phân tích tiến độ học các công pháp hiện tại của ta và lên kế hoạch hoàn thành cụ thể.')}
-                    className="px-2 py-1 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[10px] sm:text-xs text-slate-400 hover:text-slate-200 rounded-lg cursor-pointer font-sans font-medium"
-                  >
-                    📜 Lịch tu luyện Công Pháp
-                  </button>
-                  <button
-                    onClick={() => handleQuickSuggestion('Hãy phân tích thói quen đang yếu và lên kế hoạch ngày mai để cân bằng Đạo tâm.')}
-                    className="px-2 py-1 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[10px] sm:text-xs text-slate-400 hover:text-slate-200 rounded-lg cursor-pointer font-sans font-medium"
-                  >
-                    ⚖️ Cân bằng Đạo tâm (Thói quen)
-                  </button>
-                  <button
-                    onClick={() => handleQuickSuggestion('Hãy phân tích các nhiệm vụ còn tồn đọng trong Bảng nhiệm vụ tông môn và đề xuất sắp xếp thứ tự ưu tiên hợp lý.')}
-                    className="px-2 py-1 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[10px] sm:text-xs text-slate-400 hover:text-slate-200 rounded-lg cursor-pointer font-sans font-medium"
-                  >
-                    ⚔️ Sắp xếp Nhiệm vụ Tông môn
-                  </button>
-                  <button
-                    onClick={() => handleQuickSuggestion('Hãy phân tích tiến độ tu luyện hôm nay (công pháp, thói quen, thiền định) và đề xuất kế hoạch ngày mai để tối ưu hóa tăng tu vi.')}
-                    className="px-2 py-1 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[10px] sm:text-xs text-slate-400 hover:text-slate-200 rounded-lg cursor-pointer font-sans font-medium"
-                  >
-                    🔮 Dò tìm Thiên Cơ ngày mai
-                  </button>
-                  <button
-                    onClick={() => handleQuickSuggestion('Hãy chia nhỏ mục tiêu lớn sau đây thành các nhiệm vụ sơ cấp, trung cấp cụ thể theo lộ trình 7 ngày: [Điền mục tiêu của đạo hữu tại đây]')}
-                    className="px-2 py-1 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-[10px] sm:text-xs text-slate-400 hover:text-slate-200 rounded-lg cursor-pointer font-sans font-medium"
-                  >
-                    🔨 Chia nhỏ Mục tiêu Lớn
-                  </button>
+              {/* Input Form & Quick Command Presets (Matching Screenshot) */}
+              <div className="p-3 bg-[#0d111a] border-t-2 border-slate-950 shrink-0 space-y-3">
+                {/* Quick Command Preset Pills */}
+                <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto">
+                  {[
+                    { icon: '📜', label: 'Lịch tu luyện Công Pháp', text: 'Hãy lập cho ta lịch tu luyện Công Pháp và thói quen hàng ngày.' },
+                    { icon: '⚖️', label: 'Cân bằng Đạo tâm (Thói quen)', text: 'Phân tích và giúp ta cân bằng thói quen học tập hiện tại.' },
+                    { icon: '⚔️', label: 'Sắp xếp Nhiệm vụ Tông môn', text: 'Hãy sắp xếp thứ tự ưu tiên các Nhiệm vụ Tông môn đang tồn đọng.' },
+                    { icon: '🔮', label: 'Dò tìm Thiên Cơ ngày mai', text: 'Dò tìm thiên cơ và gợi ý kế hoạch tu luyện cho ngày mai.' },
+                    { icon: '🔨', label: 'Chia nhỏ Mục tiêu Lớn', text: 'Hãy giúp ta chia nhỏ các mục tiêu môn học lớn thành bài học nhỏ.' },
+                  ].map((cmd, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      disabled={!activeKey || isLoading}
+                      onClick={() => executeAIPlanning(cmd.text)}
+                      className="px-3 py-1.5 bg-[#141a29] hover:bg-slate-900 border border-slate-800 hover:border-purple-500/40 rounded-xl text-[11px] font-medium font-sans text-slate-300 flex items-center gap-1.5 transition-all cursor-pointer shadow-[1px_1px_0px_#000] disabled:opacity-40"
+                    >
+                      <span>{cmd.icon}</span>
+                      <span>{cmd.label}</span>
+                    </button>
+                  ))}
                 </div>
 
-                {/* Main input form */}
-                <div className="flex gap-2">
-                  <textarea
-                    rows={2}
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    executeAIPlanning();
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <input
+                    type="text"
+                    placeholder={activeKey ? "Ví dụ: Ta muốn tăng tu vi nhanh nhất trong ngày mai..." : "Vui lòng nhập API Key trong phần Cài đặt ở trên..."}
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        executeAIPlanning();
-                      }
-                    }}
-                    placeholder={
-                      !activeKey 
-                        ? `Vui lòng điền API Key cho ${provider.toUpperCase()} ở phần cài đặt...` 
-                        : 'Ví dụ: Ta muốn tăng tu vi nhanh nhất trong ngày mai...'
-                    }
                     disabled={!activeKey || isLoading}
-                    className="flex-1 bg-slate-950 border-2 border-slate-950 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-200 focus:outline-none focus:border-amber-400 placeholder-slate-600 resize-none font-sans"
+                    className="flex-1 bg-[#070910] border-2 border-slate-900 rounded-xl px-3.5 py-3 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-purple-500 font-sans disabled:opacity-50"
                   />
                   <button
-                    onClick={executeAIPlanning}
-                    disabled={!activeKey || isLoading || !prompt.trim()}
-                    className={`w-12 neo-btn shrink-0 ${
-                      isLoading || !prompt.trim() 
-                        ? 'bg-slate-900 border-slate-850 text-slate-650 cursor-not-allowed shadow-none translate-x-[2px] translate-y-[2px]' 
-                        : 'neo-btn-primary'
-                    }`}
+                    type="submit"
+                    disabled={!activeKey || !prompt.trim() || isLoading}
+                    className="p-3 bg-[#171d2d] hover:bg-[#1f273d] text-slate-100 rounded-xl border-2 border-slate-950 shadow-[2px_2px_0px_#000] active:translate-y-0.5 active:shadow-none disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shrink-0"
                   >
-                    {isLoading ? (
-                      <div className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <Send className="w-4 h-4" />
-                    )}
+                    <Send className="w-4 h-4 text-purple-400 stroke-[2.5]" />
                   </button>
-                </div>
+                </form>
               </div>
             </motion.div>
-          </>
+          </div>
         )}
       </AnimatePresence>
     </>
