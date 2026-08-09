@@ -55,10 +55,45 @@ export interface WeeklyChallenge {
   isClaimed: boolean;
 }
 
+export interface BottleneckRequirement {
+  title: string;
+  minMeditationMinutes?: number;
+  minCompletedTasks?: number;
+  minStreakDays?: number;
+  requiredItemId?: string;
+  requiredItemName?: string;
+}
+
+export interface Achievement {
+  id: string;
+  category: 'MEDITATION' | 'TASKS' | 'STREAK' | 'ACADEMICS' | 'GARDEN' | 'WEALTH' | 'REALM' | 'SPECIAL';
+  title: string;
+  description: string;
+  icon: string;
+  targetType: 
+    | 'MEDITATION_MINUTES' 
+    | 'TASKS_COMPLETED' 
+    | 'STREAK_DAYS' 
+    | 'LINH_THACH' 
+    | 'SHOP_ITEMS' 
+    | 'BREAKTHROUGHS' 
+    | 'GARDEN_PLANTS' 
+    | 'LEVEL' 
+    | 'HABITS_COMPLETED' 
+    | 'NOTES_COUNT' 
+    | 'TIMEBLOCKS_COUNT' 
+    | 'MANUALS_COUNT' 
+    | 'CPA_SCORE' 
+    | 'ACHIEVEMENTS_COUNT';
+  targetValue: number;
+  rewardLinhThach: number;
+  titleToEquip: string;
+}
+
 export interface CultivationState {
   totalExp: number;
   currentExp: number;
-  level: number; // 1 to 54
+  level: number; // 1 to 100
   linhThach: number;
   spiritStonesEarned: number;
   meditationMinutes: number;
@@ -68,7 +103,12 @@ export interface CultivationState {
   inventory: InventoryItem[];
   unlockedRealms: string[];
   tamMaSuppressedDate?: string; // YYYY-MM-DD
+  tonThuongDanDienDate?: string; // YYYY-MM-DD
   activeSpells?: string[];
+  claimedAchievements?: string[];
+  equippedTitle?: string;
+  breakthroughCount?: number;
+  itemsBoughtCount?: number;
 }
 
 export interface DailyLog {
