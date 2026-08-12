@@ -488,9 +488,14 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
           const errData = await response.json().catch(() => ({}));
           const isRateLimit = response.status === 429 || errData?.error?.message?.includes('Limit') || errData?.error?.message?.includes('Rate');
           if (isRateLimit) {
-            console.warn('Groq Rate Limit/TPM Exceeded! Auto-falling back to gemma2-9b-it (15,000 TPM Limit)...');
-            bodyData.model = 'gemma2-9b-it';
-            delete bodyData.response_format; // Gemma 2 standard text response
+            const fallbackModel = modelName === 'llama-3.1-8b-instant' ? 'mixtral-8x7b-32768' : 'llama-3.1-8b-instant';
+            console.warn(`Groq Rate Limit! Auto-falling back to ${fallbackModel}...`);
+            bodyData.model = fallbackModel;
+            if (fallbackModel.includes('llama-3')) {
+              bodyData.response_format = { type: "json_object" };
+            } else {
+              delete bodyData.response_format;
+            }
             response = await fetch(endpoint, {
               method: 'POST',
               headers,
