@@ -271,13 +271,13 @@ export default function AIPanel({
     if (isCalendarQuery) {
       const now = new Date();
       const todayTimestamp = now.getTime();
-      const fourteenDaysLater = todayTimestamp + (14 * 24 * 60 * 60 * 1000);
+      const thirtyDaysLater = todayTimestamp + (30 * 24 * 60 * 60 * 1000);
 
       const activeEvents = calendarEvents.filter(e => {
         const dateStr = e.start?.dateTime || e.start?.date;
         if (!dateStr) return false;
         const d = new Date(dateStr).getTime();
-        return d >= todayTimestamp - (24 * 60 * 60 * 1000) && d <= fourteenDaysLater;
+        return d >= todayTimestamp - (24 * 60 * 60 * 1000) && d <= thirtyDaysLater;
       });
 
       const formattedEventsStr = activeEvents.map(e => {
@@ -288,18 +288,22 @@ export default function AIPanel({
 
       const formattedGroupsStr = (calendarGroups || []).map(g => `[Group ID:${g.id}] Tên: ${g.summary}`).join('\n');
 
-      contextParts.push(`\n[NHÓM LỊCH]:\n${formattedGroupsStr}`);
-      contextParts.push(`\n[LỊCH 14 NGÀY TỚI]:\n${formattedEventsStr || 'Chưa có lịch'}`);
+      contextParts.push(`\n[NHÓM LỊCH HIỆN CÓ]:\n${formattedGroupsStr}`);
+      contextParts.push(`\n[TOÀN BỘ LỊCH 30 NGÀY TỚI (100% ĐẦY ĐỦ)]:\n${formattedEventsStr || 'Chưa có lịch'}`);
     }
 
     if (isTaskQuery) {
+      const now = new Date();
+      const todayTimestamp = now.getTime();
+      const tenDaysLater = new Date(todayTimestamp + (10 * 24 * 60 * 60 * 1000));
+      const tenDaysLaterStr = `${tenDaysLater.getFullYear()}-${String(tenDaysLater.getMonth() + 1).padStart(2, '0')}-${String(tenDaysLater.getDate()).padStart(2, '0')}`;
+
       const pendingTasks = todoItems
-        .filter(t => !t.isCompleted)
-        .slice(0, 10)
-        .map(t => `[ID:${t.id}] Hạn: ${t.dueDate || 'Chưa có'} | ${t.title}`)
+        .filter(t => !t.isCompleted && (!t.dueDate || t.dueDate <= tenDaysLaterStr))
+        .map(t => `[ID:${t.id}] Hạn: ${t.dueDate || 'Chưa có'} | UuTiên: ${t.difficulty || 'SO_CAP'} | ${t.title}`)
         .join('\n');
 
-      contextParts.push(`\n[TASKS ĐANG CHỜ]:\n${pendingTasks || 'Không có task'}`);
+      contextParts.push(`\n[TOÀN BỘ TASKS TRONG 10 NGÀY TỚI (100% ĐẦY ĐỦ)]:\n${pendingTasks || 'Không có task'}`);
     }
 
     return `=== CONTEXT ===\n${contextParts.join('\n')}`;
