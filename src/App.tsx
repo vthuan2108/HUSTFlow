@@ -40,6 +40,7 @@ import TodoSection from './components/TodoSection';
 import ScheduleSection from './components/ScheduleSection';
 import ForbiddenNotes from './components/ForbiddenNotes';
 import DailyRituals from './components/DailyRituals';
+import DailyRitualsModal from './components/DailyRitualsModal';
 import CultivationManualsSection from './components/CultivationManualsSection';
 import SpiritualGarden from './components/SpiritualGarden';
 import { AchievementsModal } from './components/AchievementsModal';
@@ -425,17 +426,16 @@ export default function App() {
   };
 
   // Focus mode task focus state
-  const [focusSelectedTaskId, setFocusSelectedTaskId] = useState<string>('');
   const [isAchievementsModalOpen, setIsAchievementsModalOpen] = useState<boolean>(false);
+  const [activeRitualModal, setActiveRitualModal] = useState<'NONE' | 'PLANNING' | 'REFLECTION'>('NONE');
+  const [dismissedAIBubbleDate, setDismissedAIBubbleDate] = useState<string>('');
 
-  const handleClaimAchievement = (achievementId: string, rewardStones: number) => {
+  const handleClaimAchievement = (achievementId: string, _rewardStones?: number) => {
     setCultState(prev => {
       const currentClaimed = prev.claimedAchievements || [];
       if (currentClaimed.includes(achievementId)) return prev;
       return {
         ...prev,
-        linhThach: prev.linhThach + rewardStones,
-        spiritStonesEarned: prev.spiritStonesEarned + rewardStones,
         claimedAchievements: [...currentClaimed, achievementId]
       };
     });
@@ -1171,6 +1171,23 @@ export default function App() {
     });
   };
 
+  // Auto-record bottleneck start stats snapshot when tu si enters a bottleneck level
+  useEffect(() => {
+    const realmInfo = getRealmInfo(cultState.level);
+    if (realmInfo.bottleneck) {
+      if (!cultState.bottleneckStartStats || cultState.bottleneckStartStats.level !== cultState.level) {
+        setCultState(prev => ({
+          ...prev,
+          bottleneckStartStats: {
+            level: prev.level,
+            meditationMinutes: prev.meditationMinutes || 0,
+            tasksCompletedCount: prev.tasksCompletedCount || 0
+          }
+        }));
+      }
+    }
+  }, [cultState.level, cultState.meditationMinutes, cultState.tasksCompletedCount]);
+
   // --- BREAKTHROUGH SYSTEM ---
   const handleBreakthrough = (success: boolean) => {
     const realmInfo = getRealmInfo(cultState.level);
@@ -1203,11 +1220,12 @@ export default function App() {
           currentExp: remainingExp,
           inventory: newInventory,
           breakthroughCount: (prev.breakthroughCount || 0) + 1,
-          unlockedRealms
+          unlockedRealms,
+          bottleneckStartStats: undefined // Clear snapshot for next bottleneck
         };
       });
     } else {
-      // Failed breakthrough
+      // Failed breakthrough - Per user directive: wipe currentExp to 0, keep level/realm unchanged!
       setCultState(prev => {
         if (prev.shieldActive) {
           // Protected by Ho Tam Kinh shield
@@ -1216,24 +1234,10 @@ export default function App() {
             shieldActive: false // consume shield
           };
         } else {
-          if (isBottleneck) {
-            // Demote by 2 levels and wipe overflow EXP on bottleneck failure without shield!
-            const demotedLevel = Math.max(1, prev.level - 2);
-            return {
-              ...prev,
-              level: demotedLevel,
-              currentExp: 0,
-              tonThuongDanDienDate: getLocalDateString()
-            };
-          } else {
-            // Lose 10% of xpNeeded as a penalty
-            const penalty = Math.round(xpNeeded * 0.1);
-            const newExp = Math.max(prev.currentExp - penalty, 0);
-            return {
-              ...prev,
-              currentExp: newExp
-            };
-          }
+          return {
+            ...prev,
+            currentExp: 0
+          };
         }
       });
     }
@@ -1899,18 +1903,26 @@ export default function App() {
 
   return (
     <div className="min-h-screen text-slate-300 relative selection:bg-amber-500/20 selection:text-amber-300" id="main-applet-container">
-      {/* ── Dynamic Weather & Time-of-Day Overlays ── */}
-      {/* Night Sky Twinkling Stars */}
-      {isNightTime && (
-        <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10">
-          {Array.from({ length: 25 }).map((_, i) => {
-            const top = Math.random() * 40; // Only top half of screen
-            const left = Math.random() * 100;
-            const size = 1 + Math.random() * 2;
-            const delay = Math.random() * 3;
+      {/* ── Dynamic Galaxy Nebulae, Full-Screen Starfield & Meteor Shower Background ── */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-20">
+        {/* Deep Galaxy Space Background Base */}
+        <div className="absolute inset-0 bg-[#05080e]" />
+
+        {/* VIVID GALAXY NEBULAE (Khối Tinh Vân Galaxy Rực Rỡ) */}
+        <div className="absolute -top-32 -left-32 w-[750px] h-[750px] bg-gradient-to-br from-purple-600/35 via-fuchsia-800/25 to-transparent rounded-full blur-[110px] animate-vivid-nebula-1" />
+        <div className="absolute -bottom-40 -right-40 w-[850px] h-[850px] bg-gradient-to-tl from-cyan-500/30 via-indigo-900/25 to-transparent rounded-full blur-[120px] animate-vivid-nebula-2" />
+        <div className="absolute top-[25%] left-[20%] w-[600px] h-[600px] bg-gradient-to-tr from-amber-500/25 via-yellow-900/20 to-transparent rounded-full blur-[130px] animate-vivid-nebula-1" />
+
+        {/* PERMANENT FULL-SCREEN TWINKLING STARFIELD (Hệ Thống 60 Ngôi Sao Phát Sáng Trải Đều Màn Hình) */}
+        <div className="absolute inset-0">
+          {Array.from({ length: 60 }).map((_, i) => {
+            const top = (i * 1.65) % 100;
+            const left = (i * 13.7) % 100;
+            const size = 1 + (i % 3) * 0.8;
+            const delay = (i * 0.25) % 4;
             return (
               <div
-                key={`star-${i}`}
+                key={`galaxy-star-${i}`}
                 className="absolute bg-white rounded-full animate-twinkle"
                 style={{
                   top: `${top}%`,
@@ -1918,13 +1930,45 @@ export default function App() {
                   width: `${size}px`,
                   height: `${size}px`,
                   animationDelay: `${delay}s`,
-                  boxShadow: '0 0 4px rgba(255, 255, 255, 0.8)',
+                  boxShadow: '0 0 5px rgba(255, 255, 255, 0.9)',
                 }}
               />
             );
           })}
         </div>
-      )}
+
+        {/* METEOR SHOWER (Mưa Sao Băng Đa Sắc Trải Đều Khắp Màn Hình - Negative Delay Instant Flight) */}
+        {Array.from({ length: 22 }).map((_, i) => {
+          // Spread meteors evenly across top & right coordinates so they fall everywhere on screen!
+          const top = -15 + ((i % 6) * 20) + (Math.floor(i / 6) * 5);
+          const right = -15 + (Math.floor(i / 3) * 15) + ((i % 3) * 10);
+          const duration = 2.4 + (i % 5) * 0.5;
+          // Negative delay makes animation start immediately in mid-flight on page load without any initial pause!
+          const negativeDelay = -((i * 0.75) % duration).toFixed(2);
+          const width = 110 + (i % 4) * 35;
+          const colorClass = i % 3 === 0 ? 'shooting-star-cyan' : (i % 3 === 1 ? 'shooting-star-violet' : 'shooting-star-emerald');
+          return (
+            <div
+              key={`meteor-${i}`}
+              className={`shooting-star-item ${colorClass}`}
+              style={{
+                top: `${top}%`,
+                right: `${right}%`,
+                width: `${width}px`,
+                animationDelay: `${negativeDelay}s`,
+                animationDuration: `${duration}s`
+              }}
+            />
+          );
+        })}
+
+        {/* Subtle Sacred Geometry Bagua Array Watermark Center */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] rounded-full border border-dashed border-amber-500/10 animate-spin-slow pointer-events-none flex items-center justify-center">
+          <div className="w-[600px] h-[600px] rounded-full border border-purple-500/10 border-dashed" />
+        </div>
+      </div>
+
+      {/* ── Dynamic Weather Overlays ── */}
 
       {/* Rain falling particles */}
       {(soundscape === 'RAIN' || soundscape === 'THUNDER') && (
@@ -1982,7 +2026,7 @@ export default function App() {
       )}
 
       {/* Immersive background stars pattern */}
-      <div className="absolute inset-0 bg-[#070a0f] bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px] opacity-30 -z-10" />
+      <div className="absolute inset-0 bg-[#070a0f]/80 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px] opacity-25 -z-10" />
 
       {/* Immersive purple vignette tà khí overlay if Tam Ma is active */}
       {checkTamMaActive() && cultState.tamMaSuppressedDate !== getLocalDateString() && (
@@ -2125,18 +2169,6 @@ export default function App() {
             <main>
               <div className={`grid grid-cols-1 xl:grid-cols-3 gap-6 ${activeTab !== 'MEDITATION' ? 'hidden' : ''}`} id="meditation-tab-view">
                 <div className="xl:col-span-2 space-y-6">
-                    {/* Guided Daily Planning & Reflection Rituals */}
-                    <DailyRituals
-                      todoItems={todoItems}
-                      dailyLogs={dailyLogs}
-                      onSyncTodos={setTodoItems}
-                      onAddExp={addExp}
-                      planningCompletedDate={planningCompletedDate}
-                      reflectionCompletedDate={reflectionCompletedDate}
-                      onCompletePlanning={setPlanningCompletedDate}
-                      onCompleteReflection={setReflectionCompletedDate}
-                    />
-
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
                       <div className={isFocusMode ? "fixed inset-0 bg-[#05070a] z-50 flex flex-col items-center justify-center p-4 overflow-y-auto" : "w-full h-full flex flex-col"}>
                         {isFocusMode && (
@@ -2353,17 +2385,34 @@ export default function App() {
             notes={notes}
             onAddTodo={handleAddTodo}
             onUpdateTodo={handleUpdateTodo}
-            onAddCalendarEvent={(summary, startDate, endDate) => {
-              const primaryGroup = calendarGroups.find(g => g.isPrimary) || calendarGroups[0];
-              const targetGroupId = primaryGroup ? primaryGroup.id : 'group_tasks';
+            onAddCalendarEvent={(summary, startDate, endDate, calendarGroupId) => {
+              const matchedGroup = calendarGroupId && calendarGroups.some(g => g.id === calendarGroupId)
+                ? calendarGroupId
+                : (calendarGroups.find(g => g.isPrimary) || calendarGroups[0])?.id || 'group_tasks';
               const newEvent: CalendarEvent = {
                 id: `event_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-                calendarId: targetGroupId,
+                calendarId: matchedGroup,
                 summary,
                 start: { dateTime: startDate },
                 end: { dateTime: endDate }
               };
               setCalendarEvents(prev => [...prev, newEvent]);
+            }}
+            onUpdateCalendarEvent={(eventId, summary, startDate, endDate) => {
+              setCalendarEvents(prev => prev.map(evt => {
+                if (evt.id === eventId) {
+                  return {
+                    ...evt,
+                    summary,
+                    start: { dateTime: startDate },
+                    end: { dateTime: endDate }
+                  };
+                }
+                return evt;
+              }));
+            }}
+            onDeleteCalendarEvent={(eventId) => {
+              setCalendarEvents(prev => prev.filter(evt => evt.id !== eventId));
             }}
             onCreateManual={(name, category, stages) => {
               const newManual: CultivationManual = {
@@ -2481,6 +2530,83 @@ export default function App() {
               </div>
             </div>
           )}
+
+          {/* AI Proactive Ritual Notification Bubble floating at bottom-right */}
+          {(() => {
+            const todayStr = getLocalDateString();
+            const isPlanningPending = planningCompletedDate !== todayStr;
+            const isReflectionPending = reflectionCompletedDate !== todayStr && new Date().getHours() >= 16;
+            const isBubbleDismissed = dismissedAIBubbleDate === todayStr;
+            const persona = (localStorage.getItem('tlk_ai_persona') as string) || 'MO_UYEN';
+
+            if (isBubbleDismissed || (!isPlanningPending && !isReflectionPending)) return null;
+
+            return (
+              <div className="fixed bottom-24 right-6 z-40 max-w-xs sm:max-w-sm bg-[#0e131d] border-2 border-slate-950 p-3.5 rounded-2xl shadow-[6px_6px_0px_#000] animate-bounce-slow font-sans text-xs space-y-2 select-none">
+                <div className="flex items-start justify-between gap-2 border-b border-slate-800/80 pb-1.5">
+                  <div className="flex items-center gap-1.5 font-bold font-sans text-[12px] text-rose-300">
+                    <span>
+                      {persona === 'MO_UYEN' ? '🌸 UYỂN NHI:' : persona === 'TU_DO_NAM' ? '👺 TƯ ĐỒ NAM:' : '📜 TÔNG CHỦ THIÊN CƠ CÁC:'}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setDismissedAIBubbleDate(todayStr)}
+                    className="text-slate-500 hover:text-slate-300 p-0.5 cursor-pointer"
+                    title="Ẩn thông báo hôm nay"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                <p className="text-[11px] text-slate-200 leading-normal font-sans">
+                  {persona === 'MO_UYEN' ? (
+                    isPlanningPending
+                      ? 'Sư huynh, Uyển Nhi thấy huynh chưa lập kế hoạch Vấn Đạo (Planning) hôm nay! Huynh hãy cùng Uyển Nhi định hình tâm cảnh nhé...'
+                      : 'Sư huynh, đã đến canh tối rồi! Huynh hãy cùng Uyển Nhi tổng kết Kết Nhật (Reflection) đúc kết đạo quả hôm nay...'
+                  ) : persona === 'TU_DO_NAM' ? (
+                    isPlanningPending
+                      ? 'Thiết Trụ! Ngươi chưa làm Nghi Thức Vấn Đạo hôm nay đấy! Mau lập kế hoạch 3 việc trọng tâm cho lão phu!'
+                      : 'Thiết Trụ! Đã đến canh tối rồi, mau tổng kết Kết Nhật đúc kết đạo quả cho lão phu xem!'
+                  ) : (
+                    isPlanningPending
+                      ? 'Đạo hữu chưa thực hiện Nghi Thức Vấn Đạo (Planning) hôm nay! Hãy định hình 3 việc trọng tâm để dẫn dắt đạo tâm.'
+                      : 'Đã đến canh tối! Hãy thực hiện Nghi Thức Kết Nhật (Reflection) để đúc kết đạo quả hôm nay.'
+                  )}
+                </p>
+
+                <div className="pt-1 flex items-center gap-2">
+                  {isPlanningPending ? (
+                    <button
+                      onClick={() => setActiveRitualModal('PLANNING')}
+                      className="w-full py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl border border-slate-950 uppercase text-[10px] tracking-wider transition-all shadow-[2px_2px_0px_#000] active:translate-y-0.5 active:shadow-none cursor-pointer"
+                    >
+                      {persona === 'MO_UYEN' ? '🌸 CÙNG UYỂN NHI LẬP KẾ HOẠCH (+30 Tu Vi)' : '☀️ LẬP KẾ HOẠCH NGAY (+30 Tu Vi)'}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setActiveRitualModal('REFLECTION')}
+                      className="w-full py-1.5 bg-purple-400 hover:bg-purple-300 text-slate-950 font-black rounded-xl border border-slate-950 uppercase text-[10px] tracking-wider transition-all shadow-[2px_2px_0px_#000] active:translate-y-0.5 active:shadow-none cursor-pointer"
+                    >
+                      {persona === 'MO_UYEN' ? '🌙 CÙNG UYỂN NHI TỔNG KẾT (+30 Tu Vi)' : '🌙 TỔNG KẾT NGAY (+30 Tu Vi)'}
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Daily Rituals Dedicated Modal */}
+          <DailyRitualsModal
+            isOpen={activeRitualModal !== 'NONE'}
+            onClose={() => setActiveRitualModal('NONE')}
+            initialType={activeRitualModal === 'REFLECTION' ? 'REFLECTION' : 'PLANNING'}
+            todoItems={todoItems}
+            dailyLogs={dailyLogs}
+            onSyncTodos={setTodoItems}
+            onAddExp={addExp}
+            onCompletePlanning={setPlanningCompletedDate}
+            onCompleteReflection={setReflectionCompletedDate}
+          />
 
           {/* Achievements Modal */}
           <AchievementsModal

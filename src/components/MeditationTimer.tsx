@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { SPIRITUAL_SEEDS } from '../data';
 declare const chrome: any;
 
-export type SoundscapeType = 'NONE' | 'ZEN' | 'RAIN' | 'STREAM' | 'CHIMES' | 'THUNDER' | 'CAMPFIRE';
+export type SoundscapeType = 'NONE' | 'LOFI' | 'ZEN' | 'RAIN' | 'STREAM' | 'CHIMES' | 'THUNDER' | 'CAMPFIRE';
 
 interface MeditationTimerProps {
   state: CultivationState;
@@ -404,6 +404,133 @@ function startThunderStorm(ctx: AudioContext, destination: AudioNode) {
   };
 }
 
+function startLofiBeat(ctx: AudioContext, destination: AudioNode) {
+  const oscs: (OscillatorNode | AudioBufferSourceNode)[] = [];
+  const gains: GainNode[] = [];
+
+  // 1. Vinyl Crackle Background Noise
+  const noiseBuffer = createNoiseBuffer(ctx, 3);
+  const vinylSource = ctx.createBufferSource();
+  vinylSource.buffer = noiseBuffer;
+  vinylSource.loop = true;
+
+  const vinylFilter = ctx.createBiquadFilter();
+  vinylFilter.type = 'bandpass';
+  vinylFilter.frequency.setValueAtTime(1100, ctx.currentTime);
+  vinylFilter.Q.setValueAtTime(0.7, ctx.currentTime);
+
+  const vinylGain = ctx.createGain();
+  vinylGain.gain.setValueAtTime(0.012, ctx.currentTime);
+
+  vinylSource.connect(vinylFilter);
+  vinylFilter.connect(vinylGain);
+  vinylGain.connect(destination);
+  vinylSource.start();
+
+  oscs.push(vinylSource);
+  gains.push(vinylGain);
+
+  // 2. Warm Lofi 7th Chords Progression
+  // Fmaj7 (F3, A3, C4, E4), Em7 (E3, G3, B3, D4), Dm7 (D3, F3, A3, C4), Cmaj7 (C3, E3, G3, B3)
+  const chordProgression = [
+    [174.61, 220.00, 261.63, 329.63],
+    [164.81, 196.00, 246.94, 293.66],
+    [146.83, 174.61, 220.00, 261.63],
+    [130.81, 164.81, 196.00, 246.94],
+  ];
+
+  const chordMasterGain = ctx.createGain();
+  chordMasterGain.gain.setValueAtTime(0.15, ctx.currentTime);
+
+  const lofiFilter = ctx.createBiquadFilter();
+  lofiFilter.type = 'lowpass';
+  lofiFilter.frequency.setValueAtTime(450, ctx.currentTime);
+
+  // Tape flutter pitch vibrato
+  const vibratoLfo = ctx.createOscillator();
+  const vibratoGain = ctx.createGain();
+  vibratoLfo.frequency.setValueAtTime(0.2, ctx.currentTime);
+  vibratoGain.gain.setValueAtTime(2.0, ctx.currentTime);
+  vibratoLfo.start();
+  vibratoLfo.connect(vibratoGain);
+
+  let currentChordIndex = 0;
+  const activeChordOscs: OscillatorNode[] = [];
+  const activeChordGains: GainNode[] = [];
+
+  const playChord = (chordFreqs: number[]) => {
+    activeChordGains.forEach(g => {
+      try {
+        g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.6);
+      } catch (e) {}
+    });
+
+    chordFreqs.forEach(freq => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+
+      vibratoGain.connect(osc.frequency);
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+
+      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.045, ctx.currentTime + 0.4);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 3.8);
+
+      osc.connect(gain);
+      gain.connect(lofiFilter);
+
+      osc.start();
+      activeChordOscs.push(osc);
+      activeChordGains.push(gain);
+    });
+  };
+
+  lofiFilter.connect(chordMasterGain);
+  chordMasterGain.connect(destination);
+
+  playChord(chordProgression[0]);
+
+  const chordIntervalId = setInterval(() => {
+    currentChordIndex = (currentChordIndex + 1) % chordProgression.length;
+    playChord(chordProgression[currentChordIndex]);
+  }, 4000);
+
+  // 3. Relaxed Lofi Soft Kick Drum
+  const beatIntervalId = setInterval(() => {
+    try {
+      const kickOsc = ctx.createOscillator();
+      const kickGain = ctx.createGain();
+      kickOsc.type = 'sine';
+      kickOsc.frequency.setValueAtTime(80, ctx.currentTime);
+      kickOsc.frequency.exponentialRampToValueAtTime(25, ctx.currentTime + 0.12);
+
+      kickGain.gain.setValueAtTime(0.10, ctx.currentTime);
+      kickGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+
+      kickOsc.connect(kickGain);
+      kickGain.connect(destination);
+      kickOsc.start();
+      kickOsc.stop(ctx.currentTime + 0.12);
+    } catch (e) {}
+  }, 2000);
+
+  return {
+    stop: () => {
+      clearInterval(chordIntervalId);
+      clearInterval(beatIntervalId);
+      try { vibratoLfo.stop(); } catch (e) {}
+      try { vibratoLfo.disconnect(); } catch (e) {}
+      oscs.forEach(o => { try { (o as any).stop(); o.disconnect(); } catch (e) {} });
+      activeChordOscs.forEach(o => { try { o.stop(); o.disconnect(); } catch (e) {} });
+      activeChordGains.forEach(g => { try { g.disconnect(); } catch (e) {} });
+      gains.forEach(g => { try { g.disconnect(); } catch (e) {} });
+      try { lofiFilter.disconnect(); } catch (e) {}
+      try { chordMasterGain.disconnect(); } catch (e) {}
+    }
+  };
+}
+
 const SPIRITUAL_QUOTES = [
   'Lòng không tạp niệm, linh khí tự động hội tụ...',
   'Đạo tâm kiên định, phá vỡ vạn trùng bình cảnh.',
@@ -496,6 +623,9 @@ export default function MeditationTimer({
   const audioContextRef = useRef<AudioContext | null>(null);
   const soundscapePlayerRef = useRef<{ stop: () => void } | null>(null);
   const tickStartRef = useRef<number>(Date.now());
+  const wallClockStartRef = useRef<number>(Date.now());
+  const wallClockStartSecondsRef = useRef<number>(0);
+  const lastRewardedFreeCycleRef = useRef<number>(0);
   const rafRef = useRef<number>(0);
   const [smoothProgress, setSmoothProgress] = useState(0);
 
@@ -562,7 +692,9 @@ export default function MeditationTimer({
           masterGain.connect(ctx.destination);
 
           let player: { stop: () => void } | null = null;
-          if (soundscape === 'ZEN') {
+          if (soundscape === 'LOFI') {
+            player = startLofiBeat(ctx, masterGain);
+          } else if (soundscape === 'ZEN') {
             player = startZenChords(ctx, masterGain);
           } else if (soundscape === 'RAIN') {
             player = startRain(ctx, masterGain);
@@ -683,111 +815,130 @@ export default function MeditationTimer({
     return () => clearInterval(quoteInterval);
   }, [isRunning]);
 
-  // Main countdown logic
+  // Main wall-clock countdown/countup logic with background tab precision
   useEffect(() => {
-    if (isRunning) {
-      if ('Notification' in window && Notification.permission === 'default') {
-        Notification.requestPermission();
-      }
+    if (!isRunning) {
+      if (timerRef.current) clearInterval(timerRef.current);
+      return;
+    }
 
-      tickStartRef.current = Date.now();
-      timerRef.current = setInterval(() => {
-        tickStartRef.current = Date.now();
-        setTimeLeft(prev => {
-          if (mode === 'FREE') {
-            const nextTime = prev + 1;
-            if (nextTime > 0 && nextTime % 1500 === 0) {
-              playCompletionSound();
-              const cycle1Plants = [
-                { name: 'Ngọc Linh Chi', icon: '🍄' },
-                { name: 'Cửu Diệp Thảo', icon: '🌿' },
-                { name: 'Bạch Ngọc Liên', icon: '🪷' },
-                { name: 'Thanh Long Thảo', icon: '🌵' }
-              ];
-              const randomPlant = cycle1Plants[Math.floor(Math.random() * cycle1Plants.length)];
-              
-              const baseXP = 50;
-              const baseCoins = 50;
-              
-              const spellingQi = state.activeSpells?.includes('spell_tu_khi_quyet');
-              const spellingTamMa = state.activeSpells?.includes('spell_tam_ma_tram');
-              
-              const activeSpellMultiplier = spellingQi ? 0.30 : 0;
-              const coinSpellMultiplier = spellingTamMa ? 1.0 : 0;
-              
-              const pillBonus = state.inventory.some(i => i.itemId === 'tu_khi_dan') ? 0.25 : 0;
-              
-              const finalXp = Math.round(baseXP * (1 + pillBonus + activeSpellMultiplier));
-              const finalCoins = Math.round(baseCoins * (1 + coinSpellMultiplier));
-              
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
+    const processTimerTick = () => {
+      const now = Date.now();
+      tickStartRef.current = now;
+      const elapsedSecs = Math.floor((now - wallClockStartRef.current) / 1000);
+
+      if (mode === 'FREE') {
+        const calculatedSeconds = wallClockStartSecondsRef.current + elapsedSecs;
+        const currentFreeCycle = Math.floor(calculatedSeconds / 1500);
+
+        // Check if crossed one or multiple 25-minute (1500s) milestones while backgrounded
+        if (currentFreeCycle > lastRewardedFreeCycleRef.current) {
+          const cyclesCompleted = currentFreeCycle - lastRewardedFreeCycleRef.current;
+          lastRewardedFreeCycleRef.current = currentFreeCycle;
+
+          playCompletionSound();
+
+          const cycle1Plants = [
+            { name: 'Ngọc Linh Chi', icon: '🍄' },
+            { name: 'Cửu Diệp Thảo', icon: '🌿' },
+            { name: 'Bạch Ngọc Liên', icon: '🪷' },
+            { name: 'Thanh Long Thảo', icon: '🌵' }
+          ];
+
+          const spellingQi = state.activeSpells?.includes('spell_tu_khi_quyet');
+          const spellingTamMa = state.activeSpells?.includes('spell_tam_ma_tram');
+          const activeSpellMultiplier = spellingQi ? 0.30 : 0;
+          const coinSpellMultiplier = spellingTamMa ? 1.0 : 0;
+          const pillBonus = state.inventory.some(i => i.itemId === 'tu_khi_dan') ? 0.25 : 0;
+
+          const baseXP = 50 * cyclesCompleted;
+          const baseCoins = 50 * cyclesCompleted;
+          const finalXp = Math.round(baseXP * (1 + pillBonus + activeSpellMultiplier));
+          const finalCoins = Math.round(baseCoins * (1 + coinSpellMultiplier));
+
+          const randomPlant = cycle1Plants[Math.floor(Math.random() * cycle1Plants.length)];
+
+          if ('Notification' in window && Notification.permission === 'granted') {
+            new Notification('🧘 Tự Do Bế Quan Đắc Đạo!', {
+              body: `Đạo hữu thiền định tự do đạt ${25 * cyclesCompleted} phút! Nhận linh thảo [${randomPlant.name}]. Nhận +${finalXp} Tu Vi và +${finalCoins} Linh Thạch.`,
+              icon: '/icon.png'
+            });
+          }
+          onMeditationComplete(25 * cyclesCompleted, finalXp, finalCoins, randomPlant.name, 'HARVESTED');
+        }
+
+        setTimeLeft(calculatedSeconds);
+      } else {
+        // COUNTDOWN MODE (FOCUS or SHORT_BREAK)
+        const calculatedSeconds = Math.max(0, wallClockStartSecondsRef.current - elapsedSecs);
+        setTimeLeft(calculatedSeconds);
+
+        if (calculatedSeconds <= 0) {
+          clearInterval(timerRef.current!);
+          setIsRunning(false);
+          playCompletionSound();
+
+          if (mode === 'FOCUS') {
+            const reqCycles = getRequiredCycles(selectedSeed.rarity);
+            const nextCycles = completedCycles + 1;
+
+            if (nextCycles >= reqCycles) {
               if ('Notification' in window && Notification.permission === 'granted') {
-                new Notification('🧘 Tự Do Bế Quan Đắc Đạo!', {
-                  body: `Đạo hữu thiền định tự do đạt 25 phút! Nhận ngẫu nhiên linh thảo [${randomPlant.name}]. Nhận +${finalXp} Tu Vi và +${finalCoins} Linh Thạch.`,
+                new Notification('🧘 Cảnh Giới Bế Quan Viên Mãn!', {
+                  body: `Chúc mừng đạo hữu! Thu hoạch thành công [${selectedSeed.name}]. Nhận ngay +${actualExpGained} Tu Vi và +${actualCoinsGained} Linh Thạch.`,
                   icon: '/icon.png'
                 });
               }
-              onMeditationComplete(25, finalXp, finalCoins, randomPlant.name, 'HARVESTED');
-            }
-            return nextTime;
-          }
-
-          if (prev <= 1) {
-            clearInterval(timerRef.current!);
-            setIsRunning(false);
-            playCompletionSound();
-            
-            if (mode === 'FOCUS') {
-              const reqCycles = getRequiredCycles(selectedSeed.rarity);
-              const nextCycles = completedCycles + 1;
-
-              if (nextCycles >= reqCycles) {
-                // Fully grown and harvested!
-                if ('Notification' in window && Notification.permission === 'granted') {
-                  new Notification('🧘 Cảnh Giới Bế Quan Viên Mãn!', {
-                    body: `Chúc mừng đạo hữu! Thu hoạch thành công [${selectedSeed.name}]. Nhận ngay +${actualExpGained} Tu Vi và +${actualCoinsGained} Linh Thạch.`,
-                    icon: '/icon.png'
-                  });
-                }
-                const sessionMins = 25 * reqCycles;
-                onMeditationComplete(sessionMins, actualExpGained, actualCoinsGained, selectedSeed.name, 'HARVESTED');
-                setCompletedCycles(0);
-                setMode('SHORT_BREAK');
-                setTimeLeft(5 * 60);
-              } else {
-                // Multi-session cycle completed but not yet harvested
-                if ('Notification' in window && Notification.permission === 'granted') {
-                  new Notification('🌱 Chu Kỳ Bế Quan Hoàn Thành!', {
-                    body: `Đạo hữu đã hoàn thành chu kỳ ${nextCycles}/${reqCycles} để nuôi trồng [${selectedSeed.name}]. Hãy nghỉ ngơi trước khi bắt đầu chu kỳ tiếp theo!`,
-                    icon: '/icon.png'
-                  });
-                }
-                setCompletedCycles(nextCycles);
-                setMode('SHORT_BREAK');
-                setTimeLeft(5 * 60);
-              }
+              const sessionMins = 25 * reqCycles;
+              onMeditationComplete(sessionMins, actualExpGained, actualCoinsGained, selectedSeed.name, 'HARVESTED');
+              setCompletedCycles(0);
+              setMode('SHORT_BREAK');
+              setTimeLeft(5 * 60);
             } else {
               if ('Notification' in window && Notification.permission === 'granted') {
-                new Notification('⚡ Thời Gian Thần Tức Kết Thúc!', {
-                  body: 'Tinh thần đạo hữu đã sảng khoái, hãy chuẩn bị quay lại bế quan tu luyện!',
+                new Notification('🌱 Chu Kỳ Bế Quan Hoàn Thành!', {
+                  body: `Đạo hữu đã hoàn thành chu kỳ ${nextCycles}/${reqCycles} để nuôi trồng [${selectedSeed.name}]. Hãy nghỉ ngơi trước khi bắt đầu chu kỳ tiếp theo!`,
                   icon: '/icon.png'
                 });
               }
-              setMode('FOCUS');
-              setTimeLeft(25 * 60);
+              setCompletedCycles(nextCycles);
+              setMode('SHORT_BREAK');
+              setTimeLeft(5 * 60);
             }
-            return 0;
+          } else {
+            if ('Notification' in window && Notification.permission === 'granted') {
+              new Notification('⚡ Thời Gian Thần Tức Kết Thúc!', {
+                body: 'Tinh thần đạo hữu đã sảng khoái, hãy chuẩn bị quay lại bế quan tu luyện!',
+                icon: '/icon.png'
+              });
+            }
+            setMode('FOCUS');
+            setTimeLeft(25 * 60);
           }
-          return prev - 1;
-        });
-      }, 1000);
-    } else {
-      if (timerRef.current) clearInterval(timerRef.current);
-    }
+        }
+      }
+    };
+
+    processTimerTick();
+    timerRef.current = setInterval(processTimerTick, 1000);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        processTimerTick();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [isRunning, mode, actualExpGained, actualCoinsGained, selectedSeed, completedCycles]);
+  }, [isRunning, mode, actualExpGained, actualCoinsGained, selectedSeed, completedCycles, state.activeSpells, state.inventory]);
 
   // Passive Qi Ticks (Exp gain)
   const hasQiArray = state.inventory.some(i => i.itemId === 'tu_linh_tran');
@@ -806,6 +957,13 @@ export default function MeditationTimer({
   }, [isRunning, mode, hasQiArray]);
 
   const toggleTimer = () => {
+    if (!isRunning) {
+      wallClockStartRef.current = Date.now();
+      wallClockStartSecondsRef.current = timeLeft;
+      if (mode === 'FREE') {
+        lastRewardedFreeCycleRef.current = Math.floor(timeLeft / 1500);
+      }
+    }
     setIsRunning(!isRunning);
   };
 
@@ -1101,6 +1259,7 @@ export default function MeditationTimer({
             className="w-full bg-slate-950 border-2 border-slate-950 rounded-xl px-3 py-1.5 text-[10px] text-slate-300 focus:outline-none focus:border-amber-400 cursor-pointer font-bold shadow-[2px_2px_0px_#000] text-center"
           >
             <option value="NONE">🔇 Tắt nhạc nền</option>
+            <option value="LOFI">🎧 Nhạc Lofi Chill (Châm Trà Thưởng Nguyệt)</option>
             <option value="ZEN">🧘 Hợp Âm Thiền (Zen)</option>
             <option value="RAIN">🌧️ Mưa Rơi Trúc Lâm</option>
             <option value="STREAM">🌊 Linh Tuyền Thủy Lưu</option>

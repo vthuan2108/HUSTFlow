@@ -195,8 +195,8 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({
                           <h4 className="text-xs font-bold text-slate-100 uppercase tracking-wide">
                             {ach.title}
                           </h4>
-                          <span className="text-[9px] text-amber-400 font-mono font-semibold">
-                            +{ach.rewardLinhThach} Linh Thạch
+                          <span className="text-[9px] text-amber-400/70 font-mono font-semibold">
+                            Huy Hiệu Tu Tiên
                           </span>
                         </div>
                       </div>
@@ -245,10 +245,10 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({
 
                       {isCompleted && !isClaimed && (
                         <button
-                          onClick={() => onClaimAchievement(ach.id, ach.rewardLinhThach)}
+                          onClick={() => onClaimAchievement(ach.id, 0)}
                           className="w-full py-1.5 rounded-lg neo-btn neo-btn-primary text-[10px] font-black uppercase tracking-widest animate-pulse cursor-pointer"
                         >
-                          🎁 NHẬN THƯỞNG +{ach.rewardLinhThach} LINH THẠCH
+                          🎖️ NHẬN HUY HIỆU
                         </button>
                       )}
 

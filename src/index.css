@@ -219,3 +219,94 @@
   animation: float-y 3s ease-in-out infinite;
 }
 
+@keyframes shooting-star-diagonal {
+  0% {
+    transform: rotate(-45deg) translateX(0);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.85;
+  }
+  80% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: rotate(-45deg) translateX(-850px);
+    opacity: 0;
+  }
+}
+
+.shooting-star-item {
+  position: absolute;
+  height: 2px;
+  border-radius: 99px;
+  transform: rotate(-45deg);
+  transform-origin: top right;
+  animation: shooting-star-diagonal linear infinite;
+  pointer-events: none;
+}
+
+.shooting-star-cyan {
+  background: linear-gradient(90deg, #ffffff, rgba(56, 189, 248, 0.85) 45%, transparent);
+  filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.9));
+}
+.shooting-star-cyan::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 4px;
+  background: #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 0 10px 3px #38bdf8, 0 0 18px 5px #0284c7;
+}
+
+.shooting-star-violet {
+  background: linear-gradient(90deg, #ffffff, rgba(192, 132, 252, 0.85) 45%, transparent);
+  filter: drop-shadow(0 0 6px rgba(192, 132, 252, 0.9));
+}
+.shooting-star-violet::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 4px;
+  background: #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 0 10px 3px #c084fc, 0 0 18px 5px #9333ea;
+}
+
+.shooting-star-emerald {
+  background: linear-gradient(90deg, #ffffff, rgba(52, 211, 153, 0.85) 45%, transparent);
+  filter: drop-shadow(0 0 6px rgba(52, 211, 153, 0.9));
+}
+.shooting-star-emerald::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 4px;
+  background: #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 0 10px 3px #34d399, 0 0 18px 5px #059669;
+}
+
+@keyframes vivid-nebula-pulse {
+  0%, 100% { transform: scale(1) translate(0, 0); opacity: 0.45; }
+  50% { transform: scale(1.2) translate(40px, -25px); opacity: 0.65; }
+}
+
+.animate-vivid-nebula-1 {
+  animation: vivid-nebula-pulse 18s ease-in-out infinite alternate;
+}
+
+.animate-vivid-nebula-2 {
+  animation: vivid-nebula-pulse 24s ease-in-out infinite alternate-reverse;
+}
+

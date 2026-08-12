@@ -66,6 +66,7 @@ interface IsoTreeProps {
   icon: string;
   delay: number;
 }
+
 function IsoTree({ col, row, icon, delay }: IsoTreeProps) {
   const center = iso(col + 0.5, row + 0.5);
   const cx = center.x;
@@ -323,6 +324,7 @@ export default function SpiritualGarden({ plants, onClearGarden }: SpiritualGard
                   <IsoTree
                     col={cell.c}
                     row={cell.r}
+                    seedId={seed?.id}
                     icon={seed?.icon || '🌲'}
                     delay={idx * 0.05}
                   />

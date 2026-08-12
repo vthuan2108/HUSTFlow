@@ -109,6 +109,11 @@ export interface CultivationState {
   equippedTitle?: string;
   breakthroughCount?: number;
   itemsBoughtCount?: number;
+  bottleneckStartStats?: {
+    level: number;
+    meditationMinutes: number;
+    tasksCompletedCount: number;
+  };
 }
 
 export interface DailyLog {

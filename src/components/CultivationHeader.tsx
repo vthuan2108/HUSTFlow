@@ -202,13 +202,25 @@ export default function CultivationHeader({ state, onRename, onBreakthrough, use
 
   const isBottleneck = !!realm.bottleneck;
   const bottleneckReq = realm.bottleneck;
+
+  // Calculate progress since bottleneck started
+  const bottleneckStartMeditation = (safeState.bottleneckStartStats?.level === safeLevel)
+    ? (safeState.bottleneckStartStats.meditationMinutes || 0)
+    : 0;
+  const bottleneckStartTasks = (safeState.bottleneckStartStats?.level === safeLevel)
+    ? (safeState.bottleneckStartStats.tasksCompletedCount || 0)
+    : 0;
+
+  const safeMeditationDiff = Math.max(0, safeMeditationMinutes - bottleneckStartMeditation);
+  const safeTasksDiff = Math.max(0, safeTasksCompletedCount - bottleneckStartTasks);
+
   let bottleneckMet = true;
 
   if (isBottleneck && bottleneckReq) {
-    if (bottleneckReq.minMeditationMinutes && safeMeditationMinutes < bottleneckReq.minMeditationMinutes) {
+    if (bottleneckReq.minMeditationMinutes && safeMeditationDiff < bottleneckReq.minMeditationMinutes) {
       bottleneckMet = false;
     }
-    if (bottleneckReq.minCompletedTasks && safeTasksCompletedCount < bottleneckReq.minCompletedTasks) {
+    if (bottleneckReq.minCompletedTasks && safeTasksDiff < bottleneckReq.minCompletedTasks) {
       bottleneckMet = false;
     }
     if (bottleneckReq.requiredItemId) {
@@ -469,18 +481,18 @@ export default function CultivationHeader({ state, onRename, onBreakthrough, use
 
                       {bottleneckReq.minMeditationMinutes && (
                         <div className="flex justify-between items-center">
-                          <span className="text-slate-400">🧘 Bế quan Thiền Định:</span>
-                          <span className={safeMeditationMinutes >= bottleneckReq.minMeditationMinutes ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>
-                            {safeMeditationMinutes} / {bottleneckReq.minMeditationMinutes} phút
+                          <span className="text-slate-400">🧘 Bế quan Thiền Định (từ bình cảnh):</span>
+                          <span className={safeMeditationDiff >= bottleneckReq.minMeditationMinutes ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>
+                            {safeMeditationDiff} / {bottleneckReq.minMeditationMinutes} phút
                           </span>
                         </div>
                       )}
 
                       {bottleneckReq.minCompletedTasks && (
                         <div className="flex justify-between items-center">
-                          <span className="text-slate-400">⚔️ Hoàn thành Nhiệm Vụ:</span>
-                          <span className={safeTasksCompletedCount >= bottleneckReq.minCompletedTasks ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>
-                            {safeTasksCompletedCount} / {bottleneckReq.minCompletedTasks} task
+                          <span className="text-slate-400">⚔️ Hoàn thành Nhiệm Vụ (từ bình cảnh):</span>
+                          <span className={safeTasksDiff >= bottleneckReq.minCompletedTasks ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>
+                            {safeTasksDiff} / {bottleneckReq.minCompletedTasks} task
                           </span>
                         </div>
                       )}
@@ -509,12 +521,10 @@ export default function CultivationHeader({ state, onRename, onBreakthrough, use
                     </div>
                     <div className="flex justify-between">
                       <span className="text-slate-500">Hình phạt thất bại:</span>
-                      <span className="text-rose-400">
+                      <span className="text-rose-400 font-bold">
                         {safeState.shieldActive
                           ? 'Bảo vệ nguyên vẹn (Hộ Tâm Kính)'
-                          : isBottleneck
-                          ? 'Tụ T 2 Cấp & Xóa sạch Tu Vi nén'
-                          : '-10% Tu Vi'}
+                          : 'Xóa sạch Tu Vi tích lũy (Cảnh giới giữ nguyên)'}
                       </span>
                     </div>
                   </div>
