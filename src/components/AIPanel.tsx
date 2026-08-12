@@ -279,19 +279,19 @@ export default function AIPanel({
       final: g.finalScore ?? 'chưa có'
     }));
 
-    // Filter 100% of active month calendar events without artificial cap
+    // Filter active month calendar events within a 14-day rolling window (Today to Today + 14 days)
     const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth();
+    const todayTimestamp = now.getTime();
+    const fourteenDaysLater = todayTimestamp + (14 * 24 * 60 * 60 * 1000);
 
     const activeMonthEvents = calendarEvents.filter(e => {
       const dateStr = e.start?.dateTime || e.start?.date;
       if (!dateStr) return false;
-      const d = new Date(dateStr);
-      return d.getFullYear() === currentYear && d.getMonth() === currentMonth;
+      const d = new Date(dateStr).getTime();
+      return d >= todayTimestamp - (24 * 60 * 60 * 1000) && d <= fourteenDaysLater;
     });
 
-    const targetEvents = activeMonthEvents.length > 0 ? activeMonthEvents : calendarEvents;
+    const targetEvents = activeMonthEvents.length > 0 ? activeMonthEvents : calendarEvents.slice(0, 20);
 
     const formattedEventsStr = targetEvents.map(e => {
       const startStr = (e.start?.dateTime || e.start?.date || '').replace('T', ' ').substring(0, 16);
@@ -462,13 +462,15 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
 
         const historyPayload = chatHistory.slice(-4).map(m => {
           let cleanContent = m.content;
-          // Strip out raw JSON blocks from previous assistant messages to save massive tokens
           if (m.role === 'assistant') {
-            cleanContent = m.content.replace(/\{[\s\S]*\}/g, '').trim() || m.content.substring(0, 200);
+            cleanContent = m.content.replace(/\{[\s\S]*\}/g, '').trim();
+          }
+          if (cleanContent.length > 250) {
+            cleanContent = cleanContent.substring(0, 250) + '...';
           }
           return {
             role: m.role === 'user' ? 'user' : 'assistant',
-            content: cleanContent
+            content: cleanContent || 'Dạ sư huynh.'
           };
         });
 
