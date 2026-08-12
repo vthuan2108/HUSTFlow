@@ -1019,7 +1019,7 @@ export default function MeditationTimer({
   const plantStageEmoji = selectedSeed.icon || '🌿';
 
   return (
-    <div className="neo-card flex flex-col items-center relative overflow-hidden h-full w-full" id="meditation-timer">
+    <div className="neo-card flex flex-col items-center justify-between relative overflow-hidden h-[590px] max-h-[590px] w-full" id="meditation-timer">
 
       {/* Top bar */}
       <div className="w-full flex items-center justify-between px-4 pt-4 pb-2">
