@@ -103,7 +103,7 @@ export default function TaskSection({
   };
 
   return (
-    <div className="neo-card p-5 flex flex-col h-[520px] max-h-[520px] overflow-hidden" id="task-section">
+    <div className="neo-card p-5 flex flex-col h-full overflow-hidden" id="task-section">
       {/* Header Panel */}
       <div className="flex items-center justify-between mb-4 shrink-0 border-b-2 border-slate-950 pb-3">
         <div className="flex items-center gap-3">
