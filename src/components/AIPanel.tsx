@@ -291,7 +291,7 @@ export default function AIPanel({
       return d.getFullYear() === currentYear && d.getMonth() === currentMonth;
     });
 
-    const targetEvents = activeMonthEvents.length > 0 ? activeMonthEvents : calendarEvents;
+    const targetEvents = (activeMonthEvents.length > 0 ? activeMonthEvents : calendarEvents).slice(0, 30);
 
     const formattedEventsStr = targetEvents.map(e => {
       const startStr = (e.start?.dateTime || e.start?.date || '').replace('T', ' ').substring(0, 16);
@@ -460,10 +460,17 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
           modelName = customModel;
         }
 
-        const historyPayload = chatHistory.slice(-6).map(m => ({
-          role: m.role === 'user' ? 'user' : 'assistant',
-          content: m.content
-        }));
+        const historyPayload = chatHistory.slice(-4).map(m => {
+          let cleanContent = m.content;
+          // Strip out raw JSON blocks from previous assistant messages to save massive tokens
+          if (m.role === 'assistant') {
+            cleanContent = m.content.replace(/\{[\s\S]*\}/g, '').trim() || m.content.substring(0, 200);
+          }
+          return {
+            role: m.role === 'user' ? 'user' : 'assistant',
+            content: cleanContent
+          };
+        });
 
         const bodyData: any = {
           model: modelName,
