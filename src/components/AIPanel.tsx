@@ -259,73 +259,50 @@ export default function AIPanel({
     setExpandedReasoning(prev => ({ ...prev, [msgId]: !prev[msgId] }));
   };
 
-  const compileContext = () => {
-    const pendingTasks = todoItems
-      .filter(t => !t.isCompleted)
-      .slice(0, 20)
-      .map(t => ({ id: t.id, title: t.title, dueDate: t.dueDate || 'Chưa có', priority: t.difficulty || 'SO_CAP' }));
+  const compileContext = (query: string = '') => {
+    const isCalendarQuery = query.includes('/calendar') || /lịch|thời gian|bế quan|rảnh|bận|xếp/i.test(query);
+    const isTaskQuery = query.includes('/task') || /nhiệm vụ|task|bài tập|hạn|deadline/i.test(query);
 
-    const formattedHabits = habits.map(h => ({
-      title: h.title,
-      streak: h.streak
-    }));
+    let contextParts: string[] = [
+      `- Level: ${cultState.level} | Linh Thạch: ${cultState.linhThach} | CPA Bách Khoa: ${cpaOverall.toFixed(2)}`,
+      `- Ngày hiện tại: ${new Date().toISOString().split('T')[0]}`
+    ];
 
-    const formattedManuals = manuals.map(m => `${m.name} (${m.stages.filter(s => s.isCompleted).length}/${m.stages.length})`);
+    if (isCalendarQuery) {
+      const now = new Date();
+      const todayTimestamp = now.getTime();
+      const fourteenDaysLater = todayTimestamp + (14 * 24 * 60 * 60 * 1000);
 
-    const formattedGrades = gradeSubjects.slice(0, 6).map(g => ({
-      code: g.code,
-      name: g.name,
-      midterm: g.midtermScore ?? 'chưa có',
-      final: g.finalScore ?? 'chưa có'
-    }));
+      const activeEvents = calendarEvents.filter(e => {
+        const dateStr = e.start?.dateTime || e.start?.date;
+        if (!dateStr) return false;
+        const d = new Date(dateStr).getTime();
+        return d >= todayTimestamp - (24 * 60 * 60 * 1000) && d <= fourteenDaysLater;
+      });
 
-    // Filter active month calendar events within a 14-day rolling window (Today to Today + 14 days)
-    const now = new Date();
-    const todayTimestamp = now.getTime();
-    const fourteenDaysLater = todayTimestamp + (14 * 24 * 60 * 60 * 1000);
+      const formattedEventsStr = activeEvents.map(e => {
+        const startStr = (e.start?.dateTime || e.start?.date || '').replace('T', ' ').substring(0, 16);
+        const endStr = (e.end?.dateTime || e.end?.date || '').split('T')[1]?.substring(0, 5) || '';
+        return `[ID:${e.id}] ${endStr ? startStr + ' đến ' + endStr : startStr} | ${e.summary}`;
+      }).join('\n');
 
-    const activeMonthEvents = calendarEvents.filter(e => {
-      const dateStr = e.start?.dateTime || e.start?.date;
-      if (!dateStr) return false;
-      const d = new Date(dateStr).getTime();
-      return d >= todayTimestamp - (24 * 60 * 60 * 1000) && d <= fourteenDaysLater;
-    });
+      const formattedGroupsStr = (calendarGroups || []).map(g => `[Group ID:${g.id}] Tên: ${g.summary}`).join('\n');
 
-    const targetEvents = activeMonthEvents.length > 0 ? activeMonthEvents : calendarEvents.slice(0, 20);
+      contextParts.push(`\n[NHÓM LỊCH]:\n${formattedGroupsStr}`);
+      contextParts.push(`\n[LỊCH 14 NGÀY TỚI]:\n${formattedEventsStr || 'Chưa có lịch'}`);
+    }
 
-    const formattedEventsStr = targetEvents.map(e => {
-      const startStr = (e.start?.dateTime || e.start?.date || '').replace('T', ' ').substring(0, 16);
-      const endStr = (e.end?.dateTime || e.end?.date || '').split('T')[1]?.substring(0, 5) || '';
-      const timeRange = endStr ? `${startStr} đến ${endStr}` : startStr;
-      return `[ID:${e.id}] ${timeRange} | ${e.summary}`;
-    }).join('\n');
+    if (isTaskQuery) {
+      const pendingTasks = todoItems
+        .filter(t => !t.isCompleted)
+        .slice(0, 10)
+        .map(t => `[ID:${t.id}] Hạn: ${t.dueDate || 'Chưa có'} | ${t.title}`)
+        .join('\n');
 
-    const formattedTasksStr = pendingTasks.map(t => 
-      `[ID:${t.id}] Hạn: ${t.dueDate} | UuTiên: ${t.priority} | ${t.title}`
-    ).join('\n');
+      contextParts.push(`\n[TASKS ĐANG CHỜ]:\n${pendingTasks || 'Không có task'}`);
+    }
 
-    const formattedGroupsStr = (calendarGroups || []).map(g =>
-      `[Group ID:${g.id}] Tên: ${g.summary}`
-    ).join('\n');
-
-    return `
-=== CONTEXT ===
-- Level: ${cultState.level} | Linh Thạch: ${cultState.linhThach} | CPA Bách Khoa: ${cpaOverall.toFixed(2)}
-- Ngày hiện tại: ${new Date().toISOString().split('T')[0]}
-
-[NHÓM LỊCH HIỆN CÓ]:
-${formattedGroupsStr || 'Chưa có nhóm lịch'}
-
-[DANH SÁCH LỊCH THÁNG HIỆN TẠI (100% ĐẦY ĐỦ)]:
-${formattedEventsStr || 'Chưa có lịch'}
-
-[TASKS ĐANG CHỜ]:
-${formattedTasksStr || 'Chưa có task'}
-
-[THÓI QUEN]: ${JSON.stringify(formattedHabits)}
-[MÔN HỌC]: ${formattedManuals.join(', ')}
-[ĐIỂM THI]: ${JSON.stringify(formattedGrades)}
-`;
+    return `=== CONTEXT ===\n${contextParts.join('\n')}`;
   };
 
   const executeAIPlanning = async (customPrompt?: string) => {
@@ -345,7 +322,7 @@ ${formattedTasksStr || 'Chưa có task'}
     setChatHistory(newHistory);
     setIsLoading(true);
 
-    const context = compileContext();
+    const context = compileContext(userQuery);
 
     let personaPrompt = '';
 
