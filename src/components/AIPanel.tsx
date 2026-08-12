@@ -291,7 +291,7 @@ export default function AIPanel({
       return d.getFullYear() === currentYear && d.getMonth() === currentMonth;
     });
 
-    const targetEvents = (activeMonthEvents.length > 0 ? activeMonthEvents : calendarEvents).slice(0, 30);
+    const targetEvents = activeMonthEvents.length > 0 ? activeMonthEvents : calendarEvents;
 
     const formattedEventsStr = targetEvents.map(e => {
       const startStr = (e.start?.dateTime || e.start?.date || '').replace('T', ' ').substring(0, 16);
