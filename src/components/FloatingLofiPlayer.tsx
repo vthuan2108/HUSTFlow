@@ -8,10 +8,10 @@ import { motion } from 'motion/react';
 import { GripHorizontal, Link as LinkIcon, Minimize2, Maximize2, X, Zap, Play, Music } from 'lucide-react';
 
 function getYouTubeId(url: string): string {
-  if (!url) return 'jfKfPfyJRdk';
+  if (!url) return 'sF80I-TQiW0';
   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
   const match = url.match(regExp);
-  return (match && match[2].length === 11) ? match[2] : (url.length === 11 ? url : 'jfKfPfyJRdk');
+  return (match && match[2].length === 11) ? match[2] : (url.length === 11 ? url : 'sF80I-TQiW0');
 }
 
 interface FloatingLofiPlayerProps {
@@ -23,7 +23,7 @@ interface FloatingLofiPlayerProps {
 
 export default function FloatingLofiPlayer({ isOpen, onClose, onOpen, isRunning = false }: FloatingLofiPlayerProps) {
   const [youtubeUrl, setYoutubeUrl] = useState<string>(() => {
-    return localStorage.getItem('tlk_lofi_yt_url') || 'https://www.youtube.com/watch?v=jfKfPfyJRdk';
+    return localStorage.getItem('tlk_lofi_yt_url') || 'https://www.youtube.com/watch?v=sF80I-TQiW0&list=RDsF80I-TQiW0&start_radio=1';
   });
 
   const [autoSync, setAutoSync] = useState<boolean>(() => {
