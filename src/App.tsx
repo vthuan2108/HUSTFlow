@@ -41,8 +41,8 @@ import ScheduleSection from './components/ScheduleSection';
 import ForbiddenNotes from './components/ForbiddenNotes';
 import DailyRituals from './components/DailyRituals';
 import DailyRitualsModal from './components/DailyRitualsModal';
-import CultivationManualsSection from './components/CultivationManualsSection';
 import SpiritualGarden from './components/SpiritualGarden';
+import FloatingLofiPlayer from './components/FloatingLofiPlayer';
 import { AchievementsModal } from './components/AchievementsModal';
 import { initAuth, googleSignIn, logout as firebaseLogout, getAccessToken } from './lib/firebase';
 import { syncGoogleTasks, deleteTaskOnGoogle, patchTaskOnGoogle } from './lib/googleTasks';
@@ -2638,6 +2638,12 @@ export default function App() {
             cpaScore={cpaOverall}
             onClaimAchievement={handleClaimAchievement}
             onEquipTitle={handleEquipTitle}
+          />
+
+          {/* Floating YouTube Lofi Player */}
+          <FloatingLofiPlayer
+            isOpen={soundscape === 'LOFI_YT'}
+            onClose={() => setSoundscape('NONE')}
           />
         </div>
       );

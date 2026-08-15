@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { SPIRITUAL_SEEDS } from '../data';
 declare const chrome: any;
 
-export type SoundscapeType = 'NONE' | 'LOFI' | 'LOFI_YT_STUDY' | 'LOFI_YT_SLEEP' | 'LOFI_YT_CHILL' | 'ZEN' | 'RAIN' | 'STREAM' | 'CHIMES' | 'THUNDER' | 'CAMPFIRE';
+export type SoundscapeType = 'NONE' | 'LOFI_YT' | 'LOFI' | 'ZEN' | 'RAIN' | 'STREAM' | 'CHIMES' | 'THUNDER' | 'CAMPFIRE';
 
 interface MeditationTimerProps {
   state: CultivationState;
@@ -1257,33 +1257,6 @@ export default function MeditationTimer({
 
         {/* Soundscape selector (compact) */}
         <div className="w-full mb-4">
-          {/* Visible YouTube Livestream Mini Player */}
-          {soundscape.startsWith('LOFI_YT_') && (
-            <div className="mb-2.5 w-full bg-slate-950 border-2 border-slate-900 rounded-xl overflow-hidden shadow-lg p-2 space-y-1.5 animate-fadeIn">
-              <div className="flex items-center justify-between px-1">
-                <span className="text-[9.5px] font-bold text-rose-400 flex items-center gap-1 font-mono">
-                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />
-                  🔴 YOUTUBE LOFI LIVE 24/7
-                </span>
-                <span className="text-[8.5px] text-slate-400 font-mono truncate max-w-[140px]">
-                  {soundscape === 'LOFI_YT_STUDY' ? 'Lofi Girl (Study/Relax)' : soundscape === 'LOFI_YT_SLEEP' ? 'Lofi Girl (Sleep/Chill)' : 'Chillhop Radio'}
-                </span>
-              </div>
-              <div className="relative w-full h-28 rounded-lg overflow-hidden border border-slate-800 bg-black">
-                <iframe
-                  className="w-full h-full"
-                  src={`https://www.youtube-nocookie.com/embed/${
-                    soundscape === 'LOFI_YT_STUDY' ? 'jfKfPfyJRdk' :
-                    soundscape === 'LOFI_YT_SLEEP' ? '5qap5aO4i9A' : 'MCkTebktLYc'
-                  }?autoplay=1&enablejsapi=1&controls=1`}
-                  allow="autoplay; encrypted-media; picture-in-picture"
-                  allowFullScreen
-                  title="YouTube Lofi Stream Player"
-                />
-              </div>
-            </div>
-          )}
-
           <select
             value={soundscape}
             onChange={(e) => {
@@ -1294,9 +1267,7 @@ export default function MeditationTimer({
             className="w-full bg-slate-950 border-2 border-slate-950 rounded-xl px-3 py-1.5 text-[10px] text-slate-300 focus:outline-none focus:border-amber-400 cursor-pointer font-bold shadow-[2px_2px_0px_#000] text-center"
           >
             <option value="NONE">🔇 Tắt nhạc nền</option>
-            <option value="LOFI_YT_STUDY">🔴 YouTube Live 24/7: Lofi Girl (Relax/Study)</option>
-            <option value="LOFI_YT_SLEEP">🌙 YouTube Live 24/7: Lofi Girl (Sleep/Chill)</option>
-            <option value="LOFI_YT_CHILL">☕ YouTube Live 24/7: Chillhop Radio (Jazzy Lofi)</option>
+            <option value="LOFI_YT">🔴 Nhạc Lofi YouTube (Tùy Chỉnh Stream)</option>
             <option value="LOFI">🎧 Nhạc Lofi Synthesizer (Châm Trà Thưởng Nguyệt)</option>
             <option value="ZEN">🧘 Hợp Âm Thiền (Zen)</option>
             <option value="RAIN">🌧️ Mưa Rơi Trúc Lâm</option>
