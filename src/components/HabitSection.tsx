@@ -22,6 +22,40 @@ function getLocalDateString(d: Date = new Date()): string {
   return `${year}-${month}-${day}`;
 }
 
+function calculateHabitStreak(history: Record<string, boolean>): number {
+  if (!history) return 0;
+  const today = new Date();
+  const todayStr = getLocalDateString(today);
+  
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+  const yesterdayStr = getLocalDateString(yesterday);
+
+  let startDate: Date | null = null;
+  if (history[todayStr]) {
+    startDate = today;
+  } else if (history[yesterdayStr]) {
+    startDate = yesterday;
+  } else {
+    return 0;
+  }
+
+  let streak = 0;
+  let curr = new Date(startDate);
+
+  while (true) {
+    const dateStr = getLocalDateString(curr);
+    if (history[dateStr]) {
+      streak++;
+      curr.setDate(curr.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+
+  return streak;
+}
+
 export default function HabitSection({ habits, onAddHabit, onToggleHabitDay, onDeleteHabit }: HabitSectionProps) {
   const [isAdding, setIsAdding] = useState(false);
   const [title, setTitle] = useState('');
@@ -36,7 +70,7 @@ export default function HabitSection({ habits, onAddHabit, onToggleHabitDay, onD
     for (let i = 0; i < 7; i++) {
       const d = new Date(today);
       d.setDate(today.getDate() + mondayOffset + i);
-      const dateStr = d.toISOString().split('T')[0];
+      const dateStr = getLocalDateString(d);
       const dayLabel = d.toLocaleDateString('vi-VN', { weekday: 'short' });
       days.push({
         dateStr,
@@ -130,11 +164,14 @@ export default function HabitSection({ habits, onAddHabit, onToggleHabitDay, onD
                     <h4 className="text-xs font-bold text-slate-200 truncate">
                       {habit.title}
                     </h4>
-                    {habit.streak > 0 && (
-                      <span className="text-[8px] bg-amber-400 text-slate-950 border-2 border-slate-950 px-1.5 py-0.5 rounded-lg font-mono font-bold flex items-center gap-0.5 shadow-[1px_1px_0px_#000] pixel-label">
-                        🔥 {habit.streak} ngày
-                      </span>
-                    )}
+                    {(() => {
+                      const liveStreak = calculateHabitStreak(habit.history);
+                      return liveStreak > 0 ? (
+                        <span className="text-[8px] bg-amber-400 text-slate-950 border-2 border-slate-950 px-1.5 py-0.5 rounded-lg font-mono font-bold flex items-center gap-0.5 shadow-[1px_1px_0px_#000] pixel-label">
+                          🔥 {liveStreak} ngày
+                        </span>
+                      ) : null;
+                    })()}
                   </div>
                   {habit.description && (
                     <p className="text-[9px] text-slate-500 truncate mt-0.5 leading-tight">{habit.description}</p>

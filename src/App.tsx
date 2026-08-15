@@ -258,7 +258,15 @@ export default function App() {
   const [habits, setHabits] = useState<Habit[]>(() => {
     const saved = localStorage.getItem('tlk_habits');
     if (saved) {
-      try { const res = JSON.parse(saved); if (Array.isArray(res)) return res; } catch (e) { /* fallback */ }
+      try {
+        const res = JSON.parse(saved);
+        if (Array.isArray(res)) {
+          return res.map((h: Habit) => ({
+            ...h,
+            streak: calculateHabitStreak(h.history || {})
+          }));
+        }
+      } catch (e) { /* fallback */ }
     }
     return [];
   });
