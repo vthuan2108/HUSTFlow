@@ -1297,39 +1297,35 @@ export default function App() {
   };
 
   const calculateHabitStreak = (history: Record<string, boolean>): number => {
-    const activeDays = Object.keys(history).filter(d => history[d]);
-    if (activeDays.length === 0) return 0;
+    const today = new Date();
+    const todayStr = getLocalDateString(today);
+    
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    const yesterdayStr = getLocalDateString(yesterday);
 
-    const sortedDates = Array.from(new Set(activeDays))
-      .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
-
-    const todayDateStr = new Date().toISOString().split('T')[0];
-    const yesterdayDate = new Date();
-    yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-    const yesterdayDateStr = yesterdayDate.toISOString().split('T')[0];
-
-    // If the latest completed date is neither today nor yesterday, streak is broken
-    if (sortedDates[0] !== todayDateStr && sortedDates[0] !== yesterdayDateStr) {
+    let startDate: Date | null = null;
+    if (history[todayStr]) {
+      startDate = today;
+    } else if (history[yesterdayStr]) {
+      startDate = yesterday;
+    } else {
       return 0;
     }
 
     let streak = 0;
-    let currentDateToCheck = new Date(sortedDates[0]);
+    let curr = new Date(startDate);
 
-    for (let i = 0; i < sortedDates.length; i++) {
-      const logDate = new Date(sortedDates[i]);
-      const diffTime = Math.abs(currentDateToCheck.getTime() - logDate.getTime());
-      const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
-
-      if (diffDays === 0) {
+    while (true) {
+      const dateStr = getLocalDateString(curr);
+      if (history[dateStr]) {
         streak++;
-      } else if (diffDays === 1) {
-        streak++;
-        currentDateToCheck = logDate;
+        curr.setDate(curr.getDate() - 1);
       } else {
         break;
       }
     }
+
     return streak;
   };
 

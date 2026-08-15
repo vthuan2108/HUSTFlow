@@ -17,7 +17,9 @@ import {
   Trash2, 
   Award, 
   Clock, 
-  AlertCircle
+  AlertCircle,
+  BookOpen,
+  Calendar
 } from 'lucide-react';
 
 function getLocalDateString(d: Date = new Date()): string {
@@ -59,22 +61,22 @@ export default function DailyRitualsModal({
 
   // Dates
   const todayStr = getLocalDateString();
+  const yesterdayStr = getLocalDateString(new Date(Date.now() - 86400000));
   const [ritualDate, setRitualDate] = useState<string>(todayStr);
 
-  // Wizard state: Local todos
+  // Wizard state
   const [localTodos, setLocalTodos] = useState<TodoItem[]>([]);
-  // Wizard state: Selected priority IDs
   const [selectedPriorities, setSelectedPriorities] = useState<string[]>([]);
-  // Wizard state: Estimated durations
   const [estimatedTimes, setEstimatedTimes] = useState<Record<string, number>>({});
-  // Wizard state: Focus rating
   const [focusRating, setFocusRating] = useState<number>(3);
+  const [dailyIntent, setDailyIntent] = useState<string>('');
+  const [reflectionJournal, setReflectionJournal] = useState<string>('');
 
   // Wizard state: Quick add todo
   const [wizardNewTodoTitle, setWizardNewTodoTitle] = useState('');
   const [wizardNewTodoDiff, setWizardNewTodoDiff] = useState<Priority>('SO_CAP');
 
-  // Initialize wizard when opened
+  // Initialize wizard when opened or ritualType / ritualDate changes
   useEffect(() => {
     if (isOpen) {
       setLocalTodos(JSON.parse(JSON.stringify(todoItems)));
@@ -96,6 +98,8 @@ export default function DailyRitualsModal({
   }, [isOpen, ritualType, todoItems, ritualDate]);
 
   if (!isOpen) return null;
+
+  const maxSteps = ritualType === 'PLANNING' ? 4 : 3;
 
   const overdueTodos = localTodos.filter(t => {
     if (t.isCompleted) return false;
@@ -203,20 +207,48 @@ export default function DailyRitualsModal({
             <Compass className="w-5 h-5 text-amber-400 animate-spin-slow" />
             <div>
               <h3 className="text-xs font-black text-slate-100 uppercase tracking-widest font-mono">
-                {ritualType === 'PLANNING' ? '☀️ Nghi Thức Vấn Đạo (Planning)' : '🌙 Nghi Thức Kết Nhật (Reflection)'}
+                {ritualType === 'PLANNING' ? '☀️ Nghi Thức Vấn Đạo (Morning Wisdom)' : '🌙 Nghi Thức Kết Nhật (Night Reflection)'}
               </h3>
               <p className="text-[10px] text-slate-400 font-mono">
-                {ritualType === 'PLANNING' ? 'Định hình 3 việc trọng tâm & ước tính thời gian' : 'Rà soát đạo quả & đúc kết kinh nghiệm ngày'}
+                Bước {step}/{maxSteps}: {
+                  ritualType === 'PLANNING'
+                    ? (step === 1 ? 'Quét nhiệm vụ quá hạn' : step === 2 ? 'Chọn 3 việc trọng tâm' : step === 3 ? 'Ước tính thời gian' : 'Tuyên bố Đạo Tâm')
+                    : (step === 1 ? 'Rà soát đạo quả' : step === 2 ? 'Đánh giá mức tập trung' : 'Đúc kết nhật ký & bài học')
+                }
               </p>
             </div>
           </div>
 
-          <button
-            onClick={onClose}
-            className="text-slate-400 hover:text-slate-200 p-1.5 rounded-lg bg-slate-950 border border-slate-900 cursor-pointer"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Date Switcher */}
+            <div className="flex bg-slate-950 border border-slate-900 rounded-lg p-0.5 text-[9px] font-mono font-bold">
+              <button
+                type="button"
+                onClick={() => setRitualDate(todayStr)}
+                className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
+                  ritualDate === todayStr ? 'bg-amber-400 text-slate-950' : 'text-slate-400'
+                }`}
+              >
+                Hôm Nay
+              </button>
+              <button
+                type="button"
+                onClick={() => setRitualDate(yesterdayStr)}
+                className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
+                  ritualDate === yesterdayStr ? 'bg-amber-400 text-slate-950' : 'text-slate-400'
+                }`}
+              >
+                Hôm Qua
+              </button>
+            </div>
+
+            <button
+              onClick={onClose}
+              className="text-slate-400 hover:text-slate-200 p-1.5 rounded-lg bg-slate-950 border border-slate-900 cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {/* Wizard Steps Content */}
@@ -228,7 +260,7 @@ export default function DailyRitualsModal({
                 <AlertCircle className="w-5 h-5 text-amber-400 shrink-0" />
                 <p className="text-[11px] text-amber-200">
                   {overdueTodos.length > 0
-                    ? `Phát hiện ${overdueTodos.length} nhiệm vụ quá hạn từ trước. Hãy dời sang hôm nay hoặc dọn dẹp!`
+                    ? `Phát hiện ${overdueTodos.length} nhiệm vụ quá hạn từ trước. Hãy dời sang ngày chọn hoặc dọn dẹp!`
                     : 'Tuyệt vời! Không có nhiệm vụ nào bị tồn đọng quá hạn trong quá khứ.'}
                 </p>
               </div>
@@ -245,7 +277,7 @@ export default function DailyRitualsModal({
                           }}
                           className="px-2 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-lg text-[9.5px] font-bold uppercase cursor-pointer"
                         >
-                          Dời sang hôm nay
+                          Dời sang ngày chọn
                         </button>
                         <button
                           onClick={() => {
@@ -263,11 +295,11 @@ export default function DailyRitualsModal({
             </div>
           )}
 
-          {/* STEP 2: Pick 3 Core Priority Focus Tasks */}
+          {/* STEP 2 (PLANNING): Pick 3 Core Priority Focus Tasks */}
           {step === 2 && ritualType === 'PLANNING' && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <p className="text-slate-300 font-bold">Chọn tối đa 3 Nhiệm Vụ Trọng Tâm cho hôm nay ({selectedPriorities.length}/3):</p>
+                <p className="text-slate-300 font-bold">Chọn tối đa 3 Nhiệm Vụ Trọng Tâm ({selectedPriorities.length}/3):</p>
               </div>
 
               {/* Quick Add Todo Field */}
@@ -329,7 +361,7 @@ export default function DailyRitualsModal({
             </div>
           )}
 
-          {/* STEP 3: Estimate Time & Finish */}
+          {/* STEP 3 (PLANNING): Estimate Time */}
           {step === 3 && ritualType === 'PLANNING' && (
             <div className="space-y-4">
               <p className="text-slate-300 font-bold">Ước tính thời gian bế quan (phút) cho các việc trọng tâm:</p>
@@ -361,8 +393,23 @@ export default function DailyRitualsModal({
             </div>
           )}
 
-          {/* REFLECTION STEPS */}
-          {ritualType === 'REFLECTION' && step === 2 && (
+          {/* STEP 4 (PLANNING): Daily Affirmation & Intent Statement */}
+          {step === 4 && ritualType === 'PLANNING' && (
+            <div className="space-y-4">
+              <p className="text-slate-300 font-bold">Đại Nguyện & Tuyên Bố Đạo Tâm Hôm Nay:</p>
+              <p className="text-[11px] text-slate-400">Viết ra 1 câu quyết tâm hoặc thông điệp cốt lõi để giữ đạo tâm kiên định suốt ngày bế quan.</p>
+              <textarea
+                rows={3}
+                placeholder="Ví dụ: Hôm nay ta quyết tâm hoàn thành xong Đồ Án Vi Xử Lý mà không xao nhãng lướt mạng xã hội..."
+                value={dailyIntent}
+                onChange={(e) => setDailyIntent(e.target.value)}
+                className="w-full bg-slate-950 border-2 border-slate-900 rounded-xl p-3 text-xs text-slate-100 focus:outline-none focus:border-amber-400"
+              />
+            </div>
+          )}
+
+          {/* STEP 2 (REFLECTION): Focus Rating */}
+          {step === 2 && ritualType === 'REFLECTION' && (
             <div className="space-y-4">
               <p className="text-slate-300 font-bold">Đánh giá mức độ tập trung bế quan hôm nay:</p>
               <div className="grid grid-cols-3 gap-3">
@@ -389,6 +436,21 @@ export default function DailyRitualsModal({
               </div>
             </div>
           )}
+
+          {/* STEP 3 (REFLECTION): Daily Reflection Journal & Lessons */}
+          {step === 3 && ritualType === 'REFLECTION' && (
+            <div className="space-y-4">
+              <p className="text-slate-300 font-bold">Nhật Ký Đúc Kết Đạo Quả & Bài Học Kinh Nghiệm:</p>
+              <p className="text-[11px] text-slate-400">Ghi lại những việc làm tốt hôm nay, điều cần rút kinh nghiệm và điều làm đạo hữu cảm thấy biết ơn.</p>
+              <textarea
+                rows={4}
+                placeholder="Ví dụ: Hôm nay ta đã giải xong 3 bài tập lớn. Bài học rút ra là nên bắt đầu từ bài dễ trước..."
+                value={reflectionJournal}
+                onChange={(e) => setReflectionJournal(e.target.value)}
+                className="w-full bg-slate-950 border-2 border-slate-900 rounded-xl p-3 text-xs text-slate-100 focus:outline-none focus:border-amber-400"
+              />
+            </div>
+          )}
         </div>
 
         {/* Footer Bar */}
@@ -402,7 +464,7 @@ export default function DailyRitualsModal({
             </button>
           ) : <div />}
 
-          {step < (ritualType === 'PLANNING' ? 3 : 2) ? (
+          {step < maxSteps ? (
             <button
               onClick={() => setStep(prev => prev + 1)}
               className="px-4 py-1.5 neo-btn neo-btn-primary text-xs font-black flex items-center gap-1 cursor-pointer"

@@ -142,16 +142,30 @@ export default function SpiritualGarden({ plants, onClearGarden }: SpiritualGard
   const [selectedPlant, setSelectedPlant] = useState<GardenPlant | null>(null);
 
   // Filter plants based on selection
-  const filteredPlants = plants.filter(plant => {
-    const today = new Date();
-    const plantDate = new Date(plant.harvestedAt);
-    const todayReset = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const plantReset = new Date(plantDate.getFullYear(), plantDate.getMonth(), plantDate.getDate());
-    const diffDays = Math.round((todayReset.getTime() - plantReset.getTime()) / (1000 * 60 * 60 * 24));
+  const today = new Date();
+  const dayOfWeek = today.getDay(); // 0 is Sunday, 1 is Monday...
+  const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+  const currentWeekMonday = new Date(today);
+  currentWeekMonday.setDate(today.getDate() + mondayOffset);
+  currentWeekMonday.setHours(0, 0, 0, 0);
 
+  const currentWeekSunday = new Date(currentWeekMonday);
+  currentWeekSunday.setDate(currentWeekMonday.getDate() + 6);
+  currentWeekSunday.setHours(23, 59, 59, 999);
+
+  const filteredPlants = plants.filter(plant => {
     if (filter === 'DAY') return plant.harvestedAt === getLocalDateString();
-    if (filter === 'WEEK') return diffDays >= 0 && diffDays <= 7;
-    if (filter === 'MONTH') return plant.harvestedAt.startsWith(getLocalDateString().slice(0, 7));
+    
+    if (filter === 'WEEK') {
+      const plantDate = new Date(plant.harvestedAt);
+      return plantDate >= currentWeekMonday && plantDate <= currentWeekSunday;
+    }
+
+    if (filter === 'MONTH') {
+      const plantDate = new Date(plant.harvestedAt);
+      return plantDate.getFullYear() === today.getFullYear() && plantDate.getMonth() === today.getMonth();
+    }
+
     return true;
   });
 
@@ -189,11 +203,9 @@ export default function SpiritualGarden({ plants, onClearGarden }: SpiritualGard
   });
 
   const getDateRangeLabel = () => {
-    const today = new Date();
     if (filter === 'DAY') return `${today.toLocaleDateString('vi-VN')} (Hôm Nay)`;
     if (filter === 'WEEK') {
-      const ago = new Date(); ago.setDate(today.getDate() - 7);
-      return `${ago.toLocaleDateString('vi-VN', { month: 'short', day: 'numeric' })} – ${today.toLocaleDateString('vi-VN', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+      return `Tuần này (${currentWeekMonday.toLocaleDateString('vi-VN', { day: 'numeric', month: 'numeric' })} - ${currentWeekSunday.toLocaleDateString('vi-VN', { day: 'numeric', month: 'numeric', year: 'numeric' })})`;
     }
     return `Tháng ${today.getMonth() + 1}/${today.getFullYear()}`;
   };

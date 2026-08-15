@@ -461,28 +461,36 @@ function startLofiBeat(ctx: AudioContext, destination: AudioNode) {
   const playChord = (chordFreqs: number[]) => {
     activeChordGains.forEach(g => {
       try {
-        g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.6);
+        g.gain.cancelScheduledValues(ctx.currentTime);
+        g.gain.setValueAtTime(Math.max(0.0001, g.gain.value), ctx.currentTime);
+        g.gain.linearRampToValueAtTime(0.0001, ctx.currentTime + 0.6);
       } catch (e) {}
     });
 
     chordFreqs.forEach(freq => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'triangle';
+      try {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
 
-      vibratoGain.connect(osc.frequency);
-      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        const startTime = ctx.currentTime;
+        try {
+          vibratoGain.connect(osc.frequency);
+        } catch (e) {}
 
-      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.045, ctx.currentTime + 0.4);
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 3.8);
+        osc.frequency.setValueAtTime(freq, startTime);
 
-      osc.connect(gain);
-      gain.connect(lofiFilter);
+        gain.gain.setValueAtTime(0.0001, startTime);
+        gain.gain.linearRampToValueAtTime(0.05, startTime + 0.3);
+        gain.gain.linearRampToValueAtTime(0.01, startTime + 3.8);
 
-      osc.start();
-      activeChordOscs.push(osc);
-      activeChordGains.push(gain);
+        osc.connect(gain);
+        gain.connect(lofiFilter);
+
+        osc.start(startTime);
+        activeChordOscs.push(osc);
+        activeChordGains.push(gain);
+      } catch (e) {}
     });
   };
 
