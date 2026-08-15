@@ -118,7 +118,7 @@ export default function App() {
   });
   const [focusSelectedTaskId, setFocusSelectedTaskId] = useState<string>('');
 
-  const [soundscape, setSoundscape] = useState<'NONE' | 'ZEN' | 'RAIN' | 'STREAM' | 'CHIMES' | 'THUNDER' | 'CAMPFIRE'>(() => {
+  const [soundscape, setSoundscape] = useState<any>(() => {
     return (localStorage.getItem('tlk_soundscape') as any) || 'NONE';
   });
 
