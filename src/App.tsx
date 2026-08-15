@@ -44,6 +44,7 @@ import DailyRitualsModal from './components/DailyRitualsModal';
 import CultivationManualsSection from './components/CultivationManualsSection';
 import SpiritualGarden from './components/SpiritualGarden';
 import FloatingLofiPlayer from './components/FloatingLofiPlayer';
+import UserGuideModal from './components/UserGuideModal';
 import { AchievementsModal } from './components/AchievementsModal';
 import { initAuth, googleSignIn, logout as firebaseLogout, getAccessToken } from './lib/firebase';
 import { syncGoogleTasks, deleteTaskOnGoogle, patchTaskOnGoogle } from './lib/googleTasks';
@@ -54,6 +55,7 @@ import {
   LogOut,
   CheckCircle,
   Compass as CompassIcon,
+  HelpCircle,
   ListTodo,
   Sparkles,
   Lock,
@@ -125,6 +127,7 @@ export default function App() {
   });
   const [focusSelectedTaskId, setFocusSelectedTaskId] = useState<string>('');
   const [isPomodoroRunning, setIsPomodoroRunning] = useState<boolean>(false);
+  const [isUserGuideOpen, setIsUserGuideOpen] = useState<boolean>(false);
 
   const [soundscape, setSoundscape] = useState<any>(() => {
     return (localStorage.getItem('tlk_soundscape') as any) || 'NONE';
@@ -2063,7 +2066,20 @@ export default function App() {
                 </h1>
               </div>
 
-              {/* Google Sign-in / Cloud Status Profile Widget */}
+              {/* Header Right Action Area: User Guide + Google Login / Cloud Profile Widget */}
+              <div className="flex items-center gap-2">
+                {/* User Guide Button */}
+                <button
+                  type="button"
+                  onClick={() => setIsUserGuideOpen(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-[#121722] hover:bg-[#192131] text-amber-400 hover:text-amber-300 font-extrabold text-[9px] rounded-lg border-2 border-slate-950 uppercase tracking-wider transition-all cursor-pointer shadow-[2px_2px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#000]"
+                  title="Mở Hướng Dẫn Sử Dụng (User Guide)"
+                >
+                  <HelpCircle className="w-3.5 h-3.5 stroke-[2.5] text-amber-400" />
+                  <span>User Guide</span>
+                </button>
+
+                {/* Google Sign-in / Cloud Status Profile Widget */}
                 {currentUser ? (
                   <div className="flex items-center gap-2 bg-slate-950 border-2 border-slate-950 p-1.5 rounded-lg text-[10px] font-sans shadow-[1px_1px_0px_#000]">
                     {/* User Google Avatar */}
@@ -2115,6 +2131,7 @@ export default function App() {
                     Đăng Nhập Google
                   </button>
                 )}
+              </div>
             </header>
 
             {/* Profile Cultivation level banner */}
@@ -2660,6 +2677,12 @@ export default function App() {
             onClose={() => setSoundscape('NONE')}
             onOpen={() => setSoundscape('LOFI_YT')}
             isRunning={isPomodoroRunning}
+          />
+
+          {/* User Guide Interactive Documentation Modal */}
+          <UserGuideModal
+            isOpen={isUserGuideOpen}
+            onClose={() => setIsUserGuideOpen(false)}
           />
         </div>
       );
