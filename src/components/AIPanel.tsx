@@ -56,6 +56,7 @@ export interface AIPanelProps {
   notes?: CultivationNote[];
   onAddTodo: (title: string, priority: Priority, dueDate: string, description?: string) => void;
   onUpdateTodo: (updatedTodo: TodoItem) => void;
+  onDeleteTodo?: (id: string) => void;
   onAddCalendarEvent?: (summary: string, startDate: string, endDate: string, calendarGroupId?: string) => void;
   onUpdateCalendarEvent?: (eventId: string, summary: string, startDate: string, endDate: string) => void;
   onDeleteCalendarEvent?: (eventId: string) => void;
@@ -64,7 +65,7 @@ export interface AIPanelProps {
 
 export interface ProposedAction {
   id: string; // Client rendering ID
-  type: 'TASK' | 'CALENDAR' | 'CALENDAR_EDIT' | 'CALENDAR_DELETE' | 'MANUAL';
+  type: 'TASK' | 'TASK_EDIT' | 'TASK_DELETE' | 'CALENDAR' | 'CALENDAR_EDIT' | 'CALENDAR_DELETE' | 'MANUAL';
   action?: 'NEW' | 'MODIFY' | 'DELETE';
   taskId?: string;
   eventId?: string;
@@ -105,7 +106,10 @@ export default function AIPanel({
   notes = [],
   onAddTodo,
   onUpdateTodo,
+  onDeleteTodo,
   onAddCalendarEvent,
+  onUpdateCalendarEvent,
+  onDeleteCalendarEvent,
   onCreateManual
 }: AIPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -364,17 +368,20 @@ SLASH COMMANDS & INTENT TARGETING:
 1. **"/task [query]"**: If the request starts with or contains "/task", strictly generate ONLY "TASK" proposals for the Todo List.
 2. **"/calendar [query]"**: If the request starts with or contains "/calendar", strictly generate ONLY "CALENDAR" proposals for the Calendar Tab. Include \`calendarGroupId\` matching the best calendar group from context.
 
-CALENDAR & SCHEDULING RULES (MANDATORY):
-1. **100% UNCAPPED MONTHLY ACCESS**: You have full visibility of 100% of calendar events for the active month in the context.
-2. **MANDATORY REST BUFFER INTERVAL (15-30 MINS)**: When analyzing free slots to schedule new study sessions or tasks, you MUST strictly enforce a 15 to 30-minute rest & transition buffer gap before and after existing classes, exams, or events. Never schedule sessions immediately back-to-back with existing events.
-3. **CALENDAR PROPOSALS (ADD / EDIT / DELETE)**:
-   - To create a new calendar event, propose type: "CALENDAR", title, startDate (YYYY-MM-DDTHH:mm), endDate (YYYY-MM-DDTHH:mm), category, calendarGroupId (from context).
-   - To modify an existing event, propose type: "CALENDAR_EDIT", eventId, title, startDate, endDate.
-   - To remove a conflicting event, propose type: "CALENDAR_DELETE", eventId, title.
+CALENDAR & TASK PROPOSALS (ADD / EDIT / DELETE MANDATORY FORMAT):
+1. **TASK PROPOSALS**:
+   - Create new task: {"type": "TASK", "action": "NEW", "title": "...", "priority": "SO_CAP", "dueDate": "YYYY-MM-DD"}
+   - Modify existing task: {"type": "TASK_EDIT", "action": "MODIFY", "taskId": "<exact ID from context>", "title": "...", "priority": "...", "dueDate": "YYYY-MM-DD"}
+   - Delete existing task: {"type": "TASK_DELETE", "action": "DELETE", "taskId": "<exact ID from context>", "title": "..."}
+
+2. **CALENDAR PROPOSALS**:
+   - Create new event: {"type": "CALENDAR", "action": "NEW", "title": "...", "startDate": "YYYY-MM-DDTHH:mm", "endDate": "YYYY-MM-DDTHH:mm", "calendarGroupId": "..."}
+   - Modify existing event: {"type": "CALENDAR_EDIT", "action": "MODIFY", "eventId": "<exact ID from context>", "title": "...", "startDate": "...", "endDate": "..."}
+   - Delete existing event: {"type": "CALENDAR_DELETE", "action": "DELETE", "eventId": "<exact ID from context>", "title": "..."}
 
 RULES FOR RESPONDING:
 1. Respond directly and naturally to whatever the user is talking about.
-2. Do NOT generate proposals unless the user explicitly asks to create/schedule tasks or events, or uses /task or /calendar.
+2. Do NOT generate proposals unless the user explicitly asks to create, modify, delete or schedule tasks or events, or uses /task or /calendar.
 
 You MUST respond strictly in a valid JSON object format (no extra markdown outside the JSON block unless using <think> tags for reasoning):
 {
@@ -528,13 +535,20 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
 
           const rawProps = parsed.proposals || [];
           parsedProposals = rawProps.map((p: any, idx: number) => {
+            let type: 'TASK' | 'TASK_EDIT' | 'TASK_DELETE' | 'CALENDAR' | 'CALENDAR_EDIT' | 'CALENDAR_DELETE' | 'MANUAL' = p.type || 'TASK';
+            let action: 'NEW' | 'MODIFY' | 'DELETE' = p.action === 'DELETE' ? 'DELETE' : p.action === 'MODIFY' ? 'MODIFY' : 'NEW';
+
+            if (type === 'TASK_DELETE' || type === 'CALENDAR_DELETE') action = 'DELETE';
+            if (type === 'TASK_EDIT' || type === 'CALENDAR_EDIT') action = 'MODIFY';
+
             return {
               id: `prop_${Date.now()}_${idx}`,
-              type: p.type || 'TASK',
-              action: p.action === 'MODIFY' ? 'MODIFY' : 'NEW',
-              eventId: p.eventId || undefined,
+              type,
+              action,
+              taskId: p.taskId || p.id || undefined,
+              eventId: p.eventId || p.id || undefined,
               calendarGroupId: p.calendarGroupId || p.groupId || undefined,
-              title: p.title || 'Nhiệm Vụ Mới',
+              title: p.title || (action === 'DELETE' ? 'Xóa mục' : 'Nhiệm Vụ Mới'),
               priority: p.priority || 'SO_CAP',
               dueDate: p.dueDate || new Date().toISOString().split('T')[0],
               startDate: p.startDate || undefined,
@@ -594,20 +608,40 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
 
     let appliedCount = 0;
     selected.forEach(p => {
-      if (p.type === 'TASK' || !p.type) {
-        if (p.action === 'MODIFY' && p.taskId) {
+      if (p.type === 'TASK_DELETE' || (p.type === 'TASK' && p.action === 'DELETE')) {
+        if (p.taskId && onDeleteTodo) {
+          onDeleteTodo(p.taskId);
+          appliedCount++;
+        }
+      } else if (p.type === 'TASK_EDIT' || (p.type === 'TASK' && p.action === 'MODIFY')) {
+        if (p.taskId) {
           const existing = todoItems.find(t => t.id === p.taskId);
           if (existing) {
             onUpdateTodo({
               ...existing,
-              title: p.title,
-              difficulty: p.priority,
-              dueDate: p.dueDate
+              title: p.title || existing.title,
+              difficulty: p.priority || existing.difficulty,
+              dueDate: p.dueDate || existing.dueDate
             });
             appliedCount++;
           }
-        } else {
-          onAddTodo(p.title, p.priority || 'SO_CAP', p.dueDate || new Date().toISOString().split('T')[0]);
+        }
+      } else if (p.type === 'TASK' || !p.type) {
+        onAddTodo(p.title, p.priority || 'SO_CAP', p.dueDate || new Date().toISOString().split('T')[0]);
+        appliedCount++;
+      } else if (p.type === 'CALENDAR_DELETE' || (p.type === 'CALENDAR' && p.action === 'DELETE')) {
+        if (p.eventId && onDeleteCalendarEvent) {
+          onDeleteCalendarEvent(p.eventId);
+          appliedCount++;
+        }
+      } else if (p.type === 'CALENDAR_EDIT' || (p.type === 'CALENDAR' && p.action === 'MODIFY')) {
+        if (p.eventId && onUpdateCalendarEvent) {
+          onUpdateCalendarEvent(
+            p.eventId,
+            p.title,
+            p.startDate || new Date().toISOString(),
+            p.endDate || new Date(Date.now() + 3600000).toISOString()
+          );
           appliedCount++;
         }
       } else if (p.type === 'CALENDAR' && onAddCalendarEvent) {
@@ -617,17 +651,6 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
           p.endDate || new Date(Date.now() + 3600000).toISOString(),
           p.calendarGroupId
         );
-        appliedCount++;
-      } else if (p.type === 'CALENDAR_EDIT' && onUpdateCalendarEvent && p.eventId) {
-        onUpdateCalendarEvent(
-          p.eventId,
-          p.title,
-          p.startDate || new Date().toISOString(),
-          p.endDate || new Date(Date.now() + 3600000).toISOString()
-        );
-        appliedCount++;
-      } else if (p.type === 'CALENDAR_DELETE' && onDeleteCalendarEvent && p.eventId) {
-        onDeleteCalendarEvent(p.eventId);
         appliedCount++;
       } else if (p.type === 'MANUAL' && onCreateManual) {
         onCreateManual(p.title, p.category || 'Bách Khoa', p.stages || ['Tầng 1: Nhập Môn']);
@@ -888,16 +911,27 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
                                       <Square className="w-4 h-4 text-slate-600 shrink-0" />
                                     )}
                                     <div className="truncate text-left">
-                                      <span className="font-bold text-slate-200 block truncate">{p.title}</span>
-                                      <div className="text-[9.5px] text-slate-400 font-mono">
-                                        {p.type === 'TASK' && `⚔️ Nhiệm Vụ • UuTiên: ${p.priority || 'SƠ CẤP'} • Hạn: ${p.dueDate}`}
+                                      <div className="flex items-center gap-1.5 font-bold text-slate-200 truncate">
+                                        <span className={`text-[8.5px] px-1.5 py-0.5 rounded font-mono font-black uppercase shrink-0 ${
+                                          p.action === 'DELETE' || p.type.includes('DELETE')
+                                            ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                                            : p.action === 'MODIFY' || p.type.includes('EDIT')
+                                            ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                                            : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                                        }`}>
+                                          {p.action === 'DELETE' || p.type.includes('DELETE') ? '🗑️ Xóa' : p.action === 'MODIFY' || p.type.includes('EDIT') ? '✏️ Sửa' : '+ Thêm'}
+                                        </span>
+                                        <span className="truncate">{p.title}</span>
+                                      </div>
+                                      <div className="text-[9.5px] text-slate-400 font-mono mt-0.5">
+                                        {(p.type === 'TASK' || p.type === 'TASK_EDIT' || p.type === 'TASK_DELETE') && `⚔️ Task • UuTiên: ${p.priority || 'SƠ CẤP'} • Hạn: ${p.dueDate || 'Hôm nay'}`}
                                         {p.type === 'MANUAL' && `📚 Môn Học (${p.category}) • ${p.stages?.length || 0} Tầng`}
-                                        {p.type === 'CALENDAR' && (
+                                        {(p.type === 'CALENDAR' || p.type === 'CALENDAR_EDIT' || p.type === 'CALENDAR_DELETE') && (
                                           <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                                             <span className="text-[9.5px] text-amber-300/90 font-mono">
                                               📅 {p.startDate ? p.startDate.replace('T', ' ') : 'Sắp tới'}
                                             </span>
-                                            {calendarGroups && calendarGroups.length > 0 && (
+                                            {calendarGroups && calendarGroups.length > 0 && p.type === 'CALENDAR' && (
                                               <select
                                                 value={p.calendarGroupId || (calendarGroups.find(g => g.isPrimary) || calendarGroups[0])?.id}
                                                 onClick={(e) => e.stopPropagation()}

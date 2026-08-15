@@ -2415,6 +2415,7 @@ export default function App() {
             notes={notes}
             onAddTodo={handleAddTodo}
             onUpdateTodo={handleUpdateTodo}
+            onDeleteTodo={handleDeleteTodo}
             onAddCalendarEvent={(summary, startDate, endDate, calendarGroupId) => {
               const matchedGroup = calendarGroupId && calendarGroups.some(g => g.id === calendarGroupId)
                 ? calendarGroupId
