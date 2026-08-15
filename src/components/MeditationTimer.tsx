@@ -26,6 +26,7 @@ interface MeditationTimerProps {
   onToggleFocusMode: () => void;
   soundscape: SoundscapeType;
   onSoundscapeChange: (val: SoundscapeType) => void;
+  onTimerStateChange?: (isRunning: boolean) => void;
 }
 
 // --- WEB AUDIO API PROCEDURAL SOUNDSCAPES SYNTHESIS ---
@@ -557,11 +558,16 @@ export default function MeditationTimer({
   isFocusMode,
   onToggleFocusMode,
   soundscape,
-  onSoundscapeChange
+  onSoundscapeChange,
+  onTimerStateChange
 }: MeditationTimerProps) {
   const [mode, setMode] = useState<'FOCUS' | 'SHORT_BREAK' | 'FREE'>('FOCUS');
   const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes
   const [isRunning, setIsRunning] = useState(false);
+
+  useEffect(() => {
+    onTimerStateChange?.(isRunning);
+  }, [isRunning, onTimerStateChange]);
   const [quoteIndex, setQuoteIndex] = useState(0);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [selectedSeedId, setSelectedSeedId] = useState<string>(() => {

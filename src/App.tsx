@@ -41,6 +41,7 @@ import ScheduleSection from './components/ScheduleSection';
 import ForbiddenNotes from './components/ForbiddenNotes';
 import DailyRituals from './components/DailyRituals';
 import DailyRitualsModal from './components/DailyRitualsModal';
+import CultivationManualsSection from './components/CultivationManualsSection';
 import SpiritualGarden from './components/SpiritualGarden';
 import FloatingLofiPlayer from './components/FloatingLofiPlayer';
 import { AchievementsModal } from './components/AchievementsModal';
@@ -117,6 +118,7 @@ export default function App() {
     return localStorage.getItem('tlk_is_focus_mode') === 'true';
   });
   const [focusSelectedTaskId, setFocusSelectedTaskId] = useState<string>('');
+  const [isPomodoroRunning, setIsPomodoroRunning] = useState<boolean>(false);
 
   const [soundscape, setSoundscape] = useState<any>(() => {
     return (localStorage.getItem('tlk_soundscape') as any) || 'NONE';
@@ -2202,6 +2204,7 @@ export default function App() {
                             onToggleFocusMode={() => setIsFocusMode(!isFocusMode)}
                             soundscape={soundscape}
                             onSoundscapeChange={setSoundscape}
+                            onTimerStateChange={setIsPomodoroRunning}
                           />
 
                           {isFocusMode && (
@@ -2644,6 +2647,7 @@ export default function App() {
           <FloatingLofiPlayer
             isOpen={soundscape === 'LOFI_YT'}
             onClose={() => setSoundscape('NONE')}
+            isRunning={isPomodoroRunning}
           />
         </div>
       );
