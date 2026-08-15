@@ -1257,17 +1257,31 @@ export default function MeditationTimer({
 
         {/* Soundscape selector (compact) */}
         <div className="w-full mb-4">
-          {/* YouTube Livestream Audio Embed */}
-          {soundscape.startsWith('LOFI_YT_') && isRunning && (
-            <iframe
-              className="w-0 h-0 opacity-0 pointer-events-none fixed -top-[9999px] -left-[9999px]"
-              src={`https://www.youtube-nocookie.com/embed/${
-                soundscape === 'LOFI_YT_STUDY' ? 'jfKfPfyJRdk' :
-                soundscape === 'LOFI_YT_SLEEP' ? '5qap5aO4i9A' : 'MCkTebktLYc'
-              }?autoplay=1&enablejsapi=1`}
-              allow="autoplay; encrypted-media"
-              title="YouTube Lofi Stream"
-            />
+          {/* Visible YouTube Livestream Mini Player */}
+          {soundscape.startsWith('LOFI_YT_') && (
+            <div className="mb-2.5 w-full bg-slate-950 border-2 border-slate-900 rounded-xl overflow-hidden shadow-lg p-2 space-y-1.5 animate-fadeIn">
+              <div className="flex items-center justify-between px-1">
+                <span className="text-[9.5px] font-bold text-rose-400 flex items-center gap-1 font-mono">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping" />
+                  🔴 YOUTUBE LOFI LIVE 24/7
+                </span>
+                <span className="text-[8.5px] text-slate-400 font-mono truncate max-w-[140px]">
+                  {soundscape === 'LOFI_YT_STUDY' ? 'Lofi Girl (Study/Relax)' : soundscape === 'LOFI_YT_SLEEP' ? 'Lofi Girl (Sleep/Chill)' : 'Chillhop Radio'}
+                </span>
+              </div>
+              <div className="relative w-full h-28 rounded-lg overflow-hidden border border-slate-800 bg-black">
+                <iframe
+                  className="w-full h-full"
+                  src={`https://www.youtube-nocookie.com/embed/${
+                    soundscape === 'LOFI_YT_STUDY' ? 'jfKfPfyJRdk' :
+                    soundscape === 'LOFI_YT_SLEEP' ? '5qap5aO4i9A' : 'MCkTebktLYc'
+                  }?autoplay=1&enablejsapi=1&controls=1`}
+                  allow="autoplay; encrypted-media; picture-in-picture"
+                  allowFullScreen
+                  title="YouTube Lofi Stream Player"
+                />
+              </div>
+            </div>
           )}
 
           <select
@@ -1291,17 +1305,6 @@ export default function MeditationTimer({
             <option value="THUNDER">⚡ Lôi Kiếp Sấm Sét</option>
             <option value="CAMPFIRE">🔥 Lửa Trại Dưỡng Thần</option>
           </select>
-
-          {soundscape.startsWith('LOFI_YT_') && (
-            <div className="mt-1 flex items-center justify-center gap-1.5 text-[9px] font-mono text-emerald-400 animate-fadeIn">
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
-              <span className="font-bold text-rose-400">LIVE YOUTUBE 24/7</span>
-              <span className="text-slate-600">•</span>
-              <span className="text-slate-300 truncate">
-                {soundscape === 'LOFI_YT_STUDY' ? 'Lofi Girl (Study/Relax)' : soundscape === 'LOFI_YT_SLEEP' ? 'Lofi Girl (Sleep/Chill)' : 'Chillhop Radio (Jazzy Lofi)'}
-              </span>
-            </div>
-          )}
         </div>
 
         {/* Main action button */}
