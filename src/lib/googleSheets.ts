@@ -53,21 +53,49 @@ function formatVietnameseFloat(val: number): string {
   return String(val).replace('.', ',');
 }
 
-// Fetch grades data from Google Sheets (A2:L100)
+// Fetch grades data from Google Sheets (A2:M100)
 export async function fetchGradesFromGoogle(
   spreadsheetId: string,
   token: string
-): Promise<{ subjects: GradeSubject[]; semesterGpaList: SemesterGPA[]; cpaOverall: number }> {
+): Promise<{ 
+  subjects: GradeSubject[]; 
+  semesterGpaList: SemesterGPA[]; 
+  cpaOverall: number;
+  passedCredits: number;
+  totalCredits: number;
+}> {
   try {
-    // Read range A2:L100 which covers subjects and GPA/CPA summary starting from row 2
-    const data = await sheetsApiCall(spreadsheetId, '/values/A2:L100', token);
+    // Read range A2:M100 which covers subjects and GPA/CPA summary starting from row 2
+    const data = await sheetsApiCall(spreadsheetId, '/values/A2:M100', token);
     const rows: string[][] = data.values || [];
 
     const subjects: GradeSubject[] = [];
     const semesterGpaList: SemesterGPA[] = [];
 
-    // Parse CPA Overall from cell L4 (row 4, column L -> rows[2][11] in A2 range)
-    const cpaOverall = rows[2] && rows[2][11] ? parseVietnameseFloat(rows[2][11]) : 0;
+    // Parse CPA Overall from cell M4 or L4 (row 4 -> rows[2] in A2 range)
+    const cpaOverall = rows[2] && rows[2][12] ? parseVietnameseFloat(rows[2][12]) : (rows[2] && rows[2][11] ? parseVietnameseFloat(rows[2][11]) : 0);
+
+    // Parse J27 (passed credits X) and K27 (total credits Y) -> index 25 in A2 range
+    let passedCredits = 0;
+    let totalCredits = 0;
+
+    if (rows[25]) {
+      passedCredits = parseVietnameseFloat(rows[25][9]);
+      totalCredits = parseVietnameseFloat(rows[25][10]);
+    }
+
+    // Fallback: If rows[25] is empty, search rows 20 to 35 for row containing credits
+    if (passedCredits === 0 && totalCredits === 0) {
+      for (let r = 20; r < Math.min(rows.length, 35); r++) {
+        const valJ = parseVietnameseFloat(rows[r]?.[9]);
+        const valK = parseVietnameseFloat(rows[r]?.[10]);
+        if (valJ > 0 || valK > 0) {
+          passedCredits = valJ;
+          totalCredits = valK;
+          break;
+        }
+      }
+    }
 
     rows.forEach((row, index) => {
       const lineNum = index + 2; // Row number in sheet (starts at row 2)
@@ -97,25 +125,32 @@ export async function fetchGradesFromGoogle(
         });
       }
 
-      // 2. Parse Semester GPA/CPA table (Columns J to L, starting from index 9)
-      // Strictly restrict to rows 4 to 13 (index 2 to 11 in A2 range) to avoid parsing the unrelated "Điểm chữ / Số lượng" table below.
-      if (index >= 2 && index <= 11) {
-        const semGpa = row[9]?.trim() || '';
-        const gpa = parseVietnameseFloat(row[10]);
-        const cpa = parseVietnameseFloat(row[11]);
+      // 2. Parse Semester Summary table starting at Row 4 (index 2):
+      // - Column J (index 9): Semester name (e.g. 2024.1, starting at J4)
+      // - Column K (index 10): Total credits per semester starting at K4
+      // - Column L (index 11): Semester GPA starting at L4
+      // - Column M (index 12): CPA per semester
+      if (index >= 2 && index <= 50) {
+        const semName = row[9]?.trim() || '';
+        const semCredits = parseVietnameseFloat(row[10]); // Column K (index 10) starting from K4
+        const gpa = parseVietnameseFloat(row[11]);        // Column L (index 11) starting from L4
+        const cpa = row[12] ? parseVietnameseFloat(row[12]) : 0;
 
-        // Check if GPA header or valid row. We skip the header "Kì học" or "Kì  học"
-        if (semGpa && semGpa !== 'Kì học' && semGpa !== 'Kì  học' && semGpa !== 'Kì' && (gpa > 0 || cpa > 0)) {
+        // Strictly check if semName matches a valid semester pattern (e.g., 2024.1, 2024.2)
+        const isSemesterName = /^\d{4}\.\d+$/.test(semName);
+
+        if (semName && isSemesterName && (gpa > 0 || semCredits > 0 || cpa > 0)) {
           semesterGpaList.push({
-            semester: semGpa,
+            semester: semName,
             gpa,
-            cpa
+            cpa,
+            credits: semCredits
           });
         }
       }
     });
 
-    return { subjects, semesterGpaList, cpaOverall };
+    return { subjects, semesterGpaList, cpaOverall, passedCredits, totalCredits };
   } catch (error) {
     console.error('fetchGradesFromGoogle error:', error);
     throw error;

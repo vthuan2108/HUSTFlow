@@ -3,9 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { GradeSubject, SemesterGPA } from '../types';
 import { 
+  BarChart3,
   RefreshCw, 
   Plus, 
   Trash2, 
@@ -18,6 +19,9 @@ import {
   ResponsiveContainer, 
   LineChart, 
   Line, 
+  BarChart,
+  Bar,
+  LabelList,
   XAxis, 
   YAxis, 
   Tooltip as RechartsTooltip, 
@@ -30,6 +34,8 @@ interface GradeSectionProps {
   subjects: GradeSubject[];
   semesterGpaList: SemesterGPA[];
   cpaOverall: number;
+  passedCredits?: number;
+  totalCredits?: number;
   spreadsheetId: string;
   isSyncing: boolean;
   onSaveSpreadsheetId: (id: string) => void;
@@ -54,7 +60,7 @@ const AVAILABLE_SEMESTERS = [
 
 // Specific background and text color classes for Semester `<select>` capsule chips (Google Sheets style)
 function getSemesterSelectStyle(sem: string): string {
-  const s = String(sem).trim();
+  const s = String(sem || '').trim();
   switch (s) {
     case '2024.1': return 'bg-rose-500/15 text-rose-400 border border-rose-500/25';
     case '2024.2': return 'bg-slate-500/15 text-slate-300 border border-slate-500/25';
@@ -71,7 +77,7 @@ function getSemesterSelectStyle(sem: string): string {
 
 // Semester badges for timeline cards
 function getSemesterBadgeStyle(sem: string): string {
-  const s = String(sem).trim();
+  const s = String(sem || '').trim();
   switch (s) {
     case '2024.1': return 'bg-rose-500/15 text-rose-400 border-rose-500/25';
     case '2024.2': return 'bg-slate-500/15 text-slate-400 border-slate-500/25';
@@ -153,6 +159,8 @@ export default function GradeSection({
   subjects,
   semesterGpaList,
   cpaOverall,
+  passedCredits,
+  totalCredits,
   spreadsheetId,
   isSyncing,
   onSaveSpreadsheetId,
@@ -161,9 +169,24 @@ export default function GradeSection({
   onUpdateSubject,
   onDeleteSubject
 }: GradeSectionProps) {
+  const safeSubjects = Array.isArray(subjects) ? subjects : [];
+  const safeSemesterGpaList = Array.isArray(semesterGpaList) ? semesterGpaList : [];
+  const safeCpaOverall = typeof cpaOverall === 'number' && !isNaN(cpaOverall) ? cpaOverall : 0;
+
+  const computedPassedCredits = useMemo(() => {
+    if (typeof passedCredits === 'number' && passedCredits > 0) return passedCredits;
+    return safeSubjects.filter(s => s.letterGrade !== 'F').reduce((acc, curr) => acc + (curr.credits || 0), 0);
+  }, [passedCredits, safeSubjects]);
+
+  const computedTotalCredits = useMemo(() => {
+    if (typeof totalCredits === 'number' && totalCredits > 0) return totalCredits;
+    return safeSubjects.reduce((acc, curr) => acc + (curr.credits || 0), 0);
+  }, [totalCredits, safeSubjects]);
+
   const [sheetInput, setSheetInput] = useState(spreadsheetId);
   const [editingConfig, setEditingConfig] = useState(!spreadsheetId);
   const [errorMsg, setErrorMsg] = useState('');
+
   // Extract Sheet ID
   const handleSaveConfig = () => {
     const input = sheetInput.trim();
@@ -182,21 +205,21 @@ export default function GradeSection({
   // Get unique semesters in the rendered order to alternate background colors
   const uniqueSemestersInTable = useMemo(() => {
     const list: string[] = [];
-    subjects.forEach(s => {
-      if (!list.includes(s.semester)) {
+    safeSubjects.forEach(s => {
+      if (s && s.semester && !list.includes(s.semester)) {
         list.push(s.semester);
       }
     });
     return list;
-  }, [subjects]);
+  }, [safeSubjects]);
 
   // Aggregate letter grades count from subjects for PieChart
   const letterGradeChartData = useMemo(() => {
     const counts: Record<string, number> = {
       'A+': 0, 'A': 0, 'B+': 0, 'B': 0, 'C+': 0, 'C': 0, 'D+': 0, 'D': 0, 'F': 0
     };
-    subjects.forEach(s => {
-      const grade = s.letterGrade?.trim().toUpperCase();
+    safeSubjects.forEach(s => {
+      const grade = s?.letterGrade?.trim().toUpperCase();
       if (grade && grade in counts) {
         counts[grade]++;
       }
@@ -204,7 +227,7 @@ export default function GradeSection({
     return Object.keys(counts)
       .map(key => ({ name: key, value: counts[key] }))
       .filter(item => item.value > 0);
-  }, [subjects]);
+  }, [safeSubjects]);
 
   const PIE_COLORS: Record<string, string> = {
     'A+': '#fbbf24', // Amber
@@ -218,19 +241,39 @@ export default function GradeSection({
     'F': '#ef4444'   // Red
   };
 
-  // Format Recharts Line Chart data (only chronologically sorted GPA list)
+  // Helper to verify valid semester name format (e.g. 2024.1, 2024.2)
+  const isSemesterName = (sem: string) => /^\d{4}\.\d+$/.test((sem || '').trim());
+
+  // Format Recharts Line Chart data (only chronologically sorted GPA list from Column L)
   const lineChartData = useMemo(() => {
-    return [...semesterGpaList]
-      .filter(item => item.gpa > 0)
-      .sort((a, b) => a.semester.localeCompare(b.semester));
-  }, [semesterGpaList]);
+    return [...safeSemesterGpaList]
+      .filter(item => item && isSemesterName(item.semester) && item.gpa > 0)
+      .sort((a, b) => (a.semester || '').localeCompare(b.semester || ''));
+  }, [safeSemesterGpaList]);
+
+  // Credits per semester chart data (Column K starting at K4 / local calculation)
+  const creditsChartData = useMemo(() => {
+    const localCreditsMap: Record<string, number> = {};
+    safeSubjects.forEach(s => {
+      if (s?.semester && isSemesterName(s.semester) && typeof s.credits === 'number') {
+        localCreditsMap[s.semester] = (localCreditsMap[s.semester] || 0) + s.credits;
+      }
+    });
+
+    return [...safeSemesterGpaList]
+      .filter(item => item && isSemesterName(item.semester) && (item.credits! > 0 || item.gpa > 0))
+      .sort((a, b) => (a.semester || '').localeCompare(b.semester || ''))
+      .map(item => ({
+        semester: item.semester,
+        credits: typeof item.credits === 'number' && item.credits > 0 ? item.credits : (localCreditsMap[item.semester] || 0)
+      }));
+  }, [safeSemesterGpaList, safeSubjects]);
 
   // Add a blank new subject to the list (empty inputs)
   const handleAddNewRow = () => {
     let defaultSemester = '2024.1';
-    if (subjects.length > 0) {
-      // Find the last subject's semester to prefill
-      defaultSemester = subjects[subjects.length - 1].semester;
+    if (safeSubjects.length > 0) {
+      defaultSemester = safeSubjects[safeSubjects.length - 1].semester || '2024.1';
     }
 
     onAddSubject({
@@ -244,14 +287,13 @@ export default function GradeSection({
   };
 
   // Winding Snake Path generator for Semester GPA Timeline
-  // Fully pads incomplete rows to size 4 to align grid slots correctly
   const windingTimelineRows = useMemo(() => {
     const itemsPerRow = 4;
     const resultRows: { item: SemesterGPA | null; originalIndex: number }[][] = [];
     
-    const sortedSemesters = [...semesterGpaList]
-      .filter(item => item.gpa > 0)
-      .sort((a, b) => a.semester.localeCompare(b.semester));
+    const sortedSemesters = [...safeSemesterGpaList]
+      .filter(item => item && isSemesterName(item.semester) && item.gpa > 0)
+      .sort((a, b) => (a.semester || '').localeCompare(b.semester || ''));
 
     for (let i = 0; i < sortedSemesters.length; i += itemsPerRow) {
       const chunk = sortedSemesters.slice(i, i + itemsPerRow);
@@ -259,7 +301,6 @@ export default function GradeSection({
       const rowArray: { item: SemesterGPA | null; originalIndex: number }[] = [];
 
       if (rowIndex % 2 === 0) {
-        // Even row (Left-to-Right): pad with nulls at the end
         for (let colIdx = 0; colIdx < itemsPerRow; colIdx++) {
           if (colIdx < chunk.length) {
             rowArray.push({ item: chunk[colIdx], originalIndex: i + colIdx });
@@ -268,7 +309,6 @@ export default function GradeSection({
           }
         }
       } else {
-        // Odd row (Right-to-Left): pad with nulls at the beginning, items placed right-to-left
         const tempPadded: { item: SemesterGPA | null; originalIndex: number }[] = Array(itemsPerRow)
           .fill(null)
           .map(() => ({ item: null, originalIndex: -1 }));
@@ -285,12 +325,12 @@ export default function GradeSection({
       resultRows.push(rowArray);
     }
     return { rows: resultRows, totalCount: sortedSemesters.length };
-  }, [semesterGpaList]);
+  }, [safeSemesterGpaList]);
 
   return (
     <div className="space-y-6" id="grade-section-view">
       
-      {/* ── SECTION 1: HEADER & GOOGLE SHEETS SETUP (Pomodoro Style) ── */}
+      {/* ── SECTION 1: HEADER & GOOGLE SHEETS SETUP ── */}
       <div className="neo-card p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <h2 className="text-sm font-bold text-slate-100 flex items-center gap-2 uppercase tracking-wider font-sans">
@@ -298,7 +338,7 @@ export default function GradeSection({
             Đồng Bộ Điểm Số Học Tập
           </h2>
           <p className="text-[10px] text-slate-500">
-            Dữ liệu được tự động đồng bộ 2 chiều: Đẩy các thay đổi từ Web lên trang tính, và kéo điểm chữ / GPA calculated ngược lại.
+            Dữ liệu tự động đồng bộ 2 chiều với Google Sheets (Số tín chỉ từ Cột K4, GPA từ Cột L4).
           </p>
         </div>
 
@@ -310,7 +350,7 @@ export default function GradeSection({
                 value={sheetInput}
                 onChange={e => setSheetInput(e.target.value)}
                 placeholder="Dán Link hoặc ID Google Sheet..."
-                className="bg-slate-950 border-2 border-slate-950 rounded-xl px-3 py-1.5 text-xs text-slate-355 w-full sm:w-80 focus:outline-none focus:border-amber-400"
+                className="bg-slate-950 border-2 border-slate-950 rounded-xl px-3 py-1.5 text-xs text-slate-200 w-full sm:w-80 focus:outline-none focus:border-amber-400 font-mono"
               />
               <div className="flex gap-2">
                 <button
@@ -322,7 +362,7 @@ export default function GradeSection({
                 {spreadsheetId && (
                   <button
                     onClick={() => { setSheetInput(spreadsheetId); setEditingConfig(false); }}
-                    className="bg-slate-950 border-2 border-slate-950 text-slate-450 hover:text-slate-300 font-bold text-[10px] px-3.5 py-2 rounded-xl transition-colors cursor-pointer shadow-[2px_2px_0px_#000] active:translate-y-[2px] active:translate-x-[2px] active:shadow-none uppercase"
+                    className="bg-slate-950 border-2 border-slate-950 text-slate-400 hover:text-slate-300 font-bold text-[10px] px-3.5 py-2 rounded-xl transition-colors cursor-pointer shadow-[2px_2px_0px_#000] active:translate-y-[2px] active:translate-x-[2px] active:shadow-none uppercase"
                   >
                     Hủy
                   </button>
@@ -345,7 +385,6 @@ export default function GradeSection({
 
           {spreadsheetId && (
             <div className="flex items-center gap-2">
-              {/* 2-Way Sync Button */}
               <button
                 onClick={onSync}
                 disabled={isSyncing}
@@ -360,7 +399,7 @@ export default function GradeSection({
         </div>
       </div>
 
-      {/* Helper guide link to copy template */}
+      {/* Helper guide link */}
       {!spreadsheetId && (
         <div className="bg-amber-950/10 border border-amber-900/30 p-4 rounded-2xl flex gap-3 text-xs text-amber-300/80 leading-relaxed font-sans">
           <HelpCircle className="w-5 h-5 text-amber-400 shrink-0" />
@@ -379,32 +418,36 @@ export default function GradeSection({
       {/* ── SECTION 2: CPA DASHBOARD & WINDING GPA TIMELINE ── */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-stretch">
         
-        {/* A. CPA Large Dashboard Box (Pomodoro Style) */}
+        {/* CPA Large Dashboard Box */}
         <div className="lg:col-span-1 bg-[#0f141c] border-2 border-slate-950 p-6 flex flex-col justify-center items-center text-center shadow-[2px_2px_0px_#000] rounded-2xl select-none">
           <span className="text-[9px] uppercase tracking-widest font-bold text-slate-500 font-mono mb-1">CPA Tích Lũy</span>
           <span className="text-5xl font-black font-mono text-red-500 leading-none tracking-tight">
-            {cpaOverall.toFixed(2)}
+            {safeCpaOverall.toFixed(2)}
           </span>
-          <span className="text-[8px] bg-slate-950 text-slate-400 px-2 py-0.5 rounded border border-slate-900 font-semibold mt-3 font-mono">
-            Thang Điểm 4
-          </span>
+          <div className="flex items-center gap-1.5 mt-3">
+            <span className="text-[8px] bg-slate-950 text-slate-400 px-2 py-0.5 rounded border border-slate-900 font-semibold font-mono">
+              Thang 4
+            </span>
+            <span className="text-[9px] bg-amber-400/10 text-amber-400 border border-amber-400/20 px-2 py-0.5 rounded-md font-bold font-mono">
+              {computedPassedCredits}/{computedTotalCredits} tín chỉ
+            </span>
+          </div>
         </div>
 
-        {/* B. GPA Semester Winding Timeline (Pomodoro Style S-curve) */}
+        {/* GPA Semester Winding Timeline */}
         <div className="lg:col-span-3 neo-card p-5 flex flex-col justify-between">
           <div className="border-b-2 border-slate-950 pb-2.5 mb-4">
             <h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-1.5">
               GPA Học Kỳ (Winding Timeline)
             </h3>
-            <p className="text-[10px] text-slate-500">Tiến trình thay đổi điểm trung bình học kỳ theo dòng uốn lượn hình chữ S</p>
+            <p className="text-[10px] text-slate-500">Tiến trình thay đổi điểm trung bình học kỳ (Dữ liệu từ Cột L4 Sheet)</p>
           </div>
 
-          {semesterGpaList.filter(item => item.gpa > 0).length === 0 ? (
+          {safeSemesterGpaList.filter(item => item && item.gpa > 0).length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center py-6 text-slate-500 text-xs italic">
-              <span>Chưa có dữ liệu học kỳ. Nhấp "Đồng Bộ Từ Sheet" để nạp dữ liệu.</span>
+              <span>Chưa có dữ liệu học kỳ. Nhấp "Đồng Bộ 2 Chiều" để nạp dữ liệu từ Google Sheet.</span>
             </div>
           ) : (
-            /* Winding grid row-by-row layout (Snake S-curve) */
             <div className="flex flex-col gap-10 p-2 relative">
               {windingTimelineRows.rows.map((row, rIdx) => {
                 const isEvenRow = rIdx % 2 === 0;
@@ -413,7 +456,6 @@ export default function GradeSection({
                     <div className="grid grid-cols-4 gap-4 relative z-10">
                       {row.map((cell, cIdx) => {
                         if (!cell.item) {
-                          // Transparent placeholder to occupy slot and align cells correctly
                           return (
                             <div key={`empty-${cIdx}`} className="relative flex flex-col items-center opacity-0 pointer-events-none" />
                           );
@@ -430,25 +472,25 @@ export default function GradeSection({
                                 {cell.item.semester}
                               </span>
                               <span className="text-base font-bold font-mono text-slate-200 leading-none">
-                                {cell.item.gpa.toFixed(2)}
+                                {cell.item.gpa ? Number(cell.item.gpa).toFixed(2) : '0.00'}
                               </span>
                             </div>
 
-                            {/* L-to-R Connection Line (White) */}
+                            {/* L-to-R Connection Line */}
                             {isEvenRow && cIdx < row.length - 1 && row[cIdx + 1]?.item !== null && (
                               <div className="absolute top-1/2 left-1/2 w-full h-0.5 bg-white/80 -translate-y-1/2 z-0 pointer-events-none" />
                             )}
-                            {/* R-to-L Connection Line (White) */}
+                            {/* R-to-L Connection Line */}
                             {!isEvenRow && cIdx > 0 && row[cIdx - 1]?.item !== null && (
                               <div className="absolute top-1/2 right-1/2 w-full h-0.5 bg-white/80 -translate-y-1/2 z-0 pointer-events-none" />
                             )}
 
-                            {/* Curved right turn loop (White) connecting even row end to odd row start */}
+                            {/* Curved right turn loop */}
                             {isEvenRow && cIdx === row.length - 1 && (windingTimelineRows.totalCount > cell.originalIndex + 1) && (
                               <div className="absolute top-1/2 left-1/2 w-[60%] h-[80px] border-t-2 border-r-2 border-b-2 border-white/80 rounded-r-2xl z-0 pointer-events-none" />
                             )}
 
-                            {/* Curved left turn loop (White) connecting odd row end to even row start */}
+                            {/* Curved left turn loop */}
                             {!isEvenRow && cIdx === 0 && (windingTimelineRows.totalCount > cell.originalIndex + 1) && (
                               <div className="absolute top-1/2 right-1/2 w-[60%] h-[80px] border-t-2 border-l-2 border-b-2 border-white/80 rounded-l-2xl z-0 pointer-events-none" />
                             )}
@@ -465,24 +507,130 @@ export default function GradeSection({
         </div>
       </div>
 
-      {/* ── SECTION 3: GPA ANALYTICS (2 CHARTS) ── */}
-      {semesterGpaList.filter(item => item.gpa > 0).length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          
-          {/* A. Line Chart - GPA Trend Only */}
+      {/* ── SECTION 3: ACADEMIC ANALYTICS ── */}
+      {(lineChartData.length > 0 || creditsChartData.length > 0) && (
+        <div className="space-y-6">
+          {/* Row 1: Line Chart (GPA L4) + Pie Chart (Điểm chữ) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            {/* Chart 1: Line Chart - GPA Theo Kì (Cột L4) */}
+            <div className="bg-[#0f141c] border-2 border-slate-950 p-5 shadow-[2px_2px_0px_#000] rounded-2xl">
+              <div className="border-b-2 border-slate-950 pb-2 mb-4">
+                <h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-1.5 font-sans">
+                  <TrendingUp className="w-4 h-4 text-sky-400 stroke-[2]" />
+                  GPA Theo Kì (Cột L4)
+                </h3>
+              </div>
+              
+              <div className="h-64 text-[10px] font-mono">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={lineChartData} margin={{ top: 10, right: 10, left: -25, bottom: 5 }}>
+                    <XAxis dataKey="semester" stroke="#475569" tickLine={false} />
+                    <YAxis domain={[0, 4]} ticks={[0, 1, 2, 3, 4]} stroke="#475569" tickLine={false} />
+                    <RechartsTooltip
+                      contentStyle={{
+                        backgroundColor: '#070a0f',
+                        border: '2px solid #0f172a',
+                        borderRadius: '12px',
+                        color: '#cbd5e1',
+                        fontFamily: 'monospace'
+                      }}
+                    />
+                    <Line 
+                      name="GPA Học Kỳ" 
+                      type="monotone" 
+                      dataKey="gpa" 
+                      stroke="#38bdf8" 
+                      strokeWidth={3} 
+                      dot={{ stroke: '#070a0f', strokeWidth: 1.5, r: 4, fill: '#38bdf8' }}
+                      activeDot={{ stroke: '#070a0f', strokeWidth: 1.5, r: 6, fill: '#fbbf24' }} 
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Chart 2: Pie Chart - Thống Kê Điểm Chữ */}
+            <div className="bg-[#0f141c] border-2 border-slate-950 p-5 shadow-[2px_2px_0px_#000] rounded-2xl">
+              <div className="border-b-2 border-slate-950 pb-2 mb-4">
+                <h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-1.5 font-sans">
+                  <PieIcon className="w-4 h-4 text-amber-400 stroke-[2]" />
+                  Thống Kê Điểm Chữ (Phân Bố Môn)
+                </h3>
+              </div>
+
+              <div className="h-64 flex flex-col sm:flex-row items-center justify-center gap-4">
+                {letterGradeChartData.length === 0 ? (
+                  <div className="text-slate-500 text-xs font-bold font-sans italic">Chưa có dữ liệu điểm chữ</div>
+                ) : (
+                  <>
+                    <div className="w-full sm:w-1/2 h-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={letterGradeChartData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={45}
+                            outerRadius={70}
+                            paddingAngle={3}
+                            dataKey="value"
+                          >
+                            {letterGradeChartData.map((entry, idx) => (
+                              <Cell 
+                                key={`cell-${idx}`} 
+                                fill={PIE_COLORS[entry.name] || '#64748b'} 
+                                stroke="#070a0f"
+                                strokeWidth={2}
+                              />
+                            ))}
+                          </Pie>
+                          <RechartsTooltip
+                            contentStyle={{
+                              backgroundColor: '#070a0f',
+                              border: '2px solid #0f172a',
+                              borderRadius: '12px',
+                              color: '#cbd5e1',
+                              fontFamily: 'monospace'
+                            }}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                    {/* Legends list */}
+                    <div className="grid grid-cols-3 gap-x-3 gap-y-1.5 text-[9px] font-mono shrink-0">
+                      {letterGradeChartData.map((entry) => (
+                        <div key={entry.name} className="flex items-center gap-1 bg-slate-950 border border-slate-900 p-1 rounded-lg">
+                          <span 
+                            className="w-2.5 h-2.5 rounded border border-slate-950 shrink-0" 
+                            style={{ backgroundColor: PIE_COLORS[entry.name] }}
+                          />
+                          <span className="text-slate-400 font-bold">{entry.name}:</span>
+                          <span className="text-[#fbbf24] font-black">{entry.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+          </div>
+
+          {/* Row 2 (Full Width): Bar Chart - Số Tín Chỉ Học Theo Kỳ (Cột J4 & K4) */}
           <div className="bg-[#0f141c] border-2 border-slate-950 p-5 shadow-[2px_2px_0px_#000] rounded-2xl">
             <div className="border-b-2 border-slate-950 pb-2 mb-4">
               <h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-1.5 font-sans">
-                <TrendingUp className="w-4 h-4 text-sky-400 stroke-[2]" />
-                GPA theo kì
+                <BarChart3 className="w-4 h-4 text-emerald-400 stroke-[2]" />
+                Số Tín Chỉ Học Theo Kỳ (Cột J4 & K4)
               </h3>
             </div>
             
             <div className="h-64 text-[10px] font-mono">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={lineChartData} margin={{ top: 10, right: 10, left: -25, bottom: 5 }}>
+                <BarChart data={creditsChartData} margin={{ top: 10, right: 20, left: -20, bottom: 5 }}>
                   <XAxis dataKey="semester" stroke="#475569" tickLine={false} />
-                  <YAxis domain={[0, 4]} ticks={[0, 1, 2, 3, 4]} stroke="#475569" tickLine={false} />
+                  <YAxis stroke="#475569" tickLine={false} allowDecimals={false} />
                   <RechartsTooltip
                     contentStyle={{
                       backgroundColor: '#070a0f',
@@ -492,82 +640,24 @@ export default function GradeSection({
                       fontFamily: 'monospace'
                     }}
                   />
-                  <Line 
-                    name="GPA Học Kỳ" 
-                    type="monotone" 
-                    dataKey="gpa" 
-                    stroke="#38bdf8" 
-                    strokeWidth={3} 
-                    dot={{ stroke: '#070a0f', strokeWidth: 1.5, r: 4, fill: '#38bdf8' }}
-                    activeDot={{ stroke: '#070a0f', strokeWidth: 1.5, r: 6, fill: '#fbbf24' }} 
-                  />
-                </LineChart>
+                  <Bar 
+                    name="Số Tín Chỉ" 
+                    dataKey="credits" 
+                    fill="#10b981" 
+                    barSize={32}
+                    radius={[6, 6, 0, 0]}
+                  >
+                    <LabelList 
+                      dataKey="credits" 
+                      position="top" 
+                      fill="#34d399" 
+                      fontSize={11} 
+                      fontFamily="monospace" 
+                      fontWeight="bold" 
+                    />
+                  </Bar>
+                </BarChart>
               </ResponsiveContainer>
-            </div>
-          </div>
-
-          {/* B. Pie Chart - Letter Grades Ratio */}
-          <div className="bg-[#0f141c] border-2 border-slate-950 p-5 shadow-[2px_2px_0px_#000] rounded-2xl">
-            <div className="border-b-2 border-slate-950 pb-2 mb-4">
-              <h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-1.5 font-sans">
-                <PieIcon className="w-4 h-4 text-amber-400 stroke-[2]" />
-                Thống Kê Điểm Chữ (Phân Bố Môn)
-              </h3>
-            </div>
-
-            <div className="h-64 flex flex-col sm:flex-row items-center justify-center gap-6">
-              {letterGradeChartData.length === 0 ? (
-                <div className="text-slate-500 text-xs font-bold font-sans italic">Chưa có dữ liệu điểm chữ</div>
-              ) : (
-                <>
-                  <div className="w-full sm:w-1/2 h-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={letterGradeChartData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={45}
-                          outerRadius={70}
-                          paddingAngle={3}
-                          dataKey="value"
-                        >
-                          {letterGradeChartData.map((entry, idx) => (
-                            <Cell 
-                              key={`cell-${idx}`} 
-                              fill={PIE_COLORS[entry.name] || '#64748b'} 
-                              stroke="#070a0f"
-                              strokeWidth={2}
-                            />
-                          ))}
-                        </Pie>
-                        <RechartsTooltip
-                          contentStyle={{
-                            backgroundColor: '#070a0f',
-                            border: '2px solid #0f172a',
-                            borderRadius: '12px',
-                            color: '#cbd5e1',
-                            fontFamily: 'monospace'
-                          }}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                  {/* Legends list */}
-                  <div className="grid grid-cols-3 gap-x-3 gap-y-1.5 text-[9px] font-mono shrink-0">
-                    {letterGradeChartData.map((entry) => (
-                      <div key={entry.name} className="flex items-center gap-1 bg-slate-950 border border-slate-900 p-1 rounded-lg">
-                        <span 
-                          className="w-2.5 h-2.5 rounded border border-slate-950 shrink-0" 
-                          style={{ backgroundColor: PIE_COLORS[entry.name] }}
-                        />
-                        <span className="text-slate-400 font-bold">{entry.name}:</span>
-                        <span className="text-[#fbbf24] font-black">{entry.value}</span>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
             </div>
           </div>
 
@@ -585,7 +675,7 @@ export default function GradeSection({
           </div>
         </div>
 
-        {subjects.length === 0 ? (
+        {safeSubjects.length === 0 ? (
           <div className="py-10 text-center text-xs text-slate-500 border border-dashed border-slate-800 rounded-xl bg-slate-950">
             Sổ điểm hiện đang trống. Nhấp "Thêm Môn Học Mới" ở dưới hoặc dán link Google Sheet để đồng bộ.
           </div>
@@ -606,7 +696,7 @@ export default function GradeSection({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-950 font-sans">
-                {subjects.map((s) => {
+                {safeSubjects.map((s) => {
                   const semIdx = uniqueSemestersInTable.indexOf(s.semester);
                   const isAltSemester = semIdx % 2 === 1;
 
@@ -617,7 +707,7 @@ export default function GradeSection({
                         isAltSemester ? 'bg-white/[0.03] hover:bg-white/[0.07]' : 'bg-transparent hover:bg-white/[0.03]'
                       }`}
                     >
-                      {/* Semester Select Dropdown Cell styled as colored capsule pill (Google Sheet chip style) */}
+                      {/* Semester Select Dropdown Cell */}
                       <td className="py-1.5 px-3">
                         <select
                           value={s.semester}
@@ -632,12 +722,12 @@ export default function GradeSection({
                           }}
                         >
                           {AVAILABLE_SEMESTERS.map(sem => (
-                            <option key={sem} value={sem} className="bg-slate-950 text-slate-355">{sem}</option>
+                            <option key={sem} value={sem} className="bg-slate-950 text-slate-300">{sem}</option>
                           ))}
                         </select>
                       </td>
                       
-                      {/* Subject Name field with clean rounded white border */}
+                      {/* Subject Name field */}
                       <td className="py-1.5 px-2">
                         <input
                           type="text"
@@ -688,7 +778,7 @@ export default function GradeSection({
                         />
                       </td>
                       
-                      {/* Read-only Letter Grade (computed from Sheet) */}
+                      {/* Read-only Letter Grade */}
                       <td className="py-1.5 px-2 text-center select-none font-bold">
                         {s.letterGrade ? (
                           <span className={`text-[9px] px-2 py-0.5 rounded-md border font-mono ${
@@ -696,18 +786,18 @@ export default function GradeSection({
                             ['B+', 'B'].includes(s.letterGrade) ? 'bg-emerald-400/10 text-emerald-400 border-emerald-400/20' :
                             ['C+', 'C'].includes(s.letterGrade) ? 'bg-blue-400/10 text-blue-400 border-blue-400/20' :
                             s.letterGrade === 'F' ? 'bg-[#ef4444]/15 text-[#ef4444] border-[#ef4444]/25' :
-                            'bg-slate-800 text-slate-350 border-slate-800'
+                            'bg-slate-800 text-slate-300 border-slate-800'
                           }`}>
                             {s.letterGrade}
                           </span>
                         ) : (
-                          <span className="text-slate-650 font-mono">-</span>
+                          <span className="text-slate-600 font-mono">-</span>
                         )}
                       </td>
                       
-                      {/* Read-only Scale 4 score (computed from Sheet) */}
+                      {/* Read-only Scale 4 score */}
                       <td className="py-1.5 px-2 text-center select-none font-mono text-slate-400 font-bold">
-                        {s.gpaScale4 !== undefined ? s.gpaScale4.toFixed(1) : '-'}
+                        {s.gpaScale4 !== undefined && s.gpaScale4 !== null ? Number(s.gpaScale4).toFixed(1) : '-'}
                       </td>
                       
                       {/* Delete action button */}
@@ -728,7 +818,7 @@ export default function GradeSection({
           </div>
         )}
 
-        {/* Add subject button placed under the table */}
+        {/* Add subject button */}
         <div className="mt-4 flex justify-end">
           <button
             onClick={handleAddNewRow}

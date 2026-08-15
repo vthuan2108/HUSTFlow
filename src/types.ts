@@ -235,6 +235,7 @@ export interface SemesterGPA {
   semester: string;
   gpa: number;
   cpa: number;
+  credits?: number;
 }
 
 export interface CalendarGroup {

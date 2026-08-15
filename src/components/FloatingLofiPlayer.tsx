@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { GripHorizontal, Link as LinkIcon, Minimize2, Maximize2, X, Zap, Play } from 'lucide-react';
+import { GripHorizontal, Link as LinkIcon, Minimize2, Maximize2, X, Zap, Play, Music } from 'lucide-react';
 
 function getYouTubeId(url: string): string {
   if (!url) return 'jfKfPfyJRdk';
@@ -17,10 +17,11 @@ function getYouTubeId(url: string): string {
 interface FloatingLofiPlayerProps {
   isOpen: boolean;
   onClose: () => void;
+  onOpen?: () => void;
   isRunning?: boolean;
 }
 
-export default function FloatingLofiPlayer({ isOpen, onClose, isRunning = false }: FloatingLofiPlayerProps) {
+export default function FloatingLofiPlayer({ isOpen, onClose, onOpen, isRunning = false }: FloatingLofiPlayerProps) {
   const [youtubeUrl, setYoutubeUrl] = useState<string>(() => {
     return localStorage.getItem('tlk_lofi_yt_url') || 'https://www.youtube.com/watch?v=jfKfPfyJRdk';
   });
@@ -41,7 +42,22 @@ export default function FloatingLofiPlayer({ isOpen, onClose, isRunning = false 
     localStorage.setItem('tlk_lofi_yt_sync', String(autoSync));
   }, [autoSync]);
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return (
+      <motion.button
+        type="button"
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        onClick={onOpen}
+        className="fixed bottom-6 left-6 z-40 bg-[#0e131d] hover:bg-[#141a27] border-2 border-slate-950 text-rose-400 font-black text-[11px] font-mono px-3.5 py-2 rounded-2xl shadow-[4px_4px_0px_#000] active:translate-y-0.5 active:shadow-none cursor-pointer flex items-center gap-2 select-none group transition-all"
+        title="Bật nhanh Lofi YouTube Stream"
+      >
+        <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
+        <Music className="w-3.5 h-3.5 text-rose-400 group-hover:rotate-12 transition-transform" />
+        <span>🔴 LOFI STREAM</span>
+      </motion.button>
+    );
+  }
 
   const currentVideoId = getYouTubeId(youtubeUrl);
 
@@ -115,7 +131,7 @@ export default function FloatingLofiPlayer({ isOpen, onClose, isRunning = false 
               className="p-1 rounded hover:bg-rose-950/60 text-slate-400 hover:text-rose-400 cursor-pointer transition-colors"
               title="Tắt Player"
             >
-              <X className="w-3 h-3" />
+              <X className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>

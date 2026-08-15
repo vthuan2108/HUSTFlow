@@ -110,6 +110,12 @@ export default function App() {
   const [cpaOverall, setCpaOverall] = useState<number>(() => {
     return Number(localStorage.getItem('tlk_cpa_overall') || '0');
   });
+  const [passedCredits, setPassedCredits] = useState<number>(() => {
+    return Number(localStorage.getItem('tlk_passed_credits') || '0');
+  });
+  const [totalCredits, setTotalCredits] = useState<number>(() => {
+    return Number(localStorage.getItem('tlk_total_credits') || '0');
+  });
   const [isDirty, setIsDirty] = useState<boolean>(() => {
     return localStorage.getItem('tlk_grade_is_dirty') === 'true';
   });
@@ -1847,6 +1853,8 @@ export default function App() {
       setGradeSubjects(data.subjects);
       setSemesterGpaList(data.semesterGpaList);
       setCpaOverall(data.cpaOverall);
+      if (data.passedCredits > 0) setPassedCredits(data.passedCredits);
+      if (data.totalCredits > 0) setTotalCredits(data.totalCredits);
       
       // Reset dirty state since everything is in sync now
       setIsDirty(false);
@@ -2377,6 +2385,8 @@ export default function App() {
                   subjects={gradeSubjects}
                   semesterGpaList={semesterGpaList}
                   cpaOverall={cpaOverall}
+                  passedCredits={passedCredits}
+                  totalCredits={totalCredits}
                   spreadsheetId={spreadsheetId}
                   isSyncing={isSyncingGrades}
                   onSaveSpreadsheetId={setSpreadsheetId}
@@ -2647,6 +2657,7 @@ export default function App() {
           <FloatingLofiPlayer
             isOpen={soundscape === 'LOFI_YT'}
             onClose={() => setSoundscape('NONE')}
+            onOpen={() => setSoundscape('LOFI_YT')}
             isRunning={isPomodoroRunning}
           />
         </div>
