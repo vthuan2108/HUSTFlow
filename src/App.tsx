@@ -116,6 +116,7 @@ export default function App() {
   const [isFocusMode, setIsFocusMode] = useState<boolean>(() => {
     return localStorage.getItem('tlk_is_focus_mode') === 'true';
   });
+  const [focusSelectedTaskId, setFocusSelectedTaskId] = useState<string>('');
 
   const [soundscape, setSoundscape] = useState<'NONE' | 'ZEN' | 'RAIN' | 'STREAM' | 'CHIMES' | 'THUNDER' | 'CAMPFIRE'>(() => {
     return (localStorage.getItem('tlk_soundscape') as any) || 'NONE';
@@ -1893,7 +1894,11 @@ export default function App() {
 
   // Focus Mode checkbox completion
   const handleFocusTaskComplete = (taskId: string) => {
-    handleToggleTask(taskId);
+    if (todoItems.some(t => t.id === taskId)) {
+      handleToggleTodo(taskId);
+    } else if (tasks.some(t => t.id === taskId)) {
+      handleToggleTask(taskId);
+    }
     setFocusSelectedTaskId('');
   };
 
@@ -2204,36 +2209,44 @@ export default function App() {
                                   Nhiệm Vụ Đang Khắc Chế
                                 </h3>
 
-                                {tasks.filter(t => !t.isCompleted).length > 0 ? (
-                                  <div className="space-y-3">
-                                    <select
-                                      value={focusSelectedTaskId}
-                                      onChange={(e) => setFocusSelectedTaskId(e.target.value)}
-                                      className="w-full bg-slate-950 border border-slate-900 rounded-lg px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-emerald-500 cursor-pointer"
-                                    >
-                                      <option value="">-- Chọn nhiệm vụ muốn tập trung làm --</option>
-                                      {tasks.filter(t => !t.isCompleted).map(t => (
-                                        <option key={t.id} value={t.id}>{t.title}</option>
-                                      ))}
-                                    </select>
+                                {(() => {
+                                  const pendingFocusTasks = [
+                                    ...todoItems.filter(t => !t.isCompleted).map(t => ({ id: t.id, title: t.title })),
+                                    ...tasks.filter(t => !t.isCompleted).map(t => ({ id: t.id, title: t.title }))
+                                  ];
+                                  const selectedTask = pendingFocusTasks.find(t => t.id === focusSelectedTaskId);
 
-                                    {focusSelectedTaskId && (
-                                      <div className="p-3 bg-emerald-950/10 border border-emerald-900/30 rounded-xl flex items-center justify-between gap-3 text-left">
-                                        <span className="text-xs font-semibold text-slate-200">
-                                          {tasks.find(t => t.id === focusSelectedTaskId)?.title}
-                                        </span>
-                                        <button
-                                          onClick={() => handleFocusTaskComplete(focusSelectedTaskId)}
-                                          className="bg-emerald-600 hover:bg-emerald-700 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-lg transition-colors cursor-pointer shrink-0"
-                                        >
-                                          HOÀN THÀNH
-                                        </button>
-                                      </div>
-                                    )}
-                                  </div>
-                                ) : (
-                                  <p className="text-xs text-slate-500 italic">Đạo phủ hiện không có nhiệm vụ tồn đọng nào!</p>
-                                )}
+                                  return pendingFocusTasks.length > 0 ? (
+                                    <div className="space-y-3">
+                                      <select
+                                        value={focusSelectedTaskId}
+                                        onChange={(e) => setFocusSelectedTaskId(e.target.value)}
+                                        className="w-full bg-slate-950 border border-slate-900 rounded-lg px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-emerald-500 cursor-pointer"
+                                      >
+                                        <option value="">-- Chọn nhiệm vụ muốn tập trung làm --</option>
+                                        {pendingFocusTasks.map(t => (
+                                          <option key={t.id} value={t.id}>{t.title}</option>
+                                        ))}
+                                      </select>
+
+                                      {selectedTask && (
+                                        <div className="p-3 bg-emerald-950/10 border border-emerald-900/30 rounded-xl flex items-center justify-between gap-3 text-left">
+                                          <span className="text-xs font-semibold text-slate-200">
+                                            {selectedTask.title}
+                                          </span>
+                                          <button
+                                            onClick={() => handleFocusTaskComplete(selectedTask.id)}
+                                            className="bg-emerald-600 hover:bg-emerald-700 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-lg transition-colors cursor-pointer shrink-0"
+                                          >
+                                            HOÀN THÀNH
+                                          </button>
+                                        </div>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <p className="text-xs text-slate-500 italic">Đạo phủ hiện không có nhiệm vụ tồn đọng nào!</p>
+                                  );
+                                })()}
                               </div>
 
                               {/* Exit button */}

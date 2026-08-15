@@ -31,9 +31,15 @@ class ErrorBoundary extends Component<Props, State> {
     console.error('Uncaught React Error:', error, errorInfo);
   }
 
-  private handleReset = () => {
-    localStorage.clear();
+  private handleReload = () => {
     window.location.reload();
+  };
+
+  private handleClearReset = () => {
+    if (confirm('⚠️ Đạo hữu có chắc chắn muốn xóa bộ nhớ tạm local storage để khôi phục ứng dụng?')) {
+      localStorage.clear();
+      window.location.reload();
+    }
   };
 
   public render() {
@@ -43,14 +49,22 @@ class ErrorBoundary extends Component<Props, State> {
           <div style={{ fontSize: 48, marginBottom: 16 }}>⚡</div>
           <h2 style={{ fontSize: 20, fontWeight: 800, color: '#f59e0b', marginBottom: 8, textTransform: 'uppercase' }}>Càn Khôn Trầm Mê - Đạo Phủ Phát Sinh Sự Cố</h2>
           <p style={{ fontSize: 13, color: '#94a3b8', maxWidth: 450, marginBottom: 20 }}>
-            Dữ liệu tu hành trong bộ nhớ tạm gặp sự cố bất thường ({this.state.error?.message}). Đạo hữu có thể xóa bộ nhớ tạm để khôi phục ứng dụng.
+            Dữ liệu tu hành trong bộ nhớ tạm gặp sự cố bất thường ({this.state.error?.message}).
           </p>
-          <button
-            onClick={this.handleReset}
-            style={{ padding: '10px 20px', background: '#3b82f6', color: '#fff', fontWeight: 800, border: '2px solid #000', borderRadius: 8, cursor: 'pointer' }}
-          >
-            🔄 KHÔI PHỤC VÀ TẢI LẠI TRANG
-          </button>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
+            <button
+              onClick={this.handleReload}
+              style={{ padding: '10px 20px', background: '#10b981', color: '#090d16', fontWeight: 800, border: '2px solid #000', borderRadius: 8, cursor: 'pointer' }}
+            >
+              🔄 TẢI LẠI TRANG (GIỮ DỮ LIỆU)
+            </button>
+            <button
+              onClick={this.handleClearReset}
+              style={{ padding: '10px 20px', background: '#3b82f6', color: '#fff', fontWeight: 800, border: '2px solid #000', borderRadius: 8, cursor: 'pointer' }}
+            >
+              🧹 XÓA BỘ NHỚ TẠM & TẢI LẠI
+            </button>
+          </div>
         </div>
       );
     }
