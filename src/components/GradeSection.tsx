@@ -13,7 +13,9 @@ import {
   TrendingUp, 
   PieChart as PieIcon, 
   HelpCircle,
-  GraduationCap
+  GraduationCap,
+  ExternalLink,
+  FileSpreadsheet
 } from 'lucide-react';
 import { 
   ResponsiveContainer, 
@@ -384,11 +386,27 @@ export default function GradeSection({
           )}
 
           {spreadsheetId && (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <a
+                href={
+                  spreadsheetId.startsWith('http://') || spreadsheetId.startsWith('https://')
+                    ? spreadsheetId
+                    : `https://docs.google.com/spreadsheets/d/${spreadsheetId}/edit`
+                }
+                target="_blank"
+                rel="noreferrer"
+                className="bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-[10px] px-4 py-2.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shadow-[2px_2px_0px_#000] active:translate-y-[2px] active:translate-x-[2px] active:shadow-none uppercase no-underline font-mono"
+                title="Mở Google Sheet riêng của bạn trong thẻ trình duyệt mới"
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5" />
+                <span>Mở Google Sheet</span>
+                <ExternalLink className="w-3 h-3 opacity-70" />
+              </a>
+
               <button
                 onClick={onSync}
                 disabled={isSyncing}
-                className={`bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-[10px] px-5 py-2.5 rounded-xl transition-colors cursor-pointer flex items-center gap-1.5 shadow-[2px_2px_0px_#000] active:translate-y-[2px] active:translate-x-[2px] active:shadow-none uppercase ${isSyncing ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-[10px] px-4 py-2.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shadow-[2px_2px_0px_#000] active:translate-y-[2px] active:translate-x-[2px] active:shadow-none uppercase font-mono ${isSyncing ? 'opacity-50 cursor-not-allowed' : ''}`}
                 title="Đồng bộ 2 chiều thông minh giữa Web và Google Sheets"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />

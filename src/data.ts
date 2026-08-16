@@ -476,35 +476,131 @@ export const getRealmInfo = (level: number): RealmInfo => {
       requiredItemId: 'nguyen_anh_dan',
       requiredItemName: 'Nguyên Anh Đan'
     };
+  } else if (safeLvl === 27) {
+    bottleneck = {
+      title: 'Bình Cảnh Hóa Thần',
+      minMeditationMinutes: 100,
+      minCompletedTasks: 10,
+      requiredItemId: 'do_kiep_phu',
+      requiredItemName: 'Độ Kiếp Phù'
+    };
   } else if (safeLvl === 31) {
     bottleneck = {
       title: 'Bình Cảnh Anh Biến',
       minMeditationMinutes: 120,
-      minCompletedTasks: 10,
+      minCompletedTasks: 12,
+      requiredItemId: 'do_kiep_phu',
+      requiredItemName: 'Độ Kiếp Phù'
+    };
+  } else if (safeLvl === 35) {
+    bottleneck = {
+      title: 'Bình Cảnh Vấn Đỉnh',
+      minMeditationMinutes: 130,
+      minCompletedTasks: 14,
+      requiredItemId: 'do_kiep_phu',
+      requiredItemName: 'Độ Kiếp Phù'
+    };
+  } else if (safeLvl === 39) {
+    bottleneck = {
+      title: 'Bình Cảnh Âm Hư',
+      minMeditationMinutes: 140,
+      minCompletedTasks: 15,
+      requiredItemId: 'do_kiep_phu',
+      requiredItemName: 'Độ Kiếp Phù'
+    };
+  } else if (safeLvl === 40) {
+    bottleneck = {
+      title: 'Bình Cảnh Dương Thực',
+      minMeditationMinutes: 145,
+      minCompletedTasks: 16,
+      requiredItemId: 'do_kiep_phu',
+      requiredItemName: 'Độ Kiếp Phù'
+    };
+  } else if (safeLvl === 41) {
+    bottleneck = {
+      title: 'Bình Cảnh Khuy Niết',
+      minMeditationMinutes: 150,
+      minCompletedTasks: 18,
+      requiredItemId: 'do_kiep_phu',
+      requiredItemName: 'Độ Kiếp Phù'
+    };
+  } else if (safeLvl === 45) {
+    bottleneck = {
+      title: 'Bình Cảnh Tịnh Niết',
+      minMeditationMinutes: 165,
+      minCompletedTasks: 20,
+      requiredItemId: 'do_kiep_phu',
+      requiredItemName: 'Độ Kiếp Phù'
+    };
+  } else if (safeLvl === 49) {
+    bottleneck = {
+      title: 'Bình Cảnh Toái Niết',
+      minMeditationMinutes: 180,
+      minCompletedTasks: 22,
       requiredItemId: 'do_kiep_phu',
       requiredItemName: 'Độ Kiếp Phù'
     };
   } else if (safeLvl === 53) {
     bottleneck = {
       title: 'Bình Cảnh Thiên Nhân Ngũ Suy',
-      minMeditationMinutes: 150,
-      minCompletedTasks: 15,
+      minMeditationMinutes: 200,
+      minCompletedTasks: 25,
+      requiredItemId: 'do_kiep_phu',
+      requiredItemName: 'Độ Kiếp Phù'
+    };
+  } else if (safeLvl === 58) {
+    bottleneck = {
+      title: 'Bình Cảnh Không Niết Cảnh',
+      minMeditationMinutes: 220,
+      minCompletedTasks: 28,
+      requiredItemId: 'do_kiep_phu',
+      requiredItemName: 'Độ Kiếp Phù'
+    };
+  } else if (safeLvl === 62) {
+    bottleneck = {
+      title: 'Bình Cảnh Không Linh Cảnh',
+      minMeditationMinutes: 240,
+      minCompletedTasks: 30,
+      requiredItemId: 'do_kiep_phu',
+      requiredItemName: 'Độ Kiếp Phù'
+    };
+  } else if (safeLvl === 66) {
+    bottleneck = {
+      title: 'Bình Cảnh Không Huyền Cảnh',
+      minMeditationMinutes: 260,
+      minCompletedTasks: 32,
       requiredItemId: 'do_kiep_phu',
       requiredItemName: 'Độ Kiếp Phù'
     };
   } else if (safeLvl === 70) {
     bottleneck = {
       title: 'Bình Cảnh 9 Kiếp Huyền Kiếp',
-      minMeditationMinutes: 200,
-      minCompletedTasks: 20,
+      minMeditationMinutes: 280,
+      minCompletedTasks: 35,
+      requiredItemId: 'do_kiep_phu',
+      requiredItemName: 'Độ Kiếp Phù'
+    };
+  } else if (safeLvl === 79) {
+    bottleneck = {
+      title: 'Bình Cảnh Không Kiếp Đại Tôn',
+      minMeditationMinutes: 320,
+      minCompletedTasks: 40,
       requiredItemId: 'do_kiep_phu',
       requiredItemName: 'Độ Kiếp Phù'
     };
   } else if (safeLvl === 85) {
     bottleneck = {
       title: 'Bình Cảnh Đạp Thiên Kiều',
-      minMeditationMinutes: 300,
-      minCompletedTasks: 30,
+      minMeditationMinutes: 360,
+      minCompletedTasks: 45,
+      requiredItemId: 'do_kiep_phu',
+      requiredItemName: 'Độ Kiếp Phù'
+    };
+  } else if (safeLvl === 94) {
+    bottleneck = {
+      title: 'Bình Cảnh Đạp Thiên Chí Tôn',
+      minMeditationMinutes: 400,
+      minCompletedTasks: 50,
       requiredItemId: 'do_kiep_phu',
       requiredItemName: 'Độ Kiếp Phù'
     };

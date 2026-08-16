@@ -29,6 +29,7 @@ import {
 } from './types';
 import { DEFAULT_CHALLENGES, getRealmInfo, STORE_ITEMS } from './data';
 import CultivationHeader from './components/CultivationHeader';
+import SidebarNavigation from './components/SidebarNavigation';
 import MeditationTimer from './components/MeditationTimer';
 import TaskSection from './components/TaskSection';
 import HabitSection from './components/HabitSection';
@@ -68,7 +69,8 @@ import {
   Settings,
   ArrowUp,
   ArrowDown,
-  X
+  X,
+  Music
 } from 'lucide-react';
 
 
@@ -2055,95 +2057,120 @@ export default function App() {
         <div className="fixed inset-0 pointer-events-none shadow-[inset_0_0_80px_rgba(168,85,247,0.18)] z-50 animate-pulse border-2 border-purple-500/10" />
       )}
 
-      {/* MAIN HUB VIEW */}
-      <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
-            {/* Top Navigation Bar / Metadata Backup Row */}
-            <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 neo-card px-5 py-3 shrink-0">
-              <div className="flex items-center gap-2">
-                <CompassIcon className="w-5 h-5 text-amber-500 animate-spin-slow" />
-                <h1 className="text-sm font-extrabold uppercase tracking-widest text-slate-100 font-sans">
-                  HUSTFlow <span className="text-[9px] bg-amber-400 text-slate-950 px-2 py-0.5 rounded border-2 border-slate-950 font-bold ml-1.5 pixel-label">v1.1</span>
-                </h1>
-              </div>
+      {/* MAIN HUB VIEW LAYOUT WITH SIDEBAR */}
+      <div className="flex flex-col h-screen overflow-hidden">
+        {/* Top Header */}
+        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#0a0d14] border-b-2 border-slate-950 px-5 py-2.5 shrink-0 z-30 shadow-[0_2px_10px_rgba(0,0,0,0.5)]">
+          <div className="flex items-center gap-2">
+            <CompassIcon className="w-5 h-5 text-amber-500 animate-spin-slow" />
+            <h1 className="text-sm font-extrabold uppercase tracking-widest text-slate-100 font-sans flex items-center">
+              HUSTFlow <span className="text-[9px] bg-amber-400 text-slate-950 px-2 py-0.5 rounded border-2 border-slate-950 font-bold ml-1.5 pixel-label">v1.1</span>
+            </h1>
 
-              {/* Header Right Action Area: User Guide + Google Login / Cloud Profile Widget */}
-              <div className="flex items-center gap-2">
-                {/* User Guide Button */}
-                <button
-                  type="button"
-                  onClick={() => setIsUserGuideOpen(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-[#121722] hover:bg-[#192131] text-amber-400 hover:text-amber-300 font-extrabold text-[9px] rounded-lg border-2 border-slate-950 uppercase tracking-wider transition-all cursor-pointer shadow-[2px_2px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#000]"
-                  title="Mở Hướng Dẫn Sử Dụng (User Guide)"
-                >
-                  <HelpCircle className="w-3.5 h-3.5 stroke-[2.5] text-amber-400" />
-                  <span>User Guide</span>
-                </button>
+            {/* LOFI STREAM toggle button right next to title (Original Neo-Brutalist design) */}
+            <button
+              type="button"
+              onClick={() => setSoundscape(soundscape === 'LOFI_YT' ? 'NONE' : 'LOFI_YT')}
+              className="ml-3 bg-[#0e131d] hover:bg-[#141a27] border-2 border-slate-950 text-rose-400 font-black text-[10px] font-mono px-3 py-1.5 rounded-xl shadow-[2px_2px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer flex items-center gap-2 select-none group transition-all"
+              title="Bật/Tắt Lofi Stream đè lên Banner Tu Vi ở Sidebar"
+            >
+              <span className={`w-2 h-2 rounded-full ${soundscape === 'LOFI_YT' ? 'bg-rose-500 animate-ping' : 'bg-slate-600'}`} />
+              <Music className="w-3.5 h-3.5 text-rose-400 group-hover:rotate-12 transition-transform" />
+              <span>🔴 LOFI STREAM</span>
+            </button>
+          </div>
 
-                {/* Google Sign-in / Cloud Status Profile Widget */}
-                {currentUser ? (
-                  <div className="flex items-center gap-2 bg-slate-950 border-2 border-slate-950 p-1.5 rounded-lg text-[10px] font-sans shadow-[1px_1px_0px_#000]">
-                    {/* User Google Avatar */}
-                    {currentUser.photoURL ? (
-                      <img 
-                        src={currentUser.photoURL} 
-                        alt={currentUser.displayName || 'Avatar'} 
-                        className="w-4 h-4 rounded-full border border-amber-500/50" 
-                        referrerPolicy="no-referrer"
-                      />
-                    ) : (
-                      <div className="w-4 h-4 rounded-full bg-amber-500 text-slate-950 font-black text-[9px] flex items-center justify-center">
-                        {(currentUser.displayName || 'Đ').charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                    
-                    {/* User display name & Cloud Sync indicator */}
-                    <div className="flex flex-col text-left max-w-28 shrink-0">
-                      <span className="font-bold text-slate-200 truncate">{currentUser.displayName || 'Đạo Hữu'}</span>
-                      <span className="text-[7.5px] text-emerald-400 font-mono flex items-center gap-0.5 leading-none">
-                        {isCloudSyncing ? (
-                          <span className="w-1.5 h-1.5 rounded-full border border-t-transparent border-emerald-400 animate-spin" />
-                        ) : (
-                          <Cloud className="w-2 h-2 animate-pulse" />
-                        )}
-                        Đám Mây
-                      </span>
-                    </div>
+          {/* Header Right Action Area: User Guide + Google Login / Cloud Profile Widget */}
+          <div className="flex items-center gap-2">
+            {/* User Guide Button */}
+            <button
+              type="button"
+              onClick={() => setIsUserGuideOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#121722] hover:bg-[#192131] text-amber-400 hover:text-amber-300 font-extrabold text-[9px] rounded-lg border-2 border-slate-950 uppercase tracking-wider transition-all cursor-pointer shadow-[2px_2px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#000]"
+              title="Mở Hướng Dẫn Sử Dụng (User Guide)"
+            >
+              <HelpCircle className="w-3.5 h-3.5 stroke-[2.5] text-amber-400" />
+              <span>User Guide</span>
+            </button>
 
-                    {/* Logout button */}
-                    <button
-                      onClick={async () => {
-                        if (confirm('Đạo hữu có chắc chắn muốn đăng xuất và ngắt kết nối với đám mây?')) {
-                          await firebaseLogout();
-                          alert('Đã đăng xuất thành công.');
-                        }
-                      }}
-                      className="ml-1 bg-rose-950/40 hover:bg-rose-900 border border-rose-900/40 text-rose-400 px-2 py-0.5 rounded text-[8px] font-bold uppercase transition-colors cursor-pointer"
-                    >
-                      Đăng xuất
-                    </button>
-                  </div>
+            {/* Google Sign-in / Cloud Status Profile Widget */}
+            {currentUser ? (
+              <div className="flex items-center gap-2 bg-slate-950 border-2 border-slate-950 p-1.5 rounded-lg text-[10px] font-sans shadow-[1px_1px_0px_#000]">
+                {/* User Google Avatar */}
+                {currentUser.photoURL ? (
+                  <img 
+                    src={currentUser.photoURL} 
+                    alt={currentUser.displayName || 'Avatar'} 
+                    className="w-4 h-4 rounded-full border border-amber-500/50" 
+                    referrerPolicy="no-referrer"
+                  />
                 ) : (
-                  <button
-                    onClick={handleGoogleSignIn}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold text-[9px] rounded-lg border-2 border-slate-950 uppercase tracking-wider transition-all cursor-pointer shadow-[2px_2px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#000]"
-                  >
-                    <LogIn className="w-3.5 h-3.5 stroke-[2.5]" />
-                    Đăng Nhập Google
-                  </button>
+                  <div className="w-4 h-4 rounded-full bg-amber-500 text-slate-950 font-black text-[9px] flex items-center justify-center">
+                    {(currentUser.displayName || 'Đ').charAt(0).toUpperCase()}
+                  </div>
                 )}
+                
+                {/* User display name & Cloud Sync indicator */}
+                <div className="flex flex-col text-left max-w-28 shrink-0">
+                  <span className="font-bold text-slate-200 truncate">{currentUser.displayName || 'Đạo Hữu'}</span>
+                  <span className="text-[7.5px] text-emerald-400 font-mono flex items-center gap-0.5 leading-none">
+                    {isCloudSyncing ? (
+                      <span className="w-1.5 h-1.5 rounded-full border border-t-transparent border-emerald-400 animate-spin" />
+                    ) : (
+                      <Cloud className="w-2 h-2 animate-pulse" />
+                    )}
+                    Đám Mây
+                  </span>
+                </div>
+
+                {/* Logout button */}
+                <button
+                  onClick={async () => {
+                    if (confirm('Đạo hữu có chắc chắn muốn đăng xuất và ngắt kết nối với đám mây?')) {
+                      await firebaseLogout();
+                      alert('Đã đăng xuất thành công.');
+                    }
+                  }}
+                  className="ml-1 bg-rose-950/40 hover:bg-rose-900 border border-rose-900/40 text-rose-400 px-2 py-0.5 rounded text-[8px] font-bold uppercase transition-colors cursor-pointer"
+                >
+                  Đăng xuất
+                </button>
               </div>
-            </header>
+            ) : (
+              <button
+                onClick={handleGoogleSignIn}
+                className="flex items-center gap-1 px-3 py-1.5 bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold text-[9px] rounded-lg border-2 border-slate-950 uppercase tracking-wider transition-all cursor-pointer shadow-[2px_2px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#000]"
+              >
+                <LogIn className="w-3.5 h-3.5 stroke-[2.5]" />
+                Đăng Nhập Google
+              </button>
+            )}
+          </div>
+        </header>
 
-            {/* Profile Cultivation level banner */}
-            <CultivationHeader
-              state={cultState}
-              onRename={setUserName}
-              onBreakthrough={handleBreakthrough}
-              userName={userName}
-              onOpenAchievements={() => setIsAchievementsModalOpen(true)}
-            />
+        {/* Main Body (Left Sidebar + Right Active Content Workspace) */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* Left Sidebar containing Full Cultivation Profile + 10 Navigation Tabs */}
+          <SidebarNavigation
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            cultivationState={cultState}
+            userName={userName}
+            onRename={setUserName}
+            onBreakthrough={handleBreakthrough}
+            onOpenAchievements={() => setIsAchievementsModalOpen(true)}
+            onOpenTabCustomize={() => setShowTabCustomizeModal(true)}
+            tabOrder={tabOrder}
+            getTabConfig={getTabConfig}
+            isLofiActive={soundscape === 'LOFI_YT'}
+            onCloseLofi={() => setSoundscape('NONE')}
+            isPomodoroRunning={isPomodoroRunning}
+          />
 
-            {/* Cảnh báo Tâm Ma Xâm Nhập */}
+          {/* Right Active Workspace */}
+          <main className="flex-1 overflow-y-auto p-4 sm:p-6">
+            <div className="max-w-5xl mx-auto space-y-6">
+              {/* Cảnh báo Tâm Ma Xâm Nhập */}
             {checkTamMaActive() && cultState.tamMaSuppressedDate !== getLocalDateString() && (
               <div className="bg-purple-950/25 border border-purple-900/60 rounded-2xl p-4 shadow-lg flex items-center justify-between gap-4 font-sans text-xs">
                 <div className="flex items-center gap-3">
@@ -2164,45 +2191,6 @@ export default function App() {
                 </div>
               </div>
             )}
-
-            {/* Main Tabs switcher */}
-            <nav className="flex flex-wrap pb-3 text-[11px] font-bold gap-2 items-center select-none">
-              {tabOrder.map(tabId => {
-                const config = getTabConfig(tabId);
-                if (!config.label) return null;
-                const isSelected = activeTab === tabId;
-                
-                return (
-                  <button
-                    key={tabId}
-                    onClick={() => setActiveTab(tabId)}
-                    className={`py-2.5 px-4 border-2 border-slate-950 rounded-xl font-black cursor-pointer shrink-0 flex items-center gap-1.5 transition-all active:translate-y-[1.5px] active:translate-x-[1.5px] active:shadow-none ${
-                      isSelected
-                        ? `${config.colorClass}`
-                        : 'bg-[#131924] text-slate-400 hover:text-slate-250 hover:bg-[#18202e]'
-                    }`}
-                    id={`tab-${tabId.toLowerCase().replace('_', '-')}`}
-                  >
-                    {config.icon}
-                    {config.label}
-                  </button>
-                );
-              })}
-
-              {/* Customize Tab Order trigger button */}
-              <button
-                type="button"
-                onClick={() => setShowTabCustomizeModal(true)}
-                className="py-2.5 px-4 border-2 border-slate-950 bg-[#0f141c]/80 hover:bg-[#17202e] text-slate-400 hover:text-slate-200 rounded-xl font-black cursor-pointer shrink-0 flex items-center gap-1.5 transition-all shadow-[2.5px_2.5px_0px_#000] active:translate-y-[1.5px] active:shadow-none border-dashed border-slate-750"
-                title="Tùy chỉnh thứ tự các tab"
-              >
-                <Settings className="w-3.5 h-3.5 text-amber-400 animate-spin-slow" />
-                Sắp xếp Tab
-              </button>
-            </nav>
-
-            {/* Main Tabs contents rendering */}
-            <main>
               <div className={`grid grid-cols-1 xl:grid-cols-3 gap-6 ${activeTab !== 'MEDITATION' ? 'hidden' : ''}`} id="meditation-tab-view">
                 <div className="xl:col-span-2 space-y-6">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
@@ -2413,8 +2401,6 @@ export default function App() {
                   onDeleteSubject={handleDeleteSubject}
                 />
               </div>
-            </main>
-          </div>
 
           {/* 🔮 Thiên Cơ Các (AI Planner) */}
           <AIPanel
@@ -2480,6 +2466,8 @@ export default function App() {
               setManuals(prev => [newManual, ...prev]);
             }}
           />
+            </div>
+          </main>
           {/* ==================== CUSTOMIZE TAB ORDER MODAL ==================== */}
           {showTabCustomizeModal && (
             <div className="fixed inset-0 bg-slate-950/85 flex items-center justify-center z-50 p-4 select-none animate-fadeIn">
@@ -2671,19 +2659,13 @@ export default function App() {
             onEquipTitle={handleEquipTitle}
           />
 
-          {/* Floating YouTube Lofi Player */}
-          <FloatingLofiPlayer
-            isOpen={soundscape === 'LOFI_YT'}
-            onClose={() => setSoundscape('NONE')}
-            onOpen={() => setSoundscape('LOFI_YT')}
-            isRunning={isPomodoroRunning}
-          />
-
           {/* User Guide Interactive Documentation Modal */}
           <UserGuideModal
             isOpen={isUserGuideOpen}
             onClose={() => setIsUserGuideOpen(false)}
           />
         </div>
-      );
+      </div>
+    </div>
+  );
     }

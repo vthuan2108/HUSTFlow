@@ -19,7 +19,8 @@ import {
   Clock, 
   AlertCircle,
   BookOpen,
-  Calendar
+  Calendar,
+  SlidersHorizontal
 } from 'lucide-react';
 
 function getLocalDateString(d: Date = new Date()): string {
@@ -116,9 +117,9 @@ export default function DailyRitualsModal({
       case 'TRUNG_CAP':
         return { label: 'Trung Cấp', color: 'text-blue-400 border-blue-900/50 bg-blue-950/20' };
       case 'CAO_CAP':
-        return { label: 'Địa Cấp', color: 'text-orange-400 border-orange-900/50 bg-orange-950/20' };
+        return { label: 'Địa Cấp', color: 'text-rose-400 border-rose-900/50 bg-rose-950/20' };
       case 'THAN_CAP':
-        return { label: 'Thiên Cấp', color: 'text-amber-400 border-amber-500/30 bg-amber-950/10' };
+        return { label: 'Thiên Cấp', color: 'text-purple-400 border-purple-500/30 bg-purple-950/10' };
       default:
         return { label: 'Sơ Cấp', color: 'text-slate-300 border-slate-800 bg-slate-900/40' };
     }
@@ -168,6 +169,26 @@ export default function DailyRitualsModal({
     });
   };
 
+  const handleUpdateTodoDifficulty = (id: string, newDiff: Priority) => {
+    let tuViReward = 15;
+    let linhThachReward = 5;
+    if (newDiff === 'TRUNG_CAP') { tuViReward = 30; linhThachReward = 15; }
+    else if (newDiff === 'CAO_CAP') { tuViReward = 60; linhThachReward = 35; }
+    else if (newDiff === 'THAN_CAP') { tuViReward = 120; linhThachReward = 75; }
+
+    setLocalTodos(prev => prev.map(t => {
+      if (t.id === id) {
+        return {
+          ...t,
+          difficulty: newDiff,
+          tuViReward,
+          linhThachReward
+        };
+      }
+      return t;
+    }));
+  };
+
   const handleFinishWizard = () => {
     let finalTodos = [...localTodos];
     finalTodos = finalTodos.map(t => {
@@ -204,7 +225,7 @@ export default function DailyRitualsModal({
         {/* Header Bar */}
         <div className="p-4 bg-[#141a27] border-b-2 border-slate-950 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Compass className="w-5 h-5 text-amber-400 animate-spin-slow" />
+            <Compass className="w-5 h-5 text-rose-400 animate-spin-slow" />
             <div>
               <h3 className="text-xs font-black text-slate-100 uppercase tracking-widest font-mono">
                 {ritualType === 'PLANNING' ? '☀️ Nghi Thức Vấn Đạo (Morning Wisdom)' : '🌙 Nghi Thức Kết Nhật (Night Reflection)'}
@@ -212,7 +233,7 @@ export default function DailyRitualsModal({
               <p className="text-[10px] text-slate-400 font-mono">
                 Bước {step}/{maxSteps}: {
                   ritualType === 'PLANNING'
-                    ? (step === 1 ? 'Quét nhiệm vụ quá hạn' : step === 2 ? 'Chọn 3 việc trọng tâm' : step === 3 ? 'Ước tính thời gian' : 'Tuyên bố Đạo Tâm')
+                    ? (step === 1 ? 'Quét nhiệm vụ quá hạn' : step === 2 ? 'Chọn 3 việc trọng tâm & Phẩm cấp' : step === 3 ? 'Ước tính thời gian' : 'Tuyên bố Đạo Tâm')
                     : (step === 1 ? 'Rà soát đạo quả' : step === 2 ? 'Đánh giá mức tập trung' : 'Đúc kết nhật ký & bài học')
                 }
               </p>
@@ -226,7 +247,7 @@ export default function DailyRitualsModal({
                 type="button"
                 onClick={() => setRitualDate(todayStr)}
                 className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
-                  ritualDate === todayStr ? 'bg-amber-400 text-slate-950' : 'text-slate-400'
+                  ritualDate === todayStr ? 'bg-rose-500 text-slate-950 font-black' : 'text-slate-400'
                 }`}
               >
                 Hôm Nay
@@ -235,7 +256,7 @@ export default function DailyRitualsModal({
                 type="button"
                 onClick={() => setRitualDate(yesterdayStr)}
                 className={`px-2 py-0.5 rounded transition-all cursor-pointer ${
-                  ritualDate === yesterdayStr ? 'bg-amber-400 text-slate-950' : 'text-slate-400'
+                  ritualDate === yesterdayStr ? 'bg-rose-500 text-slate-950 font-black' : 'text-slate-400'
                 }`}
               >
                 Hôm Qua
@@ -256,9 +277,9 @@ export default function DailyRitualsModal({
           {/* STEP 1: Overdue Task Sweep */}
           {step === 1 && (
             <div className="space-y-4">
-              <div className="bg-amber-950/20 border border-amber-500/30 p-3 rounded-xl flex items-center gap-3">
-                <AlertCircle className="w-5 h-5 text-amber-400 shrink-0" />
-                <p className="text-[11px] text-amber-200">
+              <div className="bg-rose-950/20 border border-rose-500/30 p-3 rounded-xl flex items-center gap-3">
+                <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
+                <p className="text-[11px] text-rose-200 font-sans">
                   {overdueTodos.length > 0
                     ? `Phát hiện ${overdueTodos.length} nhiệm vụ quá hạn từ trước. Hãy dời sang ngày chọn hoặc dọn dẹp!`
                     : 'Tuyệt vời! Không có nhiệm vụ nào bị tồn đọng quá hạn trong quá khứ.'}
@@ -275,7 +296,7 @@ export default function DailyRitualsModal({
                           onClick={() => {
                             setLocalTodos(prev => prev.map(t => t.id === todo.id ? { ...t, dueDate: ritualDate } : t));
                           }}
-                          className="px-2 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-lg text-[9.5px] font-bold uppercase cursor-pointer"
+                          className="px-2 py-1 bg-rose-500/20 text-rose-300 border border-rose-500/30 rounded-lg text-[9.5px] font-bold uppercase cursor-pointer"
                         >
                           Dời sang ngày chọn
                         </button>
@@ -295,11 +316,11 @@ export default function DailyRitualsModal({
             </div>
           )}
 
-          {/* STEP 2 (PLANNING): Pick 3 Core Priority Focus Tasks */}
+          {/* STEP 2 (PLANNING): Pick 3 Core Priority Focus Tasks & Edit Task Priority */}
           {step === 2 && ritualType === 'PLANNING' && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <p className="text-slate-300 font-bold">Chọn tối đa 3 Nhiệm Vụ Trọng Tâm ({selectedPriorities.length}/3):</p>
+                <p className="text-slate-200 font-bold">Chọn tối đa 3 Nhiệm Vụ Trọng Tâm ({selectedPriorities.length}/3) & Chỉnh Phẩm Cấp:</p>
               </div>
 
               {/* Quick Add Todo Field */}
@@ -315,95 +336,157 @@ export default function DailyRitualsModal({
                 <select
                   value={wizardNewTodoDiff}
                   onChange={(e) => setWizardNewTodoDiff(e.target.value as Priority)}
-                  className="bg-slate-900 border border-slate-800 text-[10px] text-slate-300 rounded px-2 font-mono"
+                  className={`text-[10px] font-mono font-bold rounded-lg px-2.5 py-1 focus:outline-none cursor-pointer transition-colors ${
+                    wizardNewTodoDiff === 'TRUNG_CAP'
+                      ? 'bg-blue-950/90 border-2 border-blue-600/70 text-blue-400'
+                      : wizardNewTodoDiff === 'CAO_CAP'
+                      ? 'bg-orange-950/90 border-2 border-orange-600/70 text-orange-400'
+                      : wizardNewTodoDiff === 'THAN_CAP'
+                      ? 'bg-purple-950/90 border-2 border-purple-500/70 text-purple-300'
+                      : 'bg-slate-900 border-2 border-slate-700 text-slate-300'
+                  }`}
                 >
-                  <option value="SO_CAP">Sơ Cấp</option>
-                  <option value="TRUNG_CAP">Trung Cấp</option>
-                  <option value="CAO_CAP">Địa Cấp</option>
-                  <option value="THAN_CAP">Thiên Cấp</option>
+                  <option value="SO_CAP" className="bg-[#0e131d] text-slate-300 font-bold font-mono">⚪ Sơ Cấp (+15 TuVi)</option>
+                  <option value="TRUNG_CAP" className="bg-[#0e131d] text-blue-400 font-bold font-mono">🔵 Trung Cấp (+30 TuVi)</option>
+                  <option value="CAO_CAP" className="bg-[#0e131d] text-orange-400 font-bold font-mono">🟠 Địa Cấp (+60 TuVi)</option>
+                  <option value="THAN_CAP" className="bg-[#0e131d] text-purple-300 font-bold font-mono">🟣 Thiên Cấp (+120 TuVi)</option>
                 </select>
                 <button
                   onClick={handleQuickAddTodoInWizard}
-                  className="px-3 py-1 bg-amber-400 text-slate-950 font-black rounded-lg text-[10px] uppercase cursor-pointer"
+                  className="px-3.5 py-1 bg-rose-500 hover:bg-rose-400 text-slate-950 font-black rounded-lg text-[10px] uppercase cursor-pointer shrink-0"
                 >
                   Thêm
                 </button>
               </div>
 
-              <div className="space-y-2 max-h-60 overflow-y-auto">
-                {ritualDateTodos.map(todo => {
-                  const isSelected = selectedPriorities.includes(todo.id);
-                  const diffInfo = getDifficultyInfo(todo.difficulty);
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                {ritualDateTodos.length === 0 ? (
+                  <div className="text-center py-6 text-slate-500 font-mono text-[11px] italic">
+                    Chưa có nhiệm vụ cho ngày này. Hãy dán/nhập tên nhiệm vụ ở ô trên để tạo mới!
+                  </div>
+                ) : (
+                  ritualDateTodos.map(todo => {
+                    const isSelected = selectedPriorities.includes(todo.id);
 
-                  return (
-                    <div
-                      key={todo.id}
-                      onClick={() => togglePrioritySelection(todo.id)}
-                      className={`p-3 rounded-xl border-2 transition-all flex items-center justify-between cursor-pointer ${
-                        isSelected
-                          ? 'bg-amber-500/10 border-amber-500/60 shadow-[2px_2px_0px_#000]'
-                          : 'bg-slate-950 border-slate-900 opacity-70 hover:opacity-100'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <span className={`w-4 h-4 rounded border flex items-center justify-center ${isSelected ? 'bg-amber-400 border-amber-400 text-slate-950' : 'border-slate-700'}`}>
-                          {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
-                        </span>
-                        <span className="font-bold text-slate-100">{todo.title}</span>
+                    return (
+                      <div
+                        key={todo.id}
+                        className={`p-3 rounded-xl border-2 transition-all flex items-center justify-between gap-3 cursor-pointer ${
+                          isSelected
+                            ? 'bg-rose-950/20 border-rose-500/70 shadow-[2px_2px_0px_#000]'
+                            : 'bg-slate-950 border-slate-900 opacity-70 hover:opacity-100'
+                        }`}
+                        onClick={() => togglePrioritySelection(todo.id)}
+                      >
+                        <div className="flex items-center gap-2.5 flex-1 min-w-0">
+                          <span className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${isSelected ? 'bg-rose-500 border-rose-500 text-slate-950' : 'border-slate-700'}`}>
+                            {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                          </span>
+                          <span className="font-bold text-slate-100 truncate">{todo.title}</span>
+                        </div>
+
+                        {/* RESTORED INLINE TASK PRIORITY / PHẨM CẤP SELECTOR WITH DISTINCT TIER COLORS */}
+                        <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                          <span className="text-[9px] text-slate-500 font-mono font-semibold hidden sm:inline">Phẩm Cấp:</span>
+                          <select
+                            value={todo.difficulty || 'SO_CAP'}
+                            onChange={(e) => handleUpdateTodoDifficulty(todo.id, e.target.value as Priority)}
+                            className={`text-[10px] font-mono font-bold rounded-lg px-2 py-1 focus:outline-none cursor-pointer transition-colors ${
+                              todo.difficulty === 'TRUNG_CAP'
+                                ? 'bg-blue-950/90 border-2 border-blue-600/70 text-blue-400'
+                                : todo.difficulty === 'CAO_CAP'
+                                ? 'bg-orange-950/90 border-2 border-orange-600/70 text-orange-400'
+                                : todo.difficulty === 'THAN_CAP'
+                                ? 'bg-purple-950/90 border-2 border-purple-500/70 text-purple-300'
+                                : 'bg-slate-900 border-2 border-slate-700 text-slate-300'
+                            }`}
+                          >
+                            <option value="SO_CAP" className="bg-[#0e131d] text-slate-300 font-bold font-mono">⚪ Sơ Cấp (+15 TuVi)</option>
+                            <option value="TRUNG_CAP" className="bg-[#0e131d] text-blue-400 font-bold font-mono">🔵 Trung Cấp (+30 TuVi)</option>
+                            <option value="CAO_CAP" className="bg-[#0e131d] text-orange-400 font-bold font-mono">🟠 Địa Cấp (+60 TuVi)</option>
+                            <option value="THAN_CAP" className="bg-[#0e131d] text-purple-300 font-bold font-mono">🟣 Thiên Cấp (+120 TuVi)</option>
+                          </select>
+                        </div>
                       </div>
-                      <span className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded border ${diffInfo.color}`}>
-                        {diffInfo.label}
-                      </span>
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                )}
               </div>
             </div>
           )}
 
-          {/* STEP 3 (PLANNING): Estimate Time */}
+          {/* STEP 3 (PLANNING): Estimate Time & RESTORED PRESET SELECTION BUTTONS */}
           {step === 3 && ritualType === 'PLANNING' && (
             <div className="space-y-4">
-              <p className="text-slate-300 font-bold">Ước tính thời gian bế quan (phút) cho các việc trọng tâm:</p>
-              <div className="space-y-3">
-                {selectedPriorities.map(pId => {
-                  const todo = localTodos.find(t => t.id === pId);
-                  if (!todo) return null;
+              <p className="text-slate-200 font-bold">Ước tính thời gian bế quan (phút) cho các việc trọng tâm:</p>
+              
+              {selectedPriorities.length === 0 ? (
+                <div className="text-center py-6 text-slate-500 font-mono text-[11px] italic">
+                  Chưa chọn việc trọng tâm nào. Hãy quay lại Bước 2 để chọn nhiệm vụ!
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {selectedPriorities.map(pId => {
+                    const todo = localTodos.find(t => t.id === pId);
+                    if (!todo) return null;
+                    const currentEst = estimatedTimes[pId] || todo.estimatedMinutes || 25;
 
-                  return (
-                    <div key={pId} className="bg-slate-950 p-3 rounded-xl border border-slate-900 flex items-center justify-between">
-                      <span className="font-bold text-slate-200">{todo.title}</span>
-                      <div className="flex items-center gap-1.5 font-mono">
-                        <Clock className="w-3.5 h-3.5 text-amber-400" />
-                        <input
-                          type="number"
-                          min={5}
-                          max={300}
-                          step={5}
-                          value={estimatedTimes[pId] || 25}
-                          onChange={(e) => setEstimatedTimes({ ...estimatedTimes, [pId]: Number(e.target.value) })}
-                          className="w-16 bg-slate-900 border border-slate-800 rounded px-2 py-1 text-center text-xs text-amber-300 font-bold focus:outline-none"
-                        />
-                        <span className="text-[10px] text-slate-500">phút</span>
+                    return (
+                      <div key={pId} className="bg-slate-950 p-3.5 rounded-xl border border-slate-900 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-slate-200">{todo.title}</span>
+                          <div className="flex items-center gap-1.5 font-mono">
+                            <Clock className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                            <input
+                              type="number"
+                              min={5}
+                              max={300}
+                              step={5}
+                              value={currentEst}
+                              onChange={(e) => setEstimatedTimes({ ...estimatedTimes, [pId]: Number(e.target.value) })}
+                              className="w-16 bg-slate-900 border border-slate-800 rounded px-2 py-1 text-center text-xs text-rose-300 font-bold focus:outline-none focus:border-rose-500"
+                            />
+                            <span className="text-[10px] text-slate-400">phút</span>
+                          </div>
+                        </div>
+
+                        {/* RESTORED QUICK PRESET TIME SELECTION PILLS */}
+                        <div className="flex items-center gap-1.5 flex-wrap pt-1 border-t border-slate-900">
+                          <span className="text-[9.5px] text-slate-500 font-mono font-semibold mr-1">Chọn nhanh:</span>
+                          {[15, 25, 45, 60, 90, 120].map(mins => (
+                            <button
+                              key={mins}
+                              type="button"
+                              onClick={() => setEstimatedTimes({ ...estimatedTimes, [pId]: mins })}
+                              className={`px-2.5 py-1 rounded-lg text-[9.5px] font-mono font-bold border transition-all cursor-pointer ${
+                                currentEst === mins
+                                  ? 'bg-rose-500 text-slate-950 border-rose-400 font-black shadow-[1px_1px_0px_#000]'
+                                  : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-slate-200 hover:border-slate-700'
+                              }`}
+                            >
+                              {mins} phút
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 
           {/* STEP 4 (PLANNING): Daily Affirmation & Intent Statement */}
           {step === 4 && ritualType === 'PLANNING' && (
             <div className="space-y-4">
-              <p className="text-slate-300 font-bold">Đại Nguyện & Tuyên Bố Đạo Tâm Hôm Nay:</p>
-              <p className="text-[11px] text-slate-400">Viết ra 1 câu quyết tâm hoặc thông điệp cốt lõi để giữ đạo tâm kiên định suốt ngày bế quan.</p>
+              <p className="text-slate-200 font-bold">Đại Nguyện & Tuyên Bố Đạo Tâm Hôm Nay:</p>
+              <p className="text-[11px] text-slate-400 leading-relaxed">Viết ra 1 câu quyết tâm hoặc thông điệp cốt lõi để giữ đạo tâm kiên định suốt ngày bế quan.</p>
               <textarea
                 rows={3}
                 placeholder="Ví dụ: Hôm nay ta quyết tâm hoàn thành xong Đồ Án Vi Xử Lý mà không xao nhãng lướt mạng xã hội..."
                 value={dailyIntent}
                 onChange={(e) => setDailyIntent(e.target.value)}
-                className="w-full bg-slate-950 border-2 border-slate-900 rounded-xl p-3 text-xs text-slate-100 focus:outline-none focus:border-amber-400"
+                className="w-full bg-slate-950 border-2 border-slate-900 rounded-xl p-3 text-xs text-slate-100 focus:outline-none focus:border-rose-500 font-sans"
               />
             </div>
           )}
@@ -411,7 +494,7 @@ export default function DailyRitualsModal({
           {/* STEP 2 (REFLECTION): Focus Rating */}
           {step === 2 && ritualType === 'REFLECTION' && (
             <div className="space-y-4">
-              <p className="text-slate-300 font-bold">Đánh giá mức độ tập trung bế quan hôm nay:</p>
+              <p className="text-slate-200 font-bold">Đánh giá mức độ tập trung bế quan hôm nay:</p>
               <div className="grid grid-cols-3 gap-3">
                 {[
                   { rating: 1, label: 'Tâm Ma Xâm Nhập', emoji: '😞', desc: 'Xao nhãng nhiều' },
@@ -424,8 +507,8 @@ export default function DailyRitualsModal({
                     onClick={() => setFocusRating(item.rating)}
                     className={`p-3 rounded-xl border-2 text-center transition-all cursor-pointer space-y-1 ${
                       focusRating === item.rating
-                        ? 'bg-amber-500/15 border-amber-500 text-amber-300 shadow-[2px_2px_0px_#000]'
-                        : 'bg-slate-950 border-slate-900 text-slate-400'
+                        ? 'bg-rose-500/15 border-rose-500 text-rose-300 shadow-[2px_2px_0px_#000]'
+                        : 'bg-slate-950 border-slate-900 text-slate-400 hover:text-slate-200'
                     }`}
                   >
                     <div className="text-2xl">{item.emoji}</div>
@@ -440,14 +523,14 @@ export default function DailyRitualsModal({
           {/* STEP 3 (REFLECTION): Daily Reflection Journal & Lessons */}
           {step === 3 && ritualType === 'REFLECTION' && (
             <div className="space-y-4">
-              <p className="text-slate-300 font-bold">Nhật Ký Đúc Kết Đạo Quả & Bài Học Kinh Nghiệm:</p>
-              <p className="text-[11px] text-slate-400">Ghi lại những việc làm tốt hôm nay, điều cần rút kinh nghiệm và điều làm đạo hữu cảm thấy biết ơn.</p>
+              <p className="text-slate-200 font-bold">Nhật Ký Đúc Kết Đạo Quả & Bài Học Kinh Nghiệm:</p>
+              <p className="text-[11px] text-slate-400 leading-relaxed">Ghi lại những việc làm tốt hôm nay, điều cần rút kinh nghiệm và điều làm đạo hữu cảm thấy biết ơn.</p>
               <textarea
                 rows={4}
                 placeholder="Ví dụ: Hôm nay ta đã giải xong 3 bài tập lớn. Bài học rút ra là nên bắt đầu từ bài dễ trước..."
                 value={reflectionJournal}
                 onChange={(e) => setReflectionJournal(e.target.value)}
-                className="w-full bg-slate-950 border-2 border-slate-900 rounded-xl p-3 text-xs text-slate-100 focus:outline-none focus:border-amber-400"
+                className="w-full bg-slate-950 border-2 border-slate-900 rounded-xl p-3 text-xs text-slate-100 focus:outline-none focus:border-rose-500 font-sans"
               />
             </div>
           )}
@@ -458,7 +541,7 @@ export default function DailyRitualsModal({
           {step > 1 ? (
             <button
               onClick={() => setStep(prev => prev - 1)}
-              className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-300 font-bold rounded-xl border border-slate-800 flex items-center gap-1 cursor-pointer text-xs"
+              className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-300 font-bold rounded-xl border border-slate-800 flex items-center gap-1 cursor-pointer text-xs font-mono"
             >
               <ChevronLeft className="w-4 h-4" /> Quay lại
             </button>
@@ -467,14 +550,14 @@ export default function DailyRitualsModal({
           {step < maxSteps ? (
             <button
               onClick={() => setStep(prev => prev + 1)}
-              className="px-4 py-1.5 neo-btn neo-btn-primary text-xs font-black flex items-center gap-1 cursor-pointer"
+              className="px-5 py-2 bg-rose-500 hover:bg-rose-400 text-slate-950 font-black rounded-xl border-2 border-slate-950 text-xs flex items-center gap-1 cursor-pointer shadow-[2px_2px_0px_#000] uppercase font-mono"
             >
               Tiếp theo <ChevronRight className="w-4 h-4" />
             </button>
           ) : (
             <button
               onClick={handleFinishWizard}
-              className="px-5 py-2 neo-btn neo-btn-success text-xs font-black flex items-center gap-1.5 cursor-pointer animate-pulse"
+              className="px-5 py-2 bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-xs uppercase rounded-xl border-2 border-slate-950 flex items-center gap-1.5 cursor-pointer animate-pulse shadow-[2px_2px_0px_#000] font-mono"
             >
               <Award className="w-4 h-4" /> Hoàn Thành & Nhận +30 Tu Vi
             </button>
