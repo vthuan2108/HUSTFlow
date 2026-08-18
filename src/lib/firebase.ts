@@ -6,7 +6,14 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, User } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
-import firebaseConfig from '../../firebase-applet-config.json';
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyAlntdHi0IY4xqwfohHjfAxZLcRT23Crm0",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "tien-lo-kyv1.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "tien-lo-kyv1",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "tien-lo-kyv1.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "731937394818",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:731937394818:web:f782c88918ca186bd2a49b"
+};
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
