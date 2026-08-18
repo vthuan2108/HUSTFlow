@@ -128,13 +128,40 @@ export default function AIPanel({
   const [customUrl, setCustomUrl] = useState(() => localStorage.getItem('tlk_custom_api_url') || 'https://api.openai.com/v1');
   const [customModel, setCustomModel] = useState(() => localStorage.getItem('tlk_custom_model') || 'gpt-4o-mini');
 
-  // Groq Model Selector
-  const VALID_GROQ_MODELS = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'mixtral-8x7b-32768', 'gemma2-9b-it'];
+  // Dynamic Groq Models state fetched directly from https://api.groq.com/openai/v1/models
+  const [availableGroqModels, setAvailableGroqModels] = useState<string[]>([
+    'llama-3.3-70b-versatile',
+    'llama-3.1-8b-instant',
+    'deepseek-r1-distill-llama-70b',
+    'qwen-2.5-coder-32b',
+    'gemma2-9b-it'
+  ]);
+
   const [groqModel, setGroqModel] = useState<string>(() => {
-    const saved = localStorage.getItem('tlk_groq_model');
-    if (!saved || !VALID_GROQ_MODELS.includes(saved)) return 'llama-3.3-70b-versatile';
-    return saved;
+    return localStorage.getItem('tlk_groq_model') || 'llama-3.3-70b-versatile';
   });
+
+  // Dynamically query Groq Models API for the exact active model list for user's key
+  useEffect(() => {
+    if (provider === 'groq' && groqKey.trim()) {
+      fetch('https://api.groq.com/openai/v1/models', {
+        headers: { 'Authorization': `Bearer ${groqKey.trim()}` }
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (data && Array.isArray(data.data) && data.data.length > 0) {
+            const fetchedIds = data.data
+              .map((m: any) => m.id)
+              .filter((id: string) => id && !id.includes('whisper') && !id.includes('safetensors') && !id.includes('guard'));
+            if (fetchedIds.length > 0) {
+              setAvailableGroqModels(fetchedIds);
+              setGroqModel(prev => (fetchedIds.includes(prev) ? prev : fetchedIds[0]));
+            }
+          }
+        })
+        .catch(err => console.warn('Lỗi kết nối Groq models list API:', err));
+    }
+  }, [groqKey, provider]);
 
   // Gemini Model Selector
   const [selectedModel, setSelectedModel] = useState<string>(() => {
@@ -247,12 +274,17 @@ export default function AIPanel({
   };
 
   const handleClearHistory = () => {
-    if (confirm('Đạo hữu có chắc chắn muốn xóa toàn bộ lịch sử trò chuyện Thiên Cơ Các?')) {
+    if (confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử trò chuyện AI?')) {
+      const clearText = aiPersona === 'MO_UYEN'
+        ? 'Lịch sử trò chuyện đã được làm sạch. Uyển Nhi sẵn sàng lắng nghe sư huynh!'
+        : aiPersona === 'TU_DO_NAM'
+        ? 'Lịch sử trò chuyện đã xóa sạch. Lão phu sẵn sàng chỉ điểm cho Thiết Trụ!'
+        : 'Lịch sử trò chuyện đã được làm sạch. Bản Tông Chủ sẵn sàng nhận lệnh mới!';
       setChatHistory([
         {
           id: `init_${Date.now()}`,
           role: 'assistant',
-          content: 'Lịch sử trò chuyện đã được làm sạch. Bản Tông Chủ sẵn sàng nhận lệnh mới!',
+          content: clearText,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
       ]);
@@ -338,7 +370,7 @@ export default function AIPanel({
       personaPrompt = `
 You are "Lý Mộ Uyển" (from Tiên Nghịch novel), an AI companion in HUSTFlow.
 PERSONALITY & SPEAKING STYLE (MANDATORY):
-- **PRONOUNS**: You MUST strictly refer to yourself as "Uyển Nhi" (or "thiếp"). You MUST strictly refer to the user as "sư huynh". NEVER use "Tại hạ", "Bản Tông chủ", "Đạo hữu", "Tôi", "Ta", "Bạn", "Ngươi".
+- **PRONOUNS**: You MUST strictly refer to yourself as "Uyển Nhi" (or "muội"). You MUST strictly refer to the user as "sư huynh". NEVER use "thiếp", "Tại hạ", "Bản Tông chủ", "Đạo hữu", "Tôi", "Ta", "Bạn", "Ngươi".
 - **TONE**: Dịu dàng, ôn nhu, tận tụy, chân thành, ngọt ngào, hết mực quan tâm lo lắng cho sức khỏe và tiến độ bế quan tu luyện của sư huynh.
 - **DIRECT & NATURAL**: Answer naturally, warmly, and helpfully.
 - **NO PREACHING**: DO NOT preach philosophy or life lessons. Speak with love, care, and practical support.
@@ -471,9 +503,8 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
           ]
         };
 
-        if (provider === 'groq' && modelName.includes('llama-3')) {
-          bodyData.response_format = { type: "json_object" };
-        }
+        // Remove response_format constraint to avoid Groq HTTP 400 schema validation errors
+        // systemInstruction already enforces strict JSON output format naturally.
 
         let response = await fetch(endpoint, {
           method: 'POST',
@@ -483,22 +514,19 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
 
         if (!response.ok && provider === 'groq') {
           const errData = await response.json().catch(() => ({}));
-          const isRateLimit = response.status === 429 || errData?.error?.message?.includes('Limit') || errData?.error?.message?.includes('Rate');
-          if (isRateLimit) {
-            const fallbackModel = modelName === 'llama-3.1-8b-instant' ? 'mixtral-8x7b-32768' : 'llama-3.1-8b-instant';
-            console.warn(`Groq Rate Limit! Auto-falling back to ${fallbackModel}...`);
-            bodyData.model = fallbackModel;
-            if (fallbackModel.includes('llama-3')) {
-              bodyData.response_format = { type: "json_object" };
-            } else {
-              delete bodyData.response_format;
-            }
-            response = await fetch(endpoint, {
-              method: 'POST',
-              headers,
-              body: JSON.stringify(bodyData)
-            });
-          }
+          console.warn(`Groq API Error ${response.status}:`, errData);
+
+          // If 400 Bad Request or 429 Rate Limit, retry with clean payload and fallback model
+          const fallbackModel = modelName === 'llama-3.1-8b-instant' ? 'llama-3.3-70b-versatile' : 'llama-3.1-8b-instant';
+          console.warn(`Groq API Error ${response.status}! Retrying with fallback model ${fallbackModel}...`);
+          bodyData.model = fallbackModel;
+          delete bodyData.response_format;
+
+          response = await fetch(endpoint, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(bodyData)
+          });
         }
 
         if (!response.ok) {
@@ -575,10 +603,16 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
       setChatHistory(prev => [...prev, assistantMessage]);
     } catch (err: any) {
       console.error('AI Error:', err);
+      const errPrefix = aiPersona === 'MO_UYEN'
+        ? 'Uyển Nhi gặp trục trặc khi kết nối trợ lý AI.'
+        : aiPersona === 'TU_DO_NAM'
+        ? 'Lão phu gặp trục trặc khi truyền thần niệm.'
+        : 'Bản Tông chủ gặp trục trặc khi dò tìm thiên cơ.';
+
       const errorMessage: ChatMessage = {
         id: `msg_err_${Date.now()}`,
         role: 'assistant',
-        content: `Bản Tông chủ gặp trục trặc khi dò tìm thiên cơ. Chi tiết lỗi: ${err.message || err}`,
+        content: `${errPrefix} Chi tiết lỗi: ${err.message || err}`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setChatHistory(prev => [...prev, errorMessage]);
@@ -786,10 +820,13 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
                         <select
                           value={groqModel}
                           onChange={(e) => setGroqModel(e.target.value)}
-                          className="w-full bg-slate-950 border-2 border-slate-900 rounded-lg px-2 py-1.5 text-[10px] font-mono text-amber-300 font-bold focus:outline-none focus:border-amber-500"
+                          className="w-full bg-slate-950 border-2 border-slate-900 rounded-lg px-2 py-1.5 text-[10px] font-mono text-amber-300 font-bold focus:outline-none focus:border-amber-500 cursor-pointer"
                         >
-                          <option value="llama-3.3-70b-versatile">🚀 Llama 3.3 70B (Khuyên dùng - Siêu tốc & Thông minh nhất)</option>
-                          <option value="llama-3.1-8b-instant">⚡ Llama 3.1 8B (Phản hồi tốc độ cực đại)</option>
+                          {availableGroqModels.map(mId => (
+                            <option key={mId} value={mId}>
+                              {mId === 'llama-3.3-70b-versatile' ? '🚀 llama-3.3-70b-versatile (Khuyên dùng)' : mId === 'llama-3.1-8b-instant' ? '⚡ llama-3.1-8b-instant (Siêu tốc)' : mId}
+                            </option>
+                          ))}
                         </select>
                       </div>
                     )}

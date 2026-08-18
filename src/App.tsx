@@ -43,6 +43,7 @@ import ForbiddenNotes from './components/ForbiddenNotes';
 import DailyRituals from './components/DailyRituals';
 import DailyRitualsModal from './components/DailyRitualsModal';
 import CultivationManualsSection from './components/CultivationManualsSection';
+import TangKinhCacSection from './components/TangKinhCacSection';
 import SpiritualGarden from './components/SpiritualGarden';
 import FloatingLofiPlayer from './components/FloatingLofiPlayer';
 import UserGuideModal from './components/UserGuideModal';
@@ -70,7 +71,8 @@ import {
   ArrowUp,
   ArrowDown,
   X,
-  Music
+  Music,
+  Library
 } from 'lucide-react';
 
 
@@ -407,15 +409,18 @@ export default function App() {
   const [isCloudSyncing, setIsCloudSyncing] = useState<boolean>(false);
   const [hasLoadedFromCloud, setHasLoadedFromCloud] = useState<boolean>(false);
   const [showTabCustomizeModal, setShowTabCustomizeModal] = useState<boolean>(false);
+  const TARGET_DEFAULT_TAB_ORDER = ['MEDITATION', 'TODOS', 'SCHEDULE', 'GRADES', 'CULT_PATH', 'TANG_KINH_CAC', 'STORE', 'IELTS_ARENA', 'ANALYTICS', 'CAM_DIA'];
   const [tabOrder, setTabOrder] = useState<string[]>(() => {
     const saved = localStorage.getItem('tlk_tab_order');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length === TARGET_DEFAULT_TAB_ORDER.length) {
+          return parsed;
+        }
       } catch (e) {}
     }
-    return ['MEDITATION', 'TODOS', 'SCHEDULE', 'IELTS_ARENA', 'CULT_PATH', 'ANALYTICS', 'GRADES', 'STORE', 'CAM_DIA'];
+    return TARGET_DEFAULT_TAB_ORDER;
   });
 
   useEffect(() => {
@@ -431,7 +436,7 @@ export default function App() {
       case 'SCHEDULE':
         return { label: 'Lịch trình', icon: <Calendar className="w-3.5 h-3.5" />, colorClass: 'bg-amber-400 text-slate-950 shadow-[3px_3px_0px_#000]' };
       case 'IELTS_ARENA':
-        return { label: 'Nghiên Cứu Cổ Kinh', icon: <BookOpen className="w-3.5 h-3.5" />, colorClass: 'bg-blue-400 text-slate-950 shadow-[3px_3px_0px_#000]' };
+        return { label: 'Ielts logs', icon: <BookOpen className="w-3.5 h-3.5" />, colorClass: 'bg-blue-400 text-slate-950 shadow-[3px_3px_0px_#000]' };
       case 'CULT_PATH':
         return { label: 'Tiên Lộ (Lộ Trình)', icon: <Scroll className="w-3.5 h-3.5" />, colorClass: 'bg-purple-400 text-slate-950 shadow-[3px_3px_0px_#000]' };
       case 'ANALYTICS':
@@ -442,6 +447,8 @@ export default function App() {
         return { label: 'Tàng Bảo Các (Shop)', icon: <Sparkles className="w-3.5 h-3.5" />, colorClass: 'bg-rose-400 text-slate-950 shadow-[3px_3px_0px_#000]' };
       case 'CAM_DIA':
         return { label: 'Cấm Địa Tông Môn', icon: <Lock className="w-3.5 h-3.5" />, colorClass: 'bg-red-500 text-slate-950 shadow-[3px_3px_0px_#000]' };
+      case 'TANG_KINH_CAC':
+        return { label: 'Tàng Kinh Các (Studocu)', icon: <Library className="w-3.5 h-3.5" />, colorClass: 'bg-indigo-400 text-slate-950 shadow-[3px_3px_0px_#000]' };
       default:
         return { label: '', icon: null, colorClass: '' };
     }
@@ -2355,6 +2362,10 @@ export default function App() {
                   onUpdateCamBooks={setCamBooksList}
                   onAddExp={addExp}
                 />
+              </div>
+
+              <div className={activeTab !== 'TANG_KINH_CAC' ? 'hidden' : ''}>
+                <TangKinhCacSection onGainTuVi={addExp} />
               </div>
 
               <div className={activeTab !== 'CULT_PATH' ? 'hidden' : ''}>

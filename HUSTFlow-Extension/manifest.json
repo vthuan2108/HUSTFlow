@@ -1,11 +1,13 @@
 {
   "manifest_version": 3,
-  "name": "HUSTflow - Trận Pháp Chặn Tâm Ma",
-  "version": "1.1.0",
-  "description": "Hộ Pháp: Bế quan thiền định, ngăn chặn tâm ma xao nhãng tu luyện.",
+  "name": "HUSTflow - Trận Pháp Chặn Tâm Ma & Trợ Thủ Studocu",
+  "version": "2.0.0",
+  "description": "Hộ Pháp: Bế quan thiền định ngăn chặn tâm ma xao nhãng & Gỡ mờ tải PDF trực tiếp trên Studocu.",
   "permissions": [
     "declarativeNetRequest",
-    "storage"
+    "storage",
+    "scripting",
+    "tabs"
   ],
   "host_permissions": [
     "<all_urls>"
@@ -23,7 +25,26 @@
         "https://*.vercel.app/*",
         "<all_urls>"
       ],
-      "js": ["content.js"],
+      "js": ["content.js", "hustflow-bridge.js"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://www.studocu.com/*",
+        "https://*.studocu.com/*",
+        "https://www.studeersnel.nl/*",
+        "https://*.studeersnel.nl/*",
+        "https://www.studocu.vn/*",
+        "https://*.studocu.vn/*"
+      ],
+      "js": [
+        "update-inter.js",
+        "view-doc.js",
+        "remove-previewBanner.js"
+      ],
+      "css": [
+        "style.css"
+      ],
       "run_at": "document_start"
     }
   ],

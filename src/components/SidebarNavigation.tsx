@@ -30,7 +30,8 @@ import {
   Minimize2,
   Maximize2,
   Play,
-  ChevronRight
+  ChevronRight,
+  Library
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -258,7 +259,7 @@ const TAB_THEMES: Record<string, {
     arrowColor: 'text-sky-400'
   },
   IELTS_ARENA: {
-    label: 'Nghiên Cứu Cổ Kinh',
+    label: 'Ielts logs',
     icon: <BookOpen className="w-4 h-4" />,
     activeBg: 'bg-indigo-950/40',
     activeText: 'text-indigo-300 font-extrabold',
@@ -310,6 +311,15 @@ const TAB_THEMES: Record<string, {
     activeBorder: 'border-red-500/80 shadow-[2px_2px_0px_#ef444440]',
     iconColor: 'text-red-500',
     arrowColor: 'text-red-500'
+  },
+  TANG_KINH_CAC: {
+    label: 'Tàng Kinh Các (Studocu)',
+    icon: <Library className="w-4 h-4" />,
+    activeBg: 'bg-indigo-950/40',
+    activeText: 'text-indigo-300 font-extrabold',
+    activeBorder: 'border-indigo-500/80 shadow-[2px_2px_0px_#6366f140]',
+    iconColor: 'text-indigo-400',
+    arrowColor: 'text-indigo-400'
   },
 };
 

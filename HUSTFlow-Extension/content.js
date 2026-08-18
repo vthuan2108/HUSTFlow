@@ -78,18 +78,51 @@ window.addEventListener("TLK_BLOCKER_SYNC", (event) => {
   }
 });
 
-// 3. Listen for chrome.storage.local changes (e.g. from NewTab page) and notify Web App
-try {
-  if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.onChanged) {
-    chrome.storage.onChanged.addListener((changes, areaName) => {
-      if (areaName === "local" && changes.tlk_state && changes.tlk_state.newValue) {
-        window.postMessage({
-          type: "TLK_EXTENSION_STATE_UPDATED",
-          state: changes.tlk_state.newValue
-        }, "*");
+// 4. Studocu Auto-Capture & Bridge for HUSTFlow Tàng Kinh Các
+if (window.location.hostname.includes('studocu.com') || window.location.hostname.includes('studocu.vn') || window.location.hostname.includes('studeersnel.nl')) {
+  function tryCaptureStudocuData() {
+    try {
+      const el = document.querySelector('#__NEXT_DATA__');
+      if (el && el.textContent) {
+        const payload = {
+          html: el.textContent,
+          url: window.location.href,
+          title: document.querySelector('h1') ? document.querySelector('h1').textContent.trim() : document.title,
+          timestamp: Date.now()
+        };
+        if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+          chrome.storage.local.set({ hustflow_captured_doc: payload });
+        }
       }
-    });
+    } catch(e) {}
   }
-} catch (e) {
-  console.warn("Zenflow Content Script: Failed to set storage change listener", e);
+  tryCaptureStudocuData();
+  setTimeout(tryCaptureStudocuData, 1000);
+  setTimeout(tryCaptureStudocuData, 2500);
+}
+
+if (window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1') || window.location.origin.includes('vercel.app')) {
+  try {
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.onChanged) {
+      chrome.storage.onChanged.addListener((changes, areaName) => {
+        if (areaName === 'local' && changes.hustflow_captured_doc && changes.hustflow_captured_doc.newValue) {
+          window.postMessage({
+            type: 'HUSTFLOW_STUDOCU_DECODE_RESPONSE',
+            payload: changes.hustflow_captured_doc.newValue
+          }, '*');
+        }
+      });
+    }
+  } catch (e) {}
+
+  window.addEventListener('message', (event) => {
+    if (event.source !== window || !event.data) return;
+    if (event.data.type === 'HUSTFLOW_DECODE_REQUEST' && event.data.url) {
+      try {
+        if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id) {
+          chrome.runtime.sendMessage({ action: 'OPEN_AND_CAPTURE_STUDOCU', url: event.data.url });
+        }
+      } catch(e) {}
+    }
+  });
 }

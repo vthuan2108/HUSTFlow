@@ -1463,15 +1463,28 @@ export default function MeditationTimer({
                   </div>
                 </div>
 
-                {/* Help instructions */}
+                {/* Help instructions with Google Drive Link & Note for Tàng Kinh Các */}
                 {!isExtensionInstalled && (
-                  <div className="bg-[#1e2638] p-3 rounded-xl border border-slate-800 text-[9.5px] leading-relaxed text-slate-400 text-left space-y-1">
-                    <p className="font-extrabold text-amber-400 m-0">🛠️ Hướng dẫn cài đặt Trận Pháp:</p>
-                    <ol className="list-decimal pl-4 space-y-0.5 m-0 font-sans">
-                      <li>Mở tab mới trong Chrome và truy cập: <code className="bg-slate-950 px-1 py-0.5 rounded text-amber-500 select-all font-mono">chrome://extensions</code></li>
+                  <div className="bg-[#1e2638] p-3.5 rounded-xl border border-indigo-500/40 text-[10px] leading-relaxed text-slate-300 text-left space-y-2 font-sans">
+                    <p className="font-black text-amber-400 m-0 font-mono">🛠️ HƯỚNG DẪN CÀI ĐẶT EXTENSION CẦU NỐI (BẮT BUỘC):</p>
+                    <div className="p-2 bg-indigo-950/60 border border-indigo-500/30 rounded-lg text-indigo-200 text-[9.5px]">
+                      💡 <strong>Lưu ý quan trọng:</strong> Extension này vừa đóng vai trò <strong>Trận Pháp Chặn Tâm Ma (Pomodoro Blocker)</strong>, vừa là <strong>Cầu Nối gỡ mờ & tải PDF Studocu</strong> tại tab <strong>Tàng Kinh Các</strong>!
+                    </div>
+                    <ol className="list-decimal pl-4 space-y-1 m-0 font-sans text-slate-300">
+                      <li>
+                        Tải thư mục Extension tại đây:{' '}
+                        <a
+                          href="https://drive.google.com/drive/folders/1WBc5Pu_-CT2JUFIFMmfkbK7YvN13bkmA?usp=sharing"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-amber-400 underline font-bold"
+                        >
+                          🔗 Google Drive Folder Extension
+                        </a>
+                      </li>
+                      <li>Mở tab mới trong Chrome và truy cập: <code className="bg-slate-950 px-1.5 py-0.5 rounded text-amber-400 select-all font-mono">chrome://extensions</code></li>
                       <li>Bật nút <strong>Chế độ cho nhà phát triển (Developer mode)</strong> ở góc trên bên phải.</li>
-                      <li>Chọn <strong>Tải tiện ích đã giải nén (Load unpacked)</strong> ở góc trái.</li>
-                      <li>Chọn thư mục <code className="bg-slate-950 px-1 py-0.5 rounded text-amber-500 select-all font-mono">tien-lo-ky-extension</code> bên trong thư mục dự án này!</li>
+                      <li>Chọn <strong>Tải tiện ích đã giải nén (Load unpacked)</strong> và trỏ tới thư mục Extension vừa tải về!</li>
                     </ol>
                   </div>
                 )}

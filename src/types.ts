@@ -123,6 +123,16 @@ export interface DailyLog {
   tasksCompleted: number;
 }
 
+export interface StudocuDocument {
+  id: string;
+  url: string;
+  title: string;
+  pageCount: number;
+  pageImages: string[];
+  subjectTag: string;
+  savedAt: string;
+}
+
 export interface IeltsTestLog {
   id: string;
   testName: string;

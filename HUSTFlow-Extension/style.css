@@ -1,0 +1,334 @@
+/* Force remove blur from all page wrapper elements */
+.pf.nofilter,
+.pf {
+    filter: none !important;
+    -webkit-filter: none !important;
+    opacity: 1 !important;
+    clip-path: none !important;
+    -webkit-clip-path: none !important;
+    mask-image: none !important;
+    -webkit-mask-image: none !important;
+}
+
+/* Force all page content visible and unblurred */
+.page-content,
+.page-content.nofilter {
+    filter: none !important;
+    -webkit-filter: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    user-select: auto !important;
+    -webkit-user-select: auto !important;
+    pointer-events: auto !important;
+    clip-path: none !important;
+    -webkit-clip-path: none !important;
+    mask-image: none !important;
+    -webkit-mask-image: none !important;
+    color: inherit !important;
+}
+
+/* Force images inside pages to be fully visible */
+.pf img,
+.page-content img {
+    filter: none !important;
+    -webkit-filter: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    clip-path: none !important;
+    -webkit-clip-path: none !important;
+    mask-image: none !important;
+    -webkit-mask-image: none !important;
+}
+
+/* Remove blur from blurred image wrapper (Studocu's component) */
+[class*="blurred-image-wrapper"],
+[class*="BlurredImage"],
+[class*="blurred-page"],
+[class*="BlurredPage"] {
+    filter: none !important;
+    -webkit-filter: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Remove backdrop-filter from any overlay in the document viewer */
+[class*="Viewer_document"] [class*="overlay"],
+[class*="Viewer_document"] [class*="Overlay"],
+#viewer-wrapper [class*="overlay"],
+#viewer-wrapper [class*="Overlay"] {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: transparent !important;
+    display: none !important;
+}
+
+/* Prevent any pseudo-element overlays on page elements */
+.pf::before,
+.pf::after,
+.page-content::before,
+.page-content::after,
+[class*="blurred"]::before,
+[class*="blurred"]::after,
+[class*="Blurred"]::before,
+[class*="Blurred"]::after {
+    display: none !important;
+    content: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
+/* ========== Download button styles ========== */
+.download-button-1, .download-button-2, .github-button {
+    background: inherit;
+    border-radius: 3px;
+    color: white;
+    display: inline-flex;
+    line-height: normal;
+    vertical-align: middle;
+    transition: .3s;
+}
+
+.download-button-1 {
+    background: #4D8BF5;
+    color: white;
+    border: none;
+    border-radius: 24px;
+    padding: 10px 28px;
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 8px auto;
+    width: fit-content;
+    position: relative;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(77, 139, 245, 0.3);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.download-button-1:hover {
+    background: #3a7be0;
+    box-shadow: 0 4px 12px rgba(77, 139, 245, 0.4);
+    transform: translateY(-1px);
+}
+
+.download-button-2 {
+    height: 30px;
+    margin: 0 5px;
+    min-width: 30px;
+}
+
+.github-button {
+    background-color: #333;
+    border: solid 1px #333;
+    display: block;
+    line-height: 1.4286;
+    margin-right: 20px;
+    padding: 8px 20px;
+    border-radius: 100%;
+}
+
+.tooltip-bottom {
+    position: relative;
+    display: inline-flex;
+    border-bottom: solid 1px black;
+}
+
+.tooltip-bottom .tooltiptext-bottom {
+    visibility: hidden;
+    width: 200px;
+    background-color: #555;
+    color: white;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px;
+    position: absolute;
+    z-index: 1;
+    top: 120%;
+    left: 50%;
+    margin-left: -100px;
+    opacity: 0;
+    transition: opacity .3s;
+}
+
+.tooltip-bottom .tooltiptext-bottom::after {
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent #555 transparent;
+}
+
+.tooltip-bottom:hover .tooltiptext-bottom {
+    visibility: visible;
+    opacity: 1;
+}
+
+.download-text {
+    margin-left: 0;
+    font-weight: 500;
+}
+
+/* Style the SVG icon in download button */
+.download-button-1 svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+/* Style for the custom StudocuHack logo replacement */
+.studocuhack-logo-replaced {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+}
+
+.studocuhack-logo-replaced svg {
+    flex-shrink: 0;
+}
+
+@media (max-width: 600px) {
+    /* Hide the full text logo on small screens, keep only the icon */
+    .studocuhack-logo-replaced > span {
+        display: none !important;
+    }
+
+    .download-text {
+        margin-left: 5px;
+        display: none;
+    }
+
+    .download-button-1 {
+        padding: 10px 20px;
+        font-size: 13px;
+    }
+
+    .download-button-1 svg {
+        width: 14px;
+        height: 14px;
+    }
+}
+
+@media print {
+    @page {
+        size: A4 portrait;
+        margin: 0mm !important;
+    }
+    .p2hv .stopoverlappingourstyleplease {
+        display: block;
+    }
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+}
+
+/* ========== Hide premium banners and preview restrictions ========== */
+[class*="PremiumBannerBlobWrapper"],
+[class*="PremiumBannerHeader"],
+[class*="PremiumBannerSubHeader"],
+[class*="PremiumBannerBenefitsList"],
+[class*="PremiumBannerButtons"],
+[class*="InlineBanner_inline-banner"],
+[class*="PremiumPageClarificationBanner"],
+[class*="premium-banner-wrapper"],
+[class*="ViewerContainer_premium"],
+[data-test-selector="modal-document-viewer-preview-message"],
+[data-test-selector="preview-banner-upgrade-first-cta"],
+[data-test-selector="preview-banner-upload-second-cta"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    width: 0 !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+}
+
+/* Hide Studocu's native download buttons (Scarica/Download) */
+[data-test-selector="document-viewer-download-button-topbar"]:not(.download-button-1) {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+/* Legacy selectors for older versions */
+._95f5f1767857,
+._3273140306b6 {
+    display: none !important;
+}
+
+/* Banner wrapper */
+.banner-wrapper {
+    display: none !important;
+}
+
+/* ========== Hide premium badge/tag/label elements ========== */
+[class*="PremiumBadge"],
+[class*="premium-badge"],
+[class*="PremiumLabel"],
+[class*="PremiumTag"],
+[class*="premium_tag"],
+[class*="premium_badge"],
+[class*="premiumBadge"],
+[class*="premiumLabel"],
+[class*="premiumTag"],
+[class*="premium-label"],
+[class*="premium-tag"],
+[class*="PremiumIcon"],
+[class*="premiumIcon"],
+[class*="premium-icon"],
+[data-test-selector*="premium-badge"],
+[data-test-selector*="premium-tag"],
+[data-test-selector*="premium-label"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    width: 0 !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    pointer-events: none !important;
+}
+
+/* ========== Modal overlay hiding ========== */
+#modal-overlay {
+    display: none !important;
+}
+
+/* ========== Hide ads (Refinery89 / Google Publisher Tag / Adagio) ========== */
+[class*="AdsContainer"],
+r89-standalone,
+[id^="r89-"],
+[id*="r89-"],
+iframe[id^="google_ads_iframe"],
+div[id^="google_ads_iframe"],
+[id^="div-gpt-ad"],
+[id*="gpt-ad"],
+[id*="adagio"],
+[class*="adagio"],
+[class*="Advertisement"],
+[class*="advertisement"] {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    width: 0 !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+}
+
+/* ========== Hide the AI "Ask a question about this document" toolbar ========== */
+/* (includes the Mock exam / Summary / Quiz pills, which live in the same wrapper) */
+[class*="AIToolbar"] {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
