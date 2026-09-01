@@ -54,3 +54,4 @@
 
 ### 🛡️ Đăng Nhập & Đồng Bộ Đám Mây (Google Firebase Auth)
 * **Bảo Mật An Toàn**: Đăng nhập qua tài khoản Google và lưu trữ đồng bộ dữ liệu trên Firebase Cloud.
+

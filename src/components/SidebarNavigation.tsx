@@ -303,15 +303,6 @@ const TAB_THEMES: Record<string, {
     iconColor: 'text-rose-400',
     arrowColor: 'text-rose-400'
   },
-  CAM_DIA: {
-    label: 'Cấm Địa Tông Môn',
-    icon: <Lock className="w-4 h-4" />,
-    activeBg: 'bg-red-950/40',
-    activeText: 'text-red-300 font-extrabold',
-    activeBorder: 'border-red-500/80 shadow-[2px_2px_0px_#ef444440]',
-    iconColor: 'text-red-500',
-    arrowColor: 'text-red-500'
-  },
   TANG_KINH_CAC: {
     label: 'Tàng Kinh Các (Studocu)',
     icon: <Library className="w-4 h-4" />,
@@ -402,9 +393,6 @@ export default function SidebarNavigation({
     if (bottleneckReq.minMeditationMinutes && safeMeditationDiff < bottleneckReq.minMeditationMinutes) {
       bottleneckMet = false;
     }
-    if (bottleneckReq.minCompletedTasks && safeTasksDiff < bottleneckReq.minCompletedTasks) {
-      bottleneckMet = false;
-    }
     if (bottleneckReq.requiredItemId) {
       const hasItem = safeInventory.some(i => i && i.itemId === bottleneckReq.requiredItemId && i.quantity > 0);
       if (!hasItem) bottleneckMet = false;
@@ -460,9 +448,9 @@ export default function SidebarNavigation({
 
         {isLofiActive ? (
           /* EXACT MATCH TO USER MOCKUP: LOFI YOUTUBE CARD OVERLAYING CULTIVATION BANNER */
-          <div className="bg-[#0e131d] border-2 border-slate-950 rounded-2xl overflow-hidden shadow-[6px_6px_0px_#000] flex flex-col text-slate-200 animate-fadeIn relative z-10">
+          <div className="bg-[#0e131d] border-2 border-slate-950 rounded-2xl overflow-hidden shadow-[6px_6px_0px_#000] flex flex-col text-slate-200 animate-fadeIn relative z-10 lofi-player-card">
             {/* Header Bar */}
-            <div className="bg-[#141a27] border-b-2 border-slate-950 px-2.5 py-2 flex items-center justify-between">
+            <div className="bg-[#141a27] border-b-2 border-slate-950 px-2.5 py-2 flex items-center justify-between lofi-player-header">
               <div className="flex items-center gap-1.5 min-w-0">
                 <GripHorizontal className="w-3.5 h-3.5 text-slate-500 shrink-0" />
                 <div className="flex items-center gap-1.5 font-mono text-[10.5px] font-black text-rose-400 truncate tracking-wide">
@@ -659,10 +647,10 @@ export default function SidebarNavigation({
                     {currentExp} / {xpNeeded} Tu Vi ({rawPercentage}%) {rawPercentage > 100 && '⚡ NÉN LINH LỰC'}
                   </span>
                 </div>
-                <div className="relative w-full bg-slate-950 border-[3px] border-slate-950 rounded-xl h-4 overflow-hidden flex items-center shadow-none">
+                <div className="relative w-full bg-slate-950 border-[3px] border-slate-950 rounded-xl h-4 overflow-hidden flex items-center shadow-none cultivation-exp-track">
                   {/* Progress fill with realm gradient and shimmer animation */}
                   <motion.div
-                    className={`h-full bg-gradient-to-r ${realmStyle.gradient} transition-all duration-700 relative`}
+                    className={`h-full bg-gradient-to-r ${realmStyle.gradient} transition-all duration-700 relative cultivation-exp-bar`}
                     initial={{ width: 0 }}
                     animate={{ width: `${xpPercentage}%` }}
                     transition={{ duration: 0.5 }}
@@ -778,15 +766,6 @@ export default function SidebarNavigation({
                           <span className="text-slate-400">🧘 Bế quan Thiền Định (từ bình cảnh):</span>
                           <span className={safeMeditationDiff >= bottleneckReq.minMeditationMinutes ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>
                             {safeMeditationDiff} / {bottleneckReq.minMeditationMinutes} phút
-                          </span>
-                        </div>
-                      )}
-
-                      {bottleneckReq.minCompletedTasks && (
-                        <div className="flex justify-between items-center">
-                          <span className="text-slate-400">⚔️ Hoàn thành Nhiệm Vụ (từ bình cảnh):</span>
-                          <span className={safeTasksDiff >= bottleneckReq.minCompletedTasks ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>
-                            {safeTasksDiff} / {bottleneckReq.minCompletedTasks} task
                           </span>
                         </div>
                       )}

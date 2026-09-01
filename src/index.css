@@ -1,25 +1,67 @@
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Silkscreen&family=Space+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&family=Press+Start+2P&family=VT323&family=Silkscreen&family=Space+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-sans: "Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "DM Mono", "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
   --font-retro: "Silkscreen", "VT323", "Press Start 2P", monospace;
+}
+
+:root, [data-theme="dark"] {
+  --bg-app: #070a0f;
+  --card-bg: #131924;
+  --card-border: #000000;
+  --card-border-width: 3px;
+  --card-shadow: 4px 4px 0px 0px #000000;
+  --card-radius: 16px;
+  --text-main: #f1f5f9;
+  --text-muted: #64748b;
+  --input-bg: #090d16;
+  --input-border: #000000;
+  --btn-primary-bg: #fbbf24;
+  --btn-primary-text: #000000;
+  --btn-secondary-bg: #1e293b;
+  --btn-secondary-text: #ffffff;
+  --scrollbar-track: #070a0f;
+  --scrollbar-thumb: #1e293b;
+}
+
+[data-theme="cozy"] {
+  --bg-app: #F7F5F0;
+  --card-bg: #FFFFFF;
+  --card-border: #E8E4DA;
+  --card-border-width: 1.5px;
+  --card-shadow: 0 4px 16px rgba(46, 40, 35, 0.04), 0 1px 3px rgba(46, 40, 35, 0.03);
+  --card-radius: 20px;
+  --text-main: #2E2823;
+  --text-muted: #8C8479;
+  --input-bg: #FBF9F5;
+  --input-border: #E8E4DA;
+  --btn-primary-bg: #507D58;
+  --btn-primary-text: #FFFFFF;
+  --btn-secondary-bg: #EAE6DD;
+  --btn-secondary-text: #332D28;
+  --scrollbar-track: #F7F5F0;
+  --scrollbar-thumb: #D8D2C5;
+  font-family: "Plus Jakarta Sans", sans-serif !important;
 }
 
 @layer base {
   body {
-    @apply bg-[#070a0f] text-slate-300 antialiased font-sans selection:bg-amber-500/20 selection:text-amber-300;
+    background-color: var(--bg-app);
+    color: var(--text-main);
+    font-family: var(--font-sans);
+    @apply antialiased selection:bg-amber-500/20 selection:text-amber-300 transition-colors duration-200;
   }
 }
 
-/* Neo-Brutalist Cards */
+/* Neo-Brutalist Cards & Cozy Paper Cards */
 .neo-card {
-  background-color: #131924;
-  border: 3px solid #000000;
-  border-radius: 16px;
-  box-shadow: 4px 4px 0px 0px #000000;
-  transition: all 0.15s ease-in-out;
+  background-color: var(--card-bg);
+  border: var(--card-border-width) solid var(--card-border);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+  transition: all 0.2s ease-in-out;
 }
 
 .neo-card-hover:hover {
@@ -27,81 +69,67 @@
   box-shadow: 6px 6px 0px 0px #000000;
 }
 
+[data-theme="cozy"] .neo-card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(46, 40, 35, 0.08), 0 2px 6px rgba(46, 40, 35, 0.04);
+}
+
 /* Neo-Brutalist Buttons */
 .neo-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 3px solid #000000;
+  border: var(--card-border-width) solid var(--card-border);
   border-radius: 10px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  box-shadow: 3px 3px 0px 0px #000000;
+  box-shadow: var(--card-shadow);
   transform: translate(0px, 0px);
-  transition: all 0.1s ease-in-out;
+  transition: all 0.15s ease-in-out;
   cursor: pointer;
   user-select: none;
 }
 
 .neo-btn:hover {
   transform: translate(1px, 1px);
-  box-shadow: 2px 2px 0px 0px #000000;
-}
-
-.neo-btn:active {
-  transform: translate(3px, 3px);
-  box-shadow: 0px 0px 0px 0px #000000;
 }
 
 .neo-btn-primary {
-  background-color: #fbbf24; /* Amber */
-  color: #000000;
-}
-.neo-btn-primary:hover {
-  background-color: #f59e0b;
+  background-color: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
 }
 
 .neo-btn-secondary {
-  background-color: #1e293b; /* Dark slate */
-  color: #ffffff;
-  border-color: #000000;
-}
-.neo-btn-secondary:hover {
-  background-color: #334155;
+  background-color: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
+  border-color: var(--card-border);
 }
 
 .neo-btn-success {
-  background-color: #10b981; /* Emerald */
+  background-color: #10b981;
   color: #000000;
-}
-.neo-btn-success:hover {
-  background-color: #059669;
 }
 
 .neo-btn-danger {
-  background-color: #ef4444; /* Red */
+  background-color: #ef4444;
   color: #ffffff;
 }
-.neo-btn-danger:hover {
-  background-color: #dc2626;
-}
 
-/* Neo-Brutalist Input Fields */
+/* Input Fields */
 .neo-input {
-  background-color: #090d16;
-  border: 3px solid #000000;
+  background-color: var(--input-bg);
+  border: var(--card-border-width) solid var(--input-border);
   border-radius: 10px;
-  color: #f1f5f9;
+  color: var(--text-main);
   font-weight: 600;
-  box-shadow: 2px 2px 0px 0px #000000;
+  box-shadow: var(--card-shadow);
   transition: all 0.15s ease-in-out;
 }
 
 .neo-input:focus {
   outline: none;
-  border-color: #fbbf24;
-  box-shadow: 3px 3px 0px 0px #fbbf24;
+  border-color: var(--btn-primary-bg);
 }
 
 /* Retro pixel-style text and labels */
@@ -114,24 +142,473 @@
   filter: drop-shadow(2px 2px 0px #000000);
 }
 
+/* Cozy Theme Global Overrides for warm paper feel (Beaverplans Aesthetic) */
+[data-theme="cozy"] {
+  background-color: #F7F5F0 !important;
+  color: #2E2823 !important;
+}
 
-/* Elegant dark custom scrollbar */
+/* Header & Aside Layout */
+[data-theme="cozy"] header {
+  background-color: #F7F5F0 !important;
+  border-color: #E8E4DA !important;
+  box-shadow: 0 1px 4px rgba(46, 40, 35, 0.04) !important;
+}
+
+[data-theme="cozy"] aside {
+  background-color: #F7F5F0 !important;
+  border-color: #E8E4DA !important;
+}
+
+[data-theme="cozy"] aside > div:first-child {
+  background-color: #FAF8F5 !important;
+  border-color: #E8E4DA !important;
+}
+
+/* All dark background colors become warm cream/white */
+[data-theme="cozy"] [class*="bg-[#0"],
+[data-theme="cozy"] [class*="bg-[#10"],
+[data-theme="cozy"] [class*="bg-[#11"],
+[data-theme="cozy"] [class*="bg-[#12"],
+[data-theme="cozy"] [class*="bg-[#13"],
+[data-theme="cozy"] [class*="bg-[#14"],
+[data-theme="cozy"] [class*="bg-[#15"],
+[data-theme="cozy"] [class*="bg-[#16"],
+[data-theme="cozy"] [class*="bg-[#17"],
+[data-theme="cozy"] [class*="bg-[#18"],
+[data-theme="cozy"] [class*="bg-[#19"],
+[data-theme="cozy"] [class*="bg-[#1a"],
+[data-theme="cozy"] [class*="bg-[#1b"],
+[data-theme="cozy"] [class*="bg-[#1c"],
+[data-theme="cozy"] [class*="bg-[#1d"],
+[data-theme="cozy"] [class*="bg-[#1e"],
+[data-theme="cozy"] [class*="bg-[#1f"],
+[data-theme="cozy"] [class*="bg-slate-950"],
+[data-theme="cozy"] [class*="bg-slate-900"],
+[data-theme="cozy"] [class*="bg-slate-850"],
+[data-theme="cozy"] [class*="bg-slate-800"],
+[data-theme="cozy"] [class*="bg-zinc-950"],
+[data-theme="cozy"] [class*="bg-zinc-900"],
+[data-theme="cozy"] [class*="bg-neutral-950"],
+[data-theme="cozy"] [class*="bg-neutral-900"],
+[data-theme="cozy"] [class*="bg-black"] {
+  background-color: #FFFFFF !important;
+}
+
+[data-theme="cozy"] body,
+[data-theme="cozy"] header,
+[data-theme="cozy"] aside,
+[data-theme="cozy"] main,
+[data-theme="cozy"] #root,
+[data-theme="cozy"] [class*="bg-[#070a0f]"],
+[data-theme="cozy"] [class*="bg-[#0a0d14]"],
+[data-theme="cozy"] [class*="bg-[#05070a]"] {
+  background-color: #F7F5F0 !important;
+}
+
+[data-theme="cozy"] aside > div:first-child {
+  background-color: #FAF8F5 !important;
+}
+
+/* Ensure opacity-based dark containers turn into solid white cards */
+[data-theme="cozy"] [class*="bg-slate-950/"],
+[data-theme="cozy"] [class*="bg-slate-900/"],
+[data-theme="cozy"] [class*="bg-slate-800/"],
+[data-theme="cozy"] [class*="bg-[#0f141c]/"],
+[data-theme="cozy"] [class*="bg-[#0b0f19]/"],
+[data-theme="cozy"] [class*="bg-[#131924]/"],
+[data-theme="cozy"] [class*="bg-indigo-950/"],
+[data-theme="cozy"] [class*="bg-blue-950/"],
+[data-theme="cozy"] [class*="bg-emerald-950/"],
+[data-theme="cozy"] [class*="bg-amber-950/"],
+[data-theme="cozy"] [class*="bg-purple-950/"],
+[data-theme="cozy"] [class*="bg-rose-950/"] {
+  background-color: #FFFFFF !important;
+  border-color: #E8E4DA !important;
+}
+
+/* Gradient card containers become white */
+[data-theme="cozy"] #ielts-mock-test-log div[class*="bg-gradient-to-"],
+[data-theme="cozy"] #cultivation-manuals-section div[class*="bg-gradient-to-"] {
+  background-color: #FFFFFF !important;
+  background-image: none !important;
+  border-color: #E8E4DA !important;
+}
+
+/* Cultivation EXP Bar & Progress Bars in Cozy Mode */
+[data-theme="cozy"] .cultivation-exp-track {
+  background-color: #EAE6DD !important;
+  border-color: #DFD9CD !important;
+}
+
+[data-theme="cozy"] .cultivation-exp-bar,
+[data-theme="cozy"] [class*="cultivation-exp-bar"] {
+  opacity: 1 !important;
+}
+
+/* Lofi Stream Button & Lofi Player Cards - Theme Adaptive */
+button[title*="Lofi"],
+button[title*="lofi"] {
+  background-color: #0e131d;
+  border: 2px solid #000000;
+  color: #fb7185;
+}
+
+[data-theme="cozy"] button[title*="Lofi"],
+[data-theme="cozy"] button[title*="lofi"] {
+  background-color: #FFFFFF !important;
+  border: 1.5px solid #E8E4DA !important;
+  color: #e11d48 !important;
+  box-shadow: 0 2px 8px rgba(46, 40, 35, 0.04) !important;
+}
+
+.lofi-player-card {
+  background-color: #0e131d;
+  border: 2px solid #000000;
+  color: #e2e8f0;
+}
+
+[data-theme="cozy"] .lofi-player-card,
+[data-theme="cozy"] div[class*="lofi-player-card"] {
+  background-color: #FFFFFF !important;
+  border: 1.5px solid #E8E4DA !important;
+  color: #2E2823 !important;
+  box-shadow: 0 8px 24px rgba(46, 40, 35, 0.08) !important;
+}
+
+.lofi-player-header {
+  background-color: #141a27;
+  border-bottom: 2px solid #000000;
+  color: #e2e8f0;
+}
+
+[data-theme="cozy"] .lofi-player-header,
+[data-theme="cozy"] div[class*="lofi-player-header"] {
+  background-color: #FAF8F5 !important;
+  border-bottom: 1.5px solid #E8E4DA !important;
+  color: #2E2823 !important;
+}
+
+[data-theme="cozy"] .lofi-player-header span.text-rose-400 {
+  color: #e11d48 !important;
+}
+
+[data-theme="cozy"] .lofi-player-header button,
+[data-theme="cozy"] .lofi-player-header svg {
+  color: #64748b !important;
+}
+
+[data-theme="cozy"] .lofi-player-header button:hover svg {
+  color: #e11d48 !important;
+}
+
+/* Pomodoro Timer Digits - preserve digital countdown font */
+.timer-countdown-digits {
+  font-family: "Silkscreen", "VT323", "Space Grotesk", "JetBrains Mono", "DM Mono", monospace !important;
+  font-variant-numeric: tabular-nums;
+}
+
+[data-theme="cozy"] .timer-countdown-digits {
+  font-family: "Silkscreen", "VT323", "Space Grotesk", "JetBrains Mono", "DM Mono", monospace !important;
+  color: #2E2823 !important;
+}
+
+/* All dark borders become gentle subtle warm beige */
+[data-theme="cozy"] [class*="border-slate-"],
+[data-theme="cozy"] [class*="border-zinc-"],
+[data-theme="cozy"] [class*="border-neutral-"],
+[data-theme="cozy"] [class*="border-black"],
+[data-theme="cozy"] [class*="border-[#0"],
+[data-theme="cozy"] [class*="border-[#1"] {
+  border-color: #E8E4DA !important;
+}
+
+/* All dark text becomes warm charcoal / earth tones */
+[data-theme="cozy"] [class*="text-slate-100"],
+[data-theme="cozy"] [class*="text-slate-200"],
+[data-theme="cozy"] [class*="text-white"],
+[data-theme="cozy"] [class*="text-zinc-100"],
+[data-theme="cozy"] [class*="text-zinc-200"] {
+  color: #2E2823 !important;
+}
+
+[data-theme="cozy"] [class*="text-slate-300"],
+[data-theme="cozy"] [class*="text-slate-400"],
+[data-theme="cozy"] [class*="text-zinc-300"],
+[data-theme="cozy"] [class*="text-zinc-400"] {
+  color: #5C554E !important;
+}
+
+[data-theme="cozy"] [class*="text-slate-500"],
+[data-theme="cozy"] [class*="text-slate-600"],
+[data-theme="cozy"] [class*="text-zinc-500"] {
+  color: #8C8479 !important;
+}
+
+/* High Contrast Accent Text for Cozy Light Theme */
+[data-theme="cozy"] .text-amber-300,
+[data-theme="cozy"] .text-amber-400,
+[data-theme="cozy"] .text-amber-500,
+[data-theme="cozy"] .text-yellow-300,
+[data-theme="cozy"] .text-yellow-400,
+[data-theme="cozy"] [class*="text-amber-3"],
+[data-theme="cozy"] [class*="text-amber-4"],
+[data-theme="cozy"] [class*="text-yellow-3"],
+[data-theme="cozy"] [class*="text-yellow-4"] {
+  color: #92400E !important; /* Deep rich amber-800 - high contrast on light paper */
+}
+
+[data-theme="cozy"] .text-rose-300,
+[data-theme="cozy"] .text-rose-400,
+[data-theme="cozy"] [class*="text-rose-3"],
+[data-theme="cozy"] [class*="text-rose-4"],
+[data-theme="cozy"] [class*="text-pink-3"],
+[data-theme="cozy"] [class*="text-pink-4"] {
+  color: #BE123C !important; /* Deep crimson rose */
+}
+
+[data-theme="cozy"] .text-emerald-300,
+[data-theme="cozy"] .text-emerald-400 {
+  color: #15803D !important; /* Deep forest green */
+}
+
+[data-theme="cozy"] .text-sky-300,
+[data-theme="cozy"] .text-sky-400,
+[data-theme="cozy"] .text-blue-300,
+[data-theme="cozy"] .text-blue-400 {
+  color: #0369A1 !important; /* Deep sky blue */
+}
+
+[data-theme="cozy"] .text-purple-300,
+[data-theme="cozy"] .text-purple-400 {
+  color: #7E22CE !important; /* Deep rich purple */
+}
+
+/* Shadows become subtle warm ambient depth */
+[data-theme="cozy"] [class*="shadow-["] {
+  box-shadow: 0 2px 8px rgba(46, 40, 35, 0.04), 0 1px 3px rgba(46, 40, 35, 0.02) !important;
+}
+
+/* Modals & Backdrop in Cozy Mode - Soft transparent warm blur */
+[data-theme="cozy"] .fixed.inset-0.bg-slate-950\/40,
+[data-theme="cozy"] .fixed.inset-0.bg-slate-950\/50,
+[data-theme="cozy"] .fixed.inset-0.bg-slate-950\/60,
+[data-theme="cozy"] .fixed.inset-0.bg-slate-950\/70,
+[data-theme="cozy"] .fixed.inset-0.bg-slate-950\/80,
+[data-theme="cozy"] .fixed.inset-0.bg-slate-950\/90,
+[data-theme="cozy"] .fixed.inset-0.bg-black\/40,
+[data-theme="cozy"] .fixed.inset-0.bg-black\/50,
+[data-theme="cozy"] .fixed.inset-0.bg-black\/70,
+[data-theme="cozy"] .fixed.inset-0.bg-black\/80,
+[data-theme="cozy"] .fixed.inset-0[class*="backdrop-blur"] {
+  background-color: rgba(46, 40, 35, 0.35) !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+/* AI Slide-over Panel & Chat in Cozy Mode */
+[data-theme="cozy"] .ai-slideover-panel {
+  background-color: #FFFFFF !important;
+  border-left-color: #E8E4DA !important;
+  box-shadow: -8px 0 32px rgba(46, 40, 35, 0.15) !important;
+  color: #2E2823 !important;
+}
+
+[data-theme="cozy"] .ai-slideover-panel .bg-\[\#0f141c\],
+[data-theme="cozy"] .ai-slideover-panel .bg-\[\#070a0f\],
+[data-theme="cozy"] .ai-slideover-panel .bg-\[\#0a0e17\] {
+  background-color: #FAF8F5 !important;
+  border-color: #E8E4DA !important;
+}
+
+[data-theme="cozy"] .ai-slideover-panel .bg-\[\#141a29\],
+[data-theme="cozy"] .ai-slideover-panel .bg-\[\#111622\] {
+  background-color: #F3EFE6 !important;
+  border-color: #E8E4DA !important;
+  color: #2E2823 !important;
+}
+
+[data-theme="cozy"] .ai-slideover-panel .bg-\[\#070910\],
+[data-theme="cozy"] .ai-slideover-panel input,
+[data-theme="cozy"] .ai-slideover-panel textarea,
+[data-theme="cozy"] .ai-slideover-panel select {
+  background-color: #FFFFFF !important;
+  border-color: #E8E4DA !important;
+  color: #2E2823 !important;
+}
+
+[data-theme="cozy"] .ai-slideover-panel .bg-\[\#171d2d\] {
+  background-color: #E1EBE2 !important;
+  border-color: #507D58 !important;
+}
+
+/* Sidebar Navigation Tabs in Cozy Mode */
+[data-theme="cozy"] aside button {
+  border-color: #E8E4DA !important;
+}
+
+[data-theme="cozy"] aside button.bg-\[\#0e131c\] {
+  background-color: #FFFFFF !important;
+  color: #2E2823 !important;
+}
+
+[data-theme="cozy"] aside button.bg-\[\#0e131c\]:hover {
+  background-color: #F3EFE6 !important;
+}
+
+/* Active Selected Tab in Cozy Mode */
+[data-theme="cozy"] aside button[class*="activeBg"],
+[data-theme="cozy"] aside button[class*="translate-x-1"] {
+  background-color: #E1EBE2 !important;
+  border-color: #507D58 !important;
+  color: #234E2B !important;
+  font-weight: 800 !important;
+}
+
+/* Gradebook Semester Badges & Select Dropdown in Cozy Mode */
+[data-theme="cozy"] .bg-rose-500\/15 { background-color: rgba(244, 63, 94, 0.15) !important; color: #E11D48 !important; border-color: rgba(244, 63, 94, 0.3) !important; }
+[data-theme="cozy"] .bg-slate-500\/15 { background-color: rgba(100, 116, 139, 0.15) !important; color: #475569 !important; border-color: rgba(100, 116, 139, 0.3) !important; }
+[data-theme="cozy"] .bg-amber-500\/15, [data-theme="cozy"] .bg-amber-400\/10 { background-color: rgba(245, 158, 11, 0.15) !important; color: #D97706 !important; border-color: rgba(245, 158, 11, 0.3) !important; }
+[data-theme="cozy"] .bg-sky-500\/15, [data-theme="cozy"] .bg-blue-400\/10 { background-color: rgba(14, 165, 233, 0.15) !important; color: #0284C7 !important; border-color: rgba(14, 165, 233, 0.3) !important; }
+[data-theme="cozy"] .bg-purple-500\/15 { background-color: rgba(168, 85, 247, 0.15) !important; color: #9333EA !important; border-color: rgba(168, 85, 247, 0.3) !important; }
+[data-theme="cozy"] .bg-emerald-500\/15, [data-theme="cozy"] .bg-emerald-400\/10 { background-color: rgba(16, 185, 129, 0.15) !important; color: #059669 !important; border-color: rgba(16, 185, 129, 0.3) !important; }
+[data-theme="cozy"] .bg-teal-500\/15 { background-color: rgba(20, 184, 166, 0.15) !important; color: #0D9488 !important; border-color: rgba(20, 184, 166, 0.3) !important; }
+[data-theme="cozy"] .bg-indigo-500\/15 { background-color: rgba(99, 102, 241, 0.15) !important; color: #4F46E5 !important; border-color: rgba(99, 102, 241, 0.3) !important; }
+[data-theme="cozy"] .bg-pink-500\/15 { background-color: rgba(236, 72, 153, 0.15) !important; color: #DB2777 !important; border-color: rgba(236, 72, 153, 0.3) !important; }
+[data-theme="cozy"] .bg-\[\#ef4444\]\/15 { background-color: rgba(239, 68, 68, 0.15) !important; color: #DC2626 !important; border-color: rgba(239, 68, 68, 0.3) !important; }
+
+/* Gradebook Table in Cozy Mode */
+[data-theme="cozy"] table thead {
+  background-color: #F7F5F0 !important;
+  color: #665E54 !important;
+  border-color: #E8E4DA !important;
+}
+
+[data-theme="cozy"] table tbody tr {
+  border-color: #E8E4DA !important;
+}
+
+[data-theme="cozy"] table tbody tr:hover {
+  background-color: #F7F5F0 !important;
+}
+
+[data-theme="cozy"] table input {
+  background-color: #FFFFFF !important;
+  border-color: #E8E4DA !important;
+  color: #2E2823 !important;
+}
+
+/* Priority Left Accent Border on Task Cards */
+[data-theme="cozy"] .border-l-amber-400,
+[data-theme="cozy"] [class*="border-l-amber-"] {
+  border-left-color: #fbbf24 !important;
+  border-left-width: 4px !important;
+}
+
+[data-theme="cozy"] .border-l-orange-400,
+[data-theme="cozy"] [class*="border-l-orange-"] {
+  border-left-color: #fb923c !important;
+  border-left-width: 4px !important;
+}
+
+[data-theme="cozy"] .border-l-blue-400,
+[data-theme="cozy"] [class*="border-l-blue-"] {
+  border-left-color: #60a5fa !important;
+  border-left-width: 4px !important;
+}
+
+[data-theme="cozy"] .border-l-emerald-400,
+[data-theme="cozy"] [class*="border-l-emerald-"],
+[data-theme="cozy"] [class*="border-l-green-"] {
+  border-left-color: #34d399 !important;
+  border-left-width: 4px !important;
+}
+
+[data-theme="cozy"] .border-l-purple-400,
+[data-theme="cozy"] [class*="border-l-purple-"] {
+  border-left-color: #c084fc !important;
+  border-left-width: 4px !important;
+}
+
+[data-theme="cozy"] .border-l-rose-400,
+[data-theme="cozy"] [class*="border-l-rose-"],
+[data-theme="cozy"] [class*="border-l-red-"] {
+  border-left-color: #f87171 !important;
+  border-left-width: 4px !important;
+}
+
+[data-theme="cozy"] .border-l-slate-500,
+[data-theme="cozy"] [class*="border-l-slate-"] {
+  border-left-color: #94a3b8 !important;
+  border-left-width: 4px !important;
+}
+
+/* Streak Matrix Grid in Cozy Mode - Exactly Identical Green Palette */
+[data-theme="cozy"] .bg-\[\#161b22\] {
+  background-color: #EBE7DF !important;
+  border-color: #DFD9CD !important;
+}
+
+[data-theme="cozy"] .bg-\[\#0e4429\] {
+  background-color: #0e4429 !important;
+  border-color: rgba(14, 68, 41, 0.6) !important;
+}
+
+[data-theme="cozy"] .bg-\[\#006d32\] {
+  background-color: #006d32 !important;
+  border-color: rgba(0, 109, 50, 0.6) !important;
+}
+
+[data-theme="cozy"] .bg-\[\#26a641\] {
+  background-color: #26a641 !important;
+  border-color: rgba(38, 166, 65, 0.6) !important;
+}
+
+[data-theme="cozy"] .bg-\[\#39d353\] {
+  background-color: #39d353 !important;
+  border-color: rgba(57, 211, 83, 0.6) !important;
+  box-shadow: 0 0 6px rgba(57, 211, 83, 0.5) !important;
+}
+
+/* Pomodoro Timer Center & Habits */
+.pomodoro-inner-circle {
+  background: radial-gradient(circle, #1a2a1f 0%, #0d1a11 100%);
+}
+
+[data-theme="cozy"] .pomodoro-inner-circle {
+  background: radial-gradient(circle, #FAF7F0 0%, #E8E2D5 100%) !important;
+  border-color: #507D58 !important;
+}
+
+[data-theme="cozy"] .pixel-label {
+  font-family: var(--font-sans) !important;
+  letter-spacing: 0.02em !important;
+}
+
+[data-theme="cozy"] input,
+[data-theme="cozy"] select,
+[data-theme="cozy"] textarea {
+  background-color: #FFFFFF !important;
+  border-color: #E8E4DA !important;
+  color: #2E2823 !important;
+}
+
+[data-theme="cozy"] .bg-\[\#070a0f\]\/80 {
+  background-color: transparent !important;
+}
+
+/* Custom scrollbar in Cozy Mode */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #070a0f;
+  background: var(--scrollbar-track);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: var(--scrollbar-thumb);
   border-radius: 99px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #334155;
 }
 
 @keyframes spin-slow {

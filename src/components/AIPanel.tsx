@@ -735,7 +735,7 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
               exit={{ opacity: 0, x: 400 }}
               transition={{ type: 'spring', damping: 25, stiffness: 250 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full sm:w-[480px] bg-[#070a0f] border-l-3 border-slate-950 shadow-[-10px_0_30px_rgba(0,0,0,0.8)] flex flex-col font-sans h-full"
+              className="w-full sm:w-[480px] bg-[#070a0f] border-l-3 border-slate-950 shadow-[-10px_0_30px_rgba(0,0,0,0.8)] flex flex-col font-sans h-full ai-slideover-panel"
             >
               {/* Panel Header */}
               <div className="p-4 bg-[#0f141c] border-b-2 border-slate-950 flex items-center justify-between gap-3 shrink-0">

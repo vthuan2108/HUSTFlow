@@ -22,15 +22,14 @@ function getLocalDateString(d: Date = new Date()): string {
 }
 
 // Isometric projection helpers
-const GRID = 5; // 5x5 Grid as per original Forest app style
 const TW = 32;  // tile width (half the diamond width)
 const TH = 16;  // tile height (half of TW for 2:1 aspect)
 const SOIL = 18; // height of soil faces
 
-// Convert grid (col, row) to SVG screen coordinates with +GRID shift to avoid negative X coordinates
-function iso(col: number, row: number): { x: number; y: number } {
+// Convert grid (col, row) to SVG screen coordinates with +grid shift to avoid negative X coordinates
+function iso(col: number, row: number, grid: number): { x: number; y: number } {
   return {
-    x: (col - row + GRID) * TW,
+    x: (col - row + grid) * TW,
     y: (col + row) * TH,
   };
 }
@@ -40,11 +39,11 @@ function pts(...coords: Array<{ x: number; y: number }>): string {
 }
 
 // Draw a single grass tile (rhombus) with a checkerboard grass pattern
-function GrassTile({ col, row }: { col: number; row: number }) {
-  const tl = iso(col, row);
-  const tr = iso(col + 1, row);
-  const br = iso(col + 1, row + 1);
-  const bl = iso(col, row + 1);
+function GrassTile({ col, row, grid }: { col: number; row: number; grid: number }) {
+  const tl = iso(col, row, grid);
+  const tr = iso(col + 1, row, grid);
+  const br = iso(col + 1, row + 1, grid);
+  const bl = iso(col, row + 1, grid);
   
   // alternating colors for checkerboard look like Forest app
   const isAlt = (col + row) % 2 === 0;
@@ -65,10 +64,11 @@ interface IsoTreeProps {
   row: number;
   icon: string;
   delay: number;
+  grid: number;
 }
 
-function IsoTree({ col, row, icon, delay }: IsoTreeProps) {
-  const center = iso(col + 0.5, row + 0.5);
+function IsoTree({ col, row, icon, delay, grid }: IsoTreeProps) {
+  const center = iso(col + 0.5, row + 0.5, grid);
   const cx = center.x;
   const cy = center.y;
 
@@ -171,12 +171,16 @@ export default function SpiritualGarden({ plants, onClearGarden }: SpiritualGard
 
   const harvestedCount = filteredPlants.filter(p => p.status === 'HARVESTED').length;
 
+  // Dynamic Grid Size: starts at 5x5 (25 tiles), automatically expands to 6x6 (36), 7x7 (49), 8x8 (64)...
+  const grid = Math.max(5, Math.ceil(Math.sqrt(filteredPlants.length)));
+  const totalCapacity = grid * grid;
+
   // Sort cells from center outward (so plants fill from center)
-  const cx = (GRID - 1) / 2;
-  const cy = (GRID - 1) / 2;
+  const cx = (grid - 1) / 2;
+  const cy = (grid - 1) / 2;
   const sortedCells: { r: number; c: number }[] = [];
-  for (let r = 0; r < GRID; r++) {
-    for (let c = 0; c < GRID; c++) {
+  for (let r = 0; r < grid; r++) {
+    for (let c = 0; c < grid; c++) {
       sortedCells.push({ r, c });
     }
   }
@@ -212,16 +216,15 @@ export default function SpiritualGarden({ plants, onClearGarden }: SpiritualGard
 
   // SVG bounding box setup
   const offsetX = 20;
-  const svgW = GRID * 2 * TW + 2 * offsetX;
+  const svgW = grid * 2 * TW + 2 * offsetX;
   const offsetY = 50;
-  const svgH = GRID * 2 * TH + SOIL + 65;
+  const svgH = grid * 2 * TH + SOIL + 65;
 
-  // Front-Left Faces (from Left tip (0, GRID) to Bottom tip (GRID, GRID))
-  // row = GRID is constant, col ranges from 0 to GRID - 1
+  // Front-Left Faces (from Left tip (0, grid) to Bottom tip (grid, grid))
   const frontLeftFaces: Array<[{x:number;y:number},{x:number;y:number},{x:number;y:number},{x:number;y:number}]> = [];
-  for (let c = 0; c < GRID; c++) {
-    const top1 = iso(c, GRID);
-    const top2 = iso(c + 1, GRID);
+  for (let c = 0; c < grid; c++) {
+    const top1 = iso(c, grid, grid);
+    const top2 = iso(c + 1, grid, grid);
     frontLeftFaces.push([
       top1,
       top2,
@@ -230,12 +233,11 @@ export default function SpiritualGarden({ plants, onClearGarden }: SpiritualGard
     ]);
   }
 
-  // Front-Right Faces (from Bottom tip (GRID, GRID) to Right tip (GRID, 0))
-  // col = GRID is constant, row ranges from 0 to GRID - 1
+  // Front-Right Faces (from Bottom tip (grid, grid) to Right tip (grid, 0))
   const frontRightFaces: Array<[{x:number;y:number},{x:number;y:number},{x:number;y:number},{x:number;y:number}]> = [];
-  for (let r = 0; r < GRID; r++) {
-    const top1 = iso(GRID, r);
-    const top2 = iso(GRID, r + 1);
+  for (let r = 0; r < grid; r++) {
+    const top1 = iso(grid, r, grid);
+    const top2 = iso(grid, r + 1, grid);
     frontRightFaces.push([
       top1,
       top2,
@@ -253,17 +255,6 @@ export default function SpiritualGarden({ plants, onClearGarden }: SpiritualGard
           <Sprout className="w-5 h-5 text-emerald-400 animate-pulse" />
           <h3 className="text-sm font-black text-slate-100 uppercase tracking-wider">🌿 Linh Viên</h3>
         </div>
-        {plants.length > 0 && (
-          <button
-            onClick={() => {
-              if (confirm('Đạo hữu có chắc chắn muốn dọn sạch Linh Viên?')) onClearGarden();
-            }}
-            className="flex items-center gap-1 px-2.5 py-1 neo-btn neo-btn-danger text-[9px] font-bold text-white"
-          >
-            <Trash2 className="w-3 h-3" />
-            DỌN VƯỜN
-          </button>
-        )}
       </div>
 
       {/* Filter Tabs */}
@@ -293,9 +284,9 @@ export default function SpiritualGarden({ plants, onClearGarden }: SpiritualGard
           style={{ overflow: 'visible', maxWidth: '100%', height: 'auto' }}
         >
           {/* ── GRASS TILES (rendered back to front for correct overlap) ── */}
-          {Array.from({ length: GRID }, (_, r) =>
-            Array.from({ length: GRID }, (_, c) => (
-              <GrassTile key={`${r}-${c}`} col={c} row={r} />
+          {Array.from({ length: grid }, (_, r) =>
+            Array.from({ length: grid }, (_, c) => (
+              <GrassTile key={`${r}-${c}`} col={c} row={r} grid={grid} />
             ))
           )}
 
@@ -336,13 +327,13 @@ export default function SpiritualGarden({ plants, onClearGarden }: SpiritualGard
                   <IsoTree
                     col={cell.c}
                     row={cell.r}
-                    seedId={seed?.id}
                     icon={seed?.icon || '🌲'}
-                    delay={idx * 0.05}
+                    delay={idx * 0.04}
+                    grid={grid}
                   />
                 ) : (
                   (() => {
-                    const center = iso(cell.c + 0.5, cell.r + 0.5);
+                    const center = iso(cell.c + 0.5, cell.r + 0.5, grid);
                     return (
                       <motion.text
                         x={center.x}

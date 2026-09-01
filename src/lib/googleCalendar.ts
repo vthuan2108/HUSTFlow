@@ -4,6 +4,7 @@
  */
 
 import { CalendarGroup, CalendarEvent } from '../types';
+import { authenticatedGoogleFetch } from './firebase';
 
 async function checkResponse(res: Response, errorLabel: string) {
   if (!res.ok) {
@@ -19,9 +20,7 @@ async function checkResponse(res: Response, errorLabel: string) {
  * Fetch list of calendars from Google Calendar
  */
 export async function fetchGoogleCalendars(token: string): Promise<any[]> {
-  const res = await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList', {
-    headers: { Authorization: `Bearer ${token}` }
-  });
+  const res = await authenticatedGoogleFetch('https://www.googleapis.com/calendar/v3/users/me/calendarList', token);
   await checkResponse(res, 'Failed to fetch calendar list');
   const data = await res.json();
   return data.items || [];
@@ -31,12 +30,8 @@ export async function fetchGoogleCalendars(token: string): Promise<any[]> {
  * Create a new secondary calendar on Google Calendar
  */
 export async function createGoogleCalendar(token: string, summary: string): Promise<any> {
-  const res = await fetch('https://www.googleapis.com/calendar/v3/calendars', {
+  const res = await authenticatedGoogleFetch('https://www.googleapis.com/calendar/v3/calendars', token, {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
     body: JSON.stringify({ summary })
   });
   await checkResponse(res, 'Failed to create Google Calendar');
@@ -53,9 +48,7 @@ export async function fetchGoogleEvents(
   timeMax: string
 ): Promise<any[]> {
   const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?timeMin=${encodeURIComponent(timeMin)}&timeMax=${encodeURIComponent(timeMax)}&singleEvents=true`;
-  const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
+  const res = await authenticatedGoogleFetch(url, token);
   await checkResponse(res, `Failed to fetch events for calendar ${calendarId}`);
   const data = await res.json();
   return data.items || [];
@@ -76,12 +69,8 @@ export async function insertGoogleEvent(
     end: event.end
   };
 
-  const res = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`, {
+  const res = await authenticatedGoogleFetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`, token, {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
     body: JSON.stringify(resource)
   });
   await checkResponse(res, 'Failed to insert Google Calendar event');
@@ -104,12 +93,8 @@ export async function updateGoogleEvent(
     end: event.end
   };
 
-  const res = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`, {
+  const res = await authenticatedGoogleFetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`, token, {
     method: 'PUT',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
     body: JSON.stringify(resource)
   });
   await checkResponse(res, 'Failed to update Google Calendar event');
@@ -124,9 +109,8 @@ export async function deleteGoogleEvent(
   calendarId: string,
   eventId: string
 ): Promise<void> {
-  const res = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`, {
-    method: 'DELETE',
-    headers: { Authorization: `Bearer ${token}` }
+  const res = await authenticatedGoogleFetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`, token, {
+    method: 'DELETE'
   });
   if (!res.ok && res.status !== 410 && res.status !== 404) {
     await checkResponse(res, 'Failed to delete Google Calendar event');

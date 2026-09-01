@@ -48,7 +48,7 @@ import SpiritualGarden from './components/SpiritualGarden';
 import FloatingLofiPlayer from './components/FloatingLofiPlayer';
 import UserGuideModal from './components/UserGuideModal';
 import { AchievementsModal } from './components/AchievementsModal';
-import { initAuth, googleSignIn, logout as firebaseLogout, getAccessToken } from './lib/firebase';
+import { initAuth, googleSignIn, logout as firebaseLogout, getAccessToken, refreshGoogleAccessToken } from './lib/firebase';
 import { syncGoogleTasks, deleteTaskOnGoogle, patchTaskOnGoogle } from './lib/googleTasks';
 import { saveUserDataToCloud, loadUserDataFromCloud, fetchLeaderboardFromCloud } from './lib/firestoreSync';
 import { User } from 'firebase/auth';
@@ -72,7 +72,10 @@ import {
   ArrowDown,
   X,
   Music,
-  Library
+  Library,
+  Sun,
+  Moon,
+  Coffee
 } from 'lucide-react';
 
 
@@ -100,6 +103,20 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<string>(() => {
     return localStorage.getItem('tlk_active_tab') || 'MEDITATION';
   });
+
+  const [theme, setTheme] = useState<'dark' | 'cozy'>(() => {
+    const saved = localStorage.getItem('tlk_theme');
+    return (saved === 'cozy' || saved === 'dark') ? saved : 'dark';
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('tlk_theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'dark' ? 'cozy' : 'dark');
+  };
 
   const [spreadsheetId, setSpreadsheetId] = useState<string>(() => {
     return localStorage.getItem('tlk_spreadsheet_id') || '';
@@ -409,14 +426,17 @@ export default function App() {
   const [isCloudSyncing, setIsCloudSyncing] = useState<boolean>(false);
   const [hasLoadedFromCloud, setHasLoadedFromCloud] = useState<boolean>(false);
   const [showTabCustomizeModal, setShowTabCustomizeModal] = useState<boolean>(false);
-  const TARGET_DEFAULT_TAB_ORDER = ['MEDITATION', 'TODOS', 'SCHEDULE', 'GRADES', 'CULT_PATH', 'TANG_KINH_CAC', 'STORE', 'IELTS_ARENA', 'ANALYTICS', 'CAM_DIA'];
+  const TARGET_DEFAULT_TAB_ORDER = ['MEDITATION', 'TODOS', 'SCHEDULE', 'GRADES', 'CULT_PATH', 'TANG_KINH_CAC', 'STORE', 'IELTS_ARENA', 'ANALYTICS'];
   const [tabOrder, setTabOrder] = useState<string[]>(() => {
     const saved = localStorage.getItem('tlk_tab_order');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length === TARGET_DEFAULT_TAB_ORDER.length) {
-          return parsed;
+        if (Array.isArray(parsed)) {
+          const filtered = parsed.filter(t => t !== 'CAM_DIA');
+          if (filtered.length === TARGET_DEFAULT_TAB_ORDER.length) {
+            return filtered;
+          }
         }
       } catch (e) {}
     }
@@ -445,8 +465,6 @@ export default function App() {
         return { label: 'Điểm số', icon: <GraduationCap className="w-3.5 h-3.5" />, colorClass: 'bg-blue-400 text-slate-950 shadow-[3px_3px_0px_#000]' };
       case 'STORE':
         return { label: 'Tàng Bảo Các (Shop)', icon: <Sparkles className="w-3.5 h-3.5" />, colorClass: 'bg-rose-400 text-slate-950 shadow-[3px_3px_0px_#000]' };
-      case 'CAM_DIA':
-        return { label: 'Cấm Địa Tông Môn', icon: <Lock className="w-3.5 h-3.5" />, colorClass: 'bg-red-500 text-slate-950 shadow-[3px_3px_0px_#000]' };
       case 'TANG_KINH_CAC':
         return { label: 'Tàng Kinh Các (Studocu)', icon: <Library className="w-3.5 h-3.5" />, colorClass: 'bg-indigo-400 text-slate-950 shadow-[3px_3px_0px_#000]' };
       default:
@@ -821,6 +839,15 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
+  // Background interval to silently refresh Google Access Token every 10 minutes
+  useEffect(() => {
+    if (!currentUser) return;
+    const interval = setInterval(async () => {
+      await refreshGoogleAccessToken();
+    }, 10 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [currentUser]);
+
   useEffect(() => {
     if (currentUser) {
       handleFetchLeaderboard();
@@ -1136,9 +1163,14 @@ export default function App() {
     // Apply Tụ Khí Quyết active spell (+30% Tu Vi from meditation/actions)
     const isSpellTuKhiActive = cultState.activeSpells?.includes('spell_tu_khi_quyet');
     const xpMultiplier = isSpellTuKhiActive && amount > 0 ? 1.3 : 1.0;
+
+    // Apply Unlimited Streak Multiplier Buff (+x% Tu Vi with x = current streak days)
+    const currentStreak = getStreakFromLogs(dailyLogs);
+    const streakMultiplier = amount > 0 && currentStreak > 0 ? (1 + currentStreak / 100) : 1.0;
+
     const adjustedAmount = isTamMa && amount > 0
-      ? Math.round(amount * 0.7 * xpMultiplier)
-      : Math.round(amount * xpMultiplier);
+      ? Math.round(amount * 0.7 * xpMultiplier * streakMultiplier)
+      : Math.round(amount * xpMultiplier * streakMultiplier);
 
     // Apply Tâm Ma Trảm active spell (Double Linh Thạch from all rewards)
     const isSpellTamMaActive = cultState.activeSpells?.includes('spell_tam_ma_tram');
@@ -2087,8 +2119,27 @@ export default function App() {
             </button>
           </div>
 
-          {/* Header Right Action Area: User Guide + Google Login / Cloud Profile Widget */}
+          {/* Header Right Action Area: Theme Toggle + User Guide + Google Login / Cloud Profile Widget */}
           <div className="flex items-center gap-2">
+            {/* THEME TOGGLE BUTTON (Dark Cultivator vs Cozy Paper Minimalist) */}
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className={`flex items-center gap-1.5 px-3 py-1.5 font-bold text-[9px] rounded-lg border-2 uppercase tracking-wider transition-all cursor-pointer shadow-[2px_2px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#000] ${
+                theme === 'cozy'
+                  ? 'bg-[#E1EBE2] hover:bg-[#D4E2D6] text-[#2E2823] border-[#507D58]'
+                  : 'bg-[#121722] hover:bg-[#1a2130] text-emerald-400 hover:text-emerald-300 border-slate-950'
+              }`}
+              title="Change theme"
+            >
+              {theme === 'dark' ? (
+                <Sun className="w-3.5 h-3.5 text-amber-400 stroke-[2.5]" />
+              ) : (
+                <Moon className="w-3.5 h-3.5 text-[#507D58] stroke-[2.5]" />
+              )}
+              <span>Change theme</span>
+            </button>
+
             {/* User Guide Button */}
             <button
               type="button"
@@ -2346,9 +2397,6 @@ export default function App() {
                 />
               </div>
 
-              <div className={activeTab !== 'CAM_DIA' ? 'hidden' : ''}>
-                <ForbiddenNotes notes={notes} onUpdateNotes={setNotes} />
-              </div>
 
               <div className={activeTab !== 'IELTS_ARENA' ? 'hidden' : ''}>
                 <IeltsMockTestLog
@@ -2578,69 +2626,7 @@ export default function App() {
             </div>
           )}
 
-          {/* AI Proactive Ritual Notification Bubble floating at bottom-right */}
-          {(() => {
-            const todayStr = getLocalDateString();
-            const isPlanningPending = planningCompletedDate !== todayStr;
-            const isReflectionPending = reflectionCompletedDate !== todayStr && new Date().getHours() >= 16;
-            const isBubbleDismissed = dismissedAIBubbleDate === todayStr;
-            const persona = (localStorage.getItem('tlk_ai_persona') as string) || 'MO_UYEN';
 
-            if (isBubbleDismissed || (!isPlanningPending && !isReflectionPending)) return null;
-
-            return (
-              <div className="fixed bottom-24 right-6 z-40 max-w-xs sm:max-w-sm bg-[#0e131d] border-2 border-slate-950 p-3.5 rounded-2xl shadow-[6px_6px_0px_#000] animate-bounce-slow font-sans text-xs space-y-2 select-none">
-                <div className="flex items-start justify-between gap-2 border-b border-slate-800/80 pb-1.5">
-                  <div className="flex items-center gap-1.5 font-bold font-sans text-[12px] text-rose-300">
-                    <span>
-                      {persona === 'MO_UYEN' ? '🌸 UYỂN NHI:' : persona === 'TU_DO_NAM' ? '👺 TƯ ĐỒ NAM:' : '📜 TÔNG CHỦ THIÊN CƠ CÁC:'}
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => setDismissedAIBubbleDate(todayStr)}
-                    className="text-slate-500 hover:text-slate-300 p-0.5 cursor-pointer"
-                    title="Ẩn thông báo hôm nay"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-
-                <p className="text-[11px] text-slate-200 leading-normal font-sans">
-                  {persona === 'MO_UYEN' ? (
-                    isPlanningPending
-                      ? 'Sư huynh, Uyển Nhi thấy huynh chưa lập kế hoạch Vấn Đạo (Planning) hôm nay! Huynh hãy cùng Uyển Nhi định hình tâm cảnh nhé...'
-                      : 'Sư huynh, đã đến canh tối rồi! Huynh hãy cùng Uyển Nhi tổng kết Kết Nhật (Reflection) đúc kết đạo quả hôm nay...'
-                  ) : persona === 'TU_DO_NAM' ? (
-                    isPlanningPending
-                      ? 'Thiết Trụ! Ngươi chưa làm Nghi Thức Vấn Đạo hôm nay đấy! Mau lập kế hoạch 3 việc trọng tâm cho lão phu!'
-                      : 'Thiết Trụ! Đã đến canh tối rồi, mau tổng kết Kết Nhật đúc kết đạo quả cho lão phu xem!'
-                  ) : (
-                    isPlanningPending
-                      ? 'Đạo hữu chưa thực hiện Nghi Thức Vấn Đạo (Planning) hôm nay! Hãy định hình 3 việc trọng tâm để dẫn dắt đạo tâm.'
-                      : 'Đã đến canh tối! Hãy thực hiện Nghi Thức Kết Nhật (Reflection) để đúc kết đạo quả hôm nay.'
-                  )}
-                </p>
-
-                <div className="pt-1 flex items-center gap-2">
-                  {isPlanningPending ? (
-                    <button
-                      onClick={() => setActiveRitualModal('PLANNING')}
-                      className="w-full py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl border border-slate-950 uppercase text-[10px] tracking-wider transition-all shadow-[2px_2px_0px_#000] active:translate-y-0.5 active:shadow-none cursor-pointer"
-                    >
-                      {persona === 'MO_UYEN' ? '🌸 CÙNG UYỂN NHI LẬP KẾ HOẠCH (+30 Tu Vi)' : '☀️ LẬP KẾ HOẠCH NGAY (+30 Tu Vi)'}
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => setActiveRitualModal('REFLECTION')}
-                      className="w-full py-1.5 bg-purple-400 hover:bg-purple-300 text-slate-950 font-black rounded-xl border border-slate-950 uppercase text-[10px] tracking-wider transition-all shadow-[2px_2px_0px_#000] active:translate-y-0.5 active:shadow-none cursor-pointer"
-                    >
-                      {persona === 'MO_UYEN' ? '🌙 CÙNG UYỂN NHI TỔNG KẾT (+30 Tu Vi)' : '🌙 TỔNG KẾT NGAY (+30 Tu Vi)'}
-                    </button>
-                  )}
-                </div>
-              </div>
-            );
-          })()}
 
           {/* Daily Rituals Dedicated Modal */}
           <DailyRitualsModal

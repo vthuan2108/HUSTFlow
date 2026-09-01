@@ -220,9 +220,6 @@ export default function CultivationHeader({ state, onRename, onBreakthrough, use
     if (bottleneckReq.minMeditationMinutes && safeMeditationDiff < bottleneckReq.minMeditationMinutes) {
       bottleneckMet = false;
     }
-    if (bottleneckReq.minCompletedTasks && safeTasksDiff < bottleneckReq.minCompletedTasks) {
-      bottleneckMet = false;
-    }
     if (bottleneckReq.requiredItemId) {
       const hasItem = safeInventory.some(i => i && i.itemId === bottleneckReq.requiredItemId && i.quantity > 0);
       if (!hasItem) bottleneckMet = false;
@@ -484,15 +481,6 @@ export default function CultivationHeader({ state, onRename, onBreakthrough, use
                           <span className="text-slate-400">🧘 Bế quan Thiền Định (từ bình cảnh):</span>
                           <span className={safeMeditationDiff >= bottleneckReq.minMeditationMinutes ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>
                             {safeMeditationDiff} / {bottleneckReq.minMeditationMinutes} phút
-                          </span>
-                        </div>
-                      )}
-
-                      {bottleneckReq.minCompletedTasks && (
-                        <div className="flex justify-between items-center">
-                          <span className="text-slate-400">⚔️ Hoàn thành Nhiệm Vụ (từ bình cảnh):</span>
-                          <span className={safeTasksDiff >= bottleneckReq.minCompletedTasks ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>
-                            {safeTasksDiff} / {bottleneckReq.minCompletedTasks} task
                           </span>
                         </div>
                       )}

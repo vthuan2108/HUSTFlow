@@ -1,3 +1,9 @@
+/**
+ * HUSTFlow Extension - Studocu PDF Downloader Module
+ * Based on original work by Nguyencuong4283 (https://github.com/Nguyencuong4283/studocu-downloader)
+ * Licensed under MIT License
+ */
+
 (function() {
     'use strict';
 

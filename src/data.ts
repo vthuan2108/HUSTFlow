@@ -456,7 +456,6 @@ export const getRealmInfo = (level: number): RealmInfo => {
     bottleneck = {
       title: 'Bình Cảnh Trúc Cơ',
       minMeditationMinutes: 45,
-      minCompletedTasks: 3,
       requiredItemId: 'truc_co_dan',
       requiredItemName: 'Trúc Cơ Đan'
     };
@@ -464,7 +463,6 @@ export const getRealmInfo = (level: number): RealmInfo => {
     bottleneck = {
       title: 'Bình Cảnh Kết Đan',
       minMeditationMinutes: 60,
-      minCompletedTasks: 5,
       requiredItemId: 'ket_dan_hoan',
       requiredItemName: 'Kết Đan Hoàn'
     };
@@ -472,7 +470,6 @@ export const getRealmInfo = (level: number): RealmInfo => {
     bottleneck = {
       title: 'Bình Cảnh Nguyên Anh',
       minMeditationMinutes: 90,
-      minCompletedTasks: 8,
       requiredItemId: 'nguyen_anh_dan',
       requiredItemName: 'Nguyên Anh Đan'
     };
@@ -480,7 +477,6 @@ export const getRealmInfo = (level: number): RealmInfo => {
     bottleneck = {
       title: 'Bình Cảnh Hóa Thần',
       minMeditationMinutes: 100,
-      minCompletedTasks: 10,
       requiredItemId: 'do_kiep_phu',
       requiredItemName: 'Độ Kiếp Phù'
     };
@@ -488,7 +484,6 @@ export const getRealmInfo = (level: number): RealmInfo => {
     bottleneck = {
       title: 'Bình Cảnh Anh Biến',
       minMeditationMinutes: 120,
-      minCompletedTasks: 12,
       requiredItemId: 'do_kiep_phu',
       requiredItemName: 'Độ Kiếp Phù'
     };
@@ -496,7 +491,6 @@ export const getRealmInfo = (level: number): RealmInfo => {
     bottleneck = {
       title: 'Bình Cảnh Vấn Đỉnh',
       minMeditationMinutes: 130,
-      minCompletedTasks: 14,
       requiredItemId: 'do_kiep_phu',
       requiredItemName: 'Độ Kiếp Phù'
     };
@@ -504,7 +498,6 @@ export const getRealmInfo = (level: number): RealmInfo => {
     bottleneck = {
       title: 'Bình Cảnh Âm Hư',
       minMeditationMinutes: 140,
-      minCompletedTasks: 15,
       requiredItemId: 'do_kiep_phu',
       requiredItemName: 'Độ Kiếp Phù'
     };
@@ -512,7 +505,6 @@ export const getRealmInfo = (level: number): RealmInfo => {
     bottleneck = {
       title: 'Bình Cảnh Dương Thực',
       minMeditationMinutes: 145,
-      minCompletedTasks: 16,
       requiredItemId: 'do_kiep_phu',
       requiredItemName: 'Độ Kiếp Phù'
     };
@@ -520,7 +512,6 @@ export const getRealmInfo = (level: number): RealmInfo => {
     bottleneck = {
       title: 'Bình Cảnh Khuy Niết',
       minMeditationMinutes: 150,
-      minCompletedTasks: 18,
       requiredItemId: 'do_kiep_phu',
       requiredItemName: 'Độ Kiếp Phù'
     };
@@ -528,7 +519,6 @@ export const getRealmInfo = (level: number): RealmInfo => {
     bottleneck = {
       title: 'Bình Cảnh Tịnh Niết',
       minMeditationMinutes: 165,
-      minCompletedTasks: 20,
       requiredItemId: 'do_kiep_phu',
       requiredItemName: 'Độ Kiếp Phù'
     };
@@ -536,7 +526,6 @@ export const getRealmInfo = (level: number): RealmInfo => {
     bottleneck = {
       title: 'Bình Cảnh Toái Niết',
       minMeditationMinutes: 180,
-      minCompletedTasks: 22,
       requiredItemId: 'do_kiep_phu',
       requiredItemName: 'Độ Kiếp Phù'
     };
@@ -544,7 +533,6 @@ export const getRealmInfo = (level: number): RealmInfo => {
     bottleneck = {
       title: 'Bình Cảnh Thiên Nhân Ngũ Suy',
       minMeditationMinutes: 200,
-      minCompletedTasks: 25,
       requiredItemId: 'do_kiep_phu',
       requiredItemName: 'Độ Kiếp Phù'
     };
@@ -552,7 +540,6 @@ export const getRealmInfo = (level: number): RealmInfo => {
     bottleneck = {
       title: 'Bình Cảnh Không Niết Cảnh',
       minMeditationMinutes: 220,
-      minCompletedTasks: 28,
       requiredItemId: 'do_kiep_phu',
       requiredItemName: 'Độ Kiếp Phù'
     };
@@ -560,7 +547,6 @@ export const getRealmInfo = (level: number): RealmInfo => {
     bottleneck = {
       title: 'Bình Cảnh Không Linh Cảnh',
       minMeditationMinutes: 240,
-      minCompletedTasks: 30,
       requiredItemId: 'do_kiep_phu',
       requiredItemName: 'Độ Kiếp Phù'
     };
@@ -568,7 +554,6 @@ export const getRealmInfo = (level: number): RealmInfo => {
     bottleneck = {
       title: 'Bình Cảnh Không Huyền Cảnh',
       minMeditationMinutes: 260,
-      minCompletedTasks: 32,
       requiredItemId: 'do_kiep_phu',
       requiredItemName: 'Độ Kiếp Phù'
     };
@@ -576,7 +561,6 @@ export const getRealmInfo = (level: number): RealmInfo => {
     bottleneck = {
       title: 'Bình Cảnh 9 Kiếp Huyền Kiếp',
       minMeditationMinutes: 280,
-      minCompletedTasks: 35,
       requiredItemId: 'do_kiep_phu',
       requiredItemName: 'Độ Kiếp Phù'
     };
@@ -584,7 +568,6 @@ export const getRealmInfo = (level: number): RealmInfo => {
     bottleneck = {
       title: 'Bình Cảnh Không Kiếp Đại Tôn',
       minMeditationMinutes: 320,
-      minCompletedTasks: 40,
       requiredItemId: 'do_kiep_phu',
       requiredItemName: 'Độ Kiếp Phù'
     };
@@ -592,7 +575,6 @@ export const getRealmInfo = (level: number): RealmInfo => {
     bottleneck = {
       title: 'Bình Cảnh Đạp Thiên Kiều',
       minMeditationMinutes: 360,
-      minCompletedTasks: 45,
       requiredItemId: 'do_kiep_phu',
       requiredItemName: 'Độ Kiếp Phù'
     };
@@ -600,7 +582,6 @@ export const getRealmInfo = (level: number): RealmInfo => {
     bottleneck = {
       title: 'Bình Cảnh Đạp Thiên Chí Tôn',
       minMeditationMinutes: 400,
-      minCompletedTasks: 50,
       requiredItemId: 'do_kiep_phu',
       requiredItemName: 'Độ Kiếp Phù'
     };
@@ -647,7 +628,7 @@ export const SPIRITUAL_SEEDS: SeedInfo[] = [
   {
     id: 'ngo_dao_tra',
     name: 'Ngộ Đạo Trà',
-    rarity: 'TRUNG_CAP',
+    rarity: 'SO_CAP',
     icon: '🍵',
     description: 'Lá trà thượng thặng khai thông kinh mạch, thăng hoa ngộ đạo.',
     color: 'text-teal-400 border-teal-900/40 shadow-[0_0_15px_rgba(20,184,166,0.2)] bg-teal-950/20 hover:bg-teal-950/30'
@@ -655,7 +636,7 @@ export const SPIRITUAL_SEEDS: SeedInfo[] = [
   {
     id: 'phuong_hoang_hoa',
     name: 'Phượng Hoàng Hoa',
-    rarity: 'TRUNG_CAP',
+    rarity: 'SO_CAP',
     icon: '🌸',
     description: 'Đóa hoa rực rỡ như phượng hoàng niết bàn, tái sinh tiên lực.',
     color: 'text-rose-400 border-rose-900/40 shadow-[0_0_15px_rgba(244,63,94,0.2)] bg-rose-950/20 hover:bg-rose-950/30'
@@ -663,7 +644,7 @@ export const SPIRITUAL_SEEDS: SeedInfo[] = [
   {
     id: 'tuyet_lien',
     name: 'Vạn Niên Tuyết Liên',
-    rarity: 'CAO_CAP',
+    rarity: 'SO_CAP',
     icon: '❄️',
     description: 'Bông sen tuyết vạn năm trên đỉnh núi cực hàn thanh khiết.',
     color: 'text-blue-400 border-blue-900/50 shadow-[0_0_20px_rgba(59,130,246,0.25)] bg-blue-950/30 hover:bg-blue-950/40'
@@ -671,7 +652,7 @@ export const SPIRITUAL_SEEDS: SeedInfo[] = [
   {
     id: 'hoa_long_qua',
     name: 'Hỏa Long Quả',
-    rarity: 'CAO_CAP',
+    rarity: 'SO_CAP',
     icon: '🔥',
     description: 'Dược quả mang sức mạnh chân hỏa rồng, đột phá tu vi cực đại.',
     color: 'text-orange-400 border-orange-900/50 shadow-[0_0_20px_rgba(249,115,22,0.25)] bg-orange-950/30 hover:bg-orange-950/40'
@@ -679,7 +660,7 @@ export const SPIRITUAL_SEEDS: SeedInfo[] = [
   {
     id: 'ngu_sac_linh_truc',
     name: 'Ngũ Sắc Linh Trúc',
-    rarity: 'THAN_CAP',
+    rarity: 'SO_CAP',
     icon: '🎋',
     description: 'Tre thần năm sắc hấp thụ tiên khí đất trời trăm năm.',
     color: 'text-purple-400 border-purple-900/60 shadow-[0_0_25px_rgba(168,85,247,0.3)] bg-purple-950/40 hover:bg-purple-950/50'
@@ -687,7 +668,7 @@ export const SPIRITUAL_SEEDS: SeedInfo[] = [
   {
     id: 'hon_don_dao_qua',
     name: 'Hỗn Độn Đạo Quả',
-    rarity: 'THAN_CAP',
+    rarity: 'SO_CAP',
     icon: '🌌',
     description: 'Linh quả từ buổi sơ khai vũ trụ ngưng tụ đạo luật thiên địa.',
     color: 'text-amber-400 border-amber-900/60 shadow-[0_0_25px_rgba(245,158,11,0.35)] bg-amber-950/40 hover:bg-amber-950/50 animate-pulse'
@@ -711,7 +692,7 @@ export const SPIRITUAL_SEEDS: SeedInfo[] = [
   {
     id: 'thien_loi_truc',
     name: 'Thiên Lôi Trúc',
-    rarity: 'TRUNG_CAP',
+    rarity: 'SO_CAP',
     icon: '⚡',
     description: 'Tre thần bị lôi đình đánh trúc, ngưng tụ sấm điện thiên nhiên.',
     color: 'text-yellow-400 border-yellow-900/40 shadow-[0_0_15px_rgba(250,204,21,0.2)] bg-yellow-950/20 hover:bg-yellow-950/30'
@@ -719,7 +700,7 @@ export const SPIRITUAL_SEEDS: SeedInfo[] = [
   {
     id: 'am_duong_hoa',
     name: 'Âm Dương Hoa',
-    rarity: 'TRUNG_CAP',
+    rarity: 'SO_CAP',
     icon: '☯️',
     description: 'Đóa hoa nửa tối nửa sáng, cân bằng âm dương ngũ hành nội thể.',
     color: 'text-slate-300 border-slate-600/50 shadow-[0_0_15px_rgba(148,163,184,0.2)] bg-slate-900/30 hover:bg-slate-900/40'
@@ -727,7 +708,7 @@ export const SPIRITUAL_SEEDS: SeedInfo[] = [
   {
     id: 'thai_cuc_qua',
     name: 'Thái Cực Quả',
-    rarity: 'CAO_CAP',
+    rarity: 'SO_CAP',
     icon: '🔮',
     description: 'Linh quả hình cầu phát sáng ngũ sắc, hiện thân của thái cực huyền lý.',
     color: 'text-violet-400 border-violet-900/50 shadow-[0_0_20px_rgba(139,92,246,0.25)] bg-violet-950/30 hover:bg-violet-950/40'
@@ -735,7 +716,7 @@ export const SPIRITUAL_SEEDS: SeedInfo[] = [
   {
     id: 'cuu_long_thao',
     name: 'Cửu Long Thảo',
-    rarity: 'CAO_CAP',
+    rarity: 'SO_CAP',
     icon: '🐉',
     description: 'Thảo dược chín rồng vờn, mang long khí ngàn năm tích tụ.',
     color: 'text-red-400 border-red-900/50 shadow-[0_0_20px_rgba(248,113,113,0.25)] bg-red-950/30 hover:bg-red-950/40'
@@ -743,7 +724,7 @@ export const SPIRITUAL_SEEDS: SeedInfo[] = [
   {
     id: 'vo_cuc_dao_qua',
     name: 'Vô Cực Đạo Quả',
-    rarity: 'THAN_CAP',
+    rarity: 'SO_CAP',
     icon: '✨',
     description: 'Đạo quả vô cực siêu việt cả âm dương, đạt đến cảnh giới vô thượng đại đạo.',
     color: 'text-white border-white/30 shadow-[0_0_30px_rgba(255,255,255,0.4)] bg-white/5 hover:bg-white/10 animate-pulse'

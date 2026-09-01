@@ -4,6 +4,7 @@
  */
 
 import { GradeSubject, SemesterGPA } from '../types';
+import { authenticatedGoogleFetch } from './firebase';
 
 const API_BASE = 'https://sheets.googleapis.com/v4/spreadsheets';
 
@@ -14,16 +15,7 @@ async function sheetsApiCall(
   token: string,
   options: RequestInit = {}
 ) {
-  const headers = {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json',
-    ...options.headers,
-  };
-
-  const response = await fetch(`${API_BASE}/${spreadsheetId}${endpoint}`, {
-    ...options,
-    headers,
-  });
+  const response = await authenticatedGoogleFetch(`${API_BASE}/${spreadsheetId}${endpoint}`, token, options);
 
   if (!response.ok) {
     const errorText = await response.text();

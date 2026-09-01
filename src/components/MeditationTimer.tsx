@@ -778,11 +778,8 @@ export default function MeditationTimer({
 
   const selectedSeed = SPIRITUAL_SEEDS.find(s => s.id === selectedSeedId) || SPIRITUAL_SEEDS[0];
 
-  const getRequiredCycles = (rarity: string) => {
-    if (rarity === 'SO_CAP') return 1;
-    if (rarity === 'TRUNG_CAP') return 2;
-    if (rarity === 'CAO_CAP') return 3;
-    return 4; // THAN_CAP
+  const getRequiredCycles = (_rarity: string) => {
+    return 1;
   };
 
   const getModeDuration = (m: typeof mode) => {
@@ -791,19 +788,12 @@ export default function MeditationTimer({
     return 0; // FREE mode starts at 0 and counts up
   };
 
-  const isSeedUnlocked = (seedId: string): boolean => {
-    const level = state.level;
-    if (seedId === 'ngo_dao_tra' || seedId === 'phuong_hoang_hoa') return level >= 10;
-    if (seedId === 'tuyet_lien' || seedId === 'hoa_long_qua') return level >= 19;
-    if (seedId === 'ngu_sac_linh_truc' || seedId === 'hon_don_dao_qua') return level >= 28;
-    return true;
+  const isSeedUnlocked = (_seedId: string): boolean => {
+    return true; // All seeds are unlocked and accessible
   };
 
-  const getSeedRewards = (rarity: string) => {
-    if (rarity === 'SO_CAP') return { xp: 50, coins: 50 };
-    if (rarity === 'TRUNG_CAP') return { xp: 100, coins: 100 }; // doubled
-    if (rarity === 'CAO_CAP') return { xp: 200, coins: 200 }; // doubled
-    return { xp: 400, coins: 400 }; // doubled (THAN_CAP)
+  const getSeedRewards = (_rarity: string) => {
+    return { xp: 50, coins: 50 }; // Identical baseline rewards for all seeds
   };
 
   const seedRewards = getSeedRewards(selectedSeed.rarity);
@@ -1150,10 +1140,9 @@ export default function MeditationTimer({
 
           {/* Inner circle content */}
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            {/* Inner cream-colored circle (like Forest app) */}
+            {/* Inner circle (adapts cleanly to cozy paper theme) */}
             <div
-              className="w-44 h-44 rounded-full border-[3px] border-slate-950 flex flex-col items-center justify-end pb-4 relative overflow-hidden"
-              style={{ background: 'radial-gradient(circle, #1a2a1f 0%, #0d1a11 100%)' }}
+              className="w-44 h-44 rounded-full border-[3px] border-slate-950 flex flex-col items-center justify-end pb-4 relative overflow-hidden pomodoro-inner-circle"
             >
               {mode === 'FOCUS' && (
                 <div className="absolute top-4 text-[9px] font-bold px-2.5 py-0.5 rounded-lg bg-emerald-400 text-slate-950 border-2 border-slate-950 z-10 select-none shadow-[1px_1px_0px_#000] pixel-label">
@@ -1248,7 +1237,7 @@ export default function MeditationTimer({
         )}
 
         {/* Timer digits */}
-        <div className="text-5xl font-black font-mono tracking-widest text-slate-100 mb-1 pixel-label pixel-shadow">
+        <div className="text-5xl font-black font-mono tracking-widest text-slate-100 mb-1 pixel-label pixel-shadow timer-countdown-digits">
           {formatTime(timeLeft)}
         </div>
 

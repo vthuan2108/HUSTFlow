@@ -80,9 +80,9 @@ export default function FloatingLofiPlayer({ isOpen, onClose, onOpen, isRunning 
       exit={{ opacity: 0, scale: 0.9 }}
       className="fixed bottom-6 right-6 z-50 select-none shadow-[6px_6px_0px_#000]"
     >
-      <div className="bg-[#0e131d] border-2 border-slate-950 rounded-2xl overflow-hidden shadow-2xl flex flex-col w-56 sm:w-64 text-slate-200 font-sans">
+      <div className="bg-[#0e131d] border-2 border-slate-950 rounded-2xl overflow-hidden shadow-2xl flex flex-col w-56 sm:w-64 text-slate-200 font-sans lofi-player-card">
         {/* Header / Drag Bar */}
-        <div className="bg-[#141a27] border-b-2 border-slate-950 px-2.5 py-2 flex items-center justify-between cursor-grab active:cursor-grabbing">
+        <div className="bg-[#141a27] border-b-2 border-slate-950 px-2.5 py-2 flex items-center justify-between cursor-grab active:cursor-grabbing lofi-player-header">
           <div className="flex items-center gap-1.5 min-w-0">
             <GripHorizontal className="w-3.5 h-3.5 text-slate-500 hover:text-slate-300 shrink-0" />
             <div className="flex items-center gap-1.5 font-mono text-[10px] font-bold text-rose-400 truncate">

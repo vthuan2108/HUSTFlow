@@ -963,40 +963,6 @@ export default function ScheduleSection({
             </div>
           </div>
 
-          {/* All-Day Events row */}
-          <div className="grid grid-cols-[60px_1fr] border-b border-slate-950 bg-slate-950/20 divide-x divide-slate-950 shrink-0">
-            <div className="text-[8px] font-black text-slate-650 font-mono uppercase flex items-center justify-center p-1.5">
-              Cả ngày
-            </div>
-            <div className="grid grid-cols-7 divide-x divide-slate-950 p-1 min-h-[40px] bg-slate-900/10">
-              {weekDates.map((date, idx) => {
-                const dateStr = getLocalDateString(date);
-                const allDayEvs = visibleEvents.filter(e => e.start.date === dateStr);
-                
-                return (
-                  <div key={idx} className="p-1 space-y-1 overflow-y-auto max-h-[80px]">
-                    {allDayEvs.map(ev => {
-                      const group = calendarGroups.find(g => g.id === ev.calendarId);
-                      const bg = group ? group.backgroundColor : '#3b82f6';
-                      
-                      return (
-                        <div
-                          key={ev.id}
-                          onClick={() => openEditModal(ev)}
-                          style={{ backgroundColor: bg }}
-                          className="text-[10.5px] font-black p-1 rounded border border-slate-950 shadow-[1px_1px_0px_#000] text-slate-950 truncate select-none cursor-pointer hover:brightness-105"
-                          title={ev.summary}
-                        >
-                          {ev.summary}
-                        </div>
-                      );
-                    })}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
           {/* Timeline Scroll Container */}
           <div className="flex-1 overflow-y-auto flex min-h-0 select-none">
             <div className="grid grid-cols-[60px_1fr] divide-x divide-slate-950 w-full relative">
