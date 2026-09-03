@@ -20,36 +20,34 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 
 export const provider = new GoogleAuthProvider();
-// Request Google Tasks, Sheets & Calendar scope + offline access for refresh token
+// Request Google Tasks, Sheets & Calendar scope
 provider.addScope('https://www.googleapis.com/auth/tasks');
 provider.addScope('https://www.googleapis.com/auth/spreadsheets');
 provider.addScope('https://www.googleapis.com/auth/calendar');
 provider.setCustomParameters({
-  access_type: 'offline',
-  prompt: 'consent'
+  prompt: 'select_account'
 });
 
 let isSigningIn = false;
 let cachedAccessToken: string | null = null;
 
-// Initialize auth state listener
+// Initialize auth state listener - auto-logins user on every refresh
 export const initAuth = (
   onAuthSuccess?: (user: User, token: string) => void,
   onAuthFailure?: () => void
 ) => {
   return onAuthStateChanged(auth, async (user: User | null) => {
     if (user) {
-      const token = await refreshGoogleAccessToken();
+      let token = cachedAccessToken || localStorage.getItem('tlk_google_access_token') || '';
+      if (!token) {
+        token = (await refreshGoogleAccessToken()) || '';
+      }
       if (token) {
         cachedAccessToken = token;
-        if (onAuthSuccess) onAuthSuccess(user, token);
-      } else if (!isSigningIn) {
-        cachedAccessToken = localStorage.getItem('tlk_google_access_token');
-        if (cachedAccessToken) {
-          if (onAuthSuccess) onAuthSuccess(user, cachedAccessToken);
-        } else {
-          if (onAuthFailure) onAuthFailure();
-        }
+      }
+      // Always trigger onAuthSuccess so user remains logged in
+      if (onAuthSuccess) {
+        onAuthSuccess(user, token);
       }
     } else {
       cachedAccessToken = null;
@@ -67,22 +65,15 @@ export const googleSignIn = async (): Promise<{ user: User; accessToken: string 
     isSigningIn = true;
     const result = await signInWithPopup(auth, provider);
     const credential = GoogleAuthProvider.credentialFromResult(result);
-    if (!credential?.accessToken) {
-      throw new Error('Failed to get access token from Firebase Auth');
+    const accessToken = credential?.accessToken || '';
+
+    if (accessToken) {
+      cachedAccessToken = accessToken;
+      localStorage.setItem('tlk_google_access_token', accessToken);
+      localStorage.setItem('tlk_google_token_expires_at', String(Date.now() + 3500 * 1000));
     }
 
-    cachedAccessToken = credential.accessToken;
-    // Store access_token, expires_at, and refresh_token if available
-    localStorage.setItem('tlk_google_access_token', cachedAccessToken);
-    localStorage.setItem('tlk_google_token_expires_at', String(Date.now() + 3500 * 1000));
-    
-    // Store refresh token if returned by Google Credential
-    const rawResult = result as any;
-    if (rawResult?._tokenResponse?.refreshToken) {
-      localStorage.setItem('tlk_google_refresh_token', rawResult._tokenResponse.refreshToken);
-    }
-
-    return { user: result.user, accessToken: cachedAccessToken };
+    return { user: result.user, accessToken };
   } catch (error: any) {
     console.error('Sign in error:', error);
     throw error;
@@ -91,7 +82,7 @@ export const googleSignIn = async (): Promise<{ user: User; accessToken: string 
   }
 };
 
-// Silent Token Refresh Function
+// Token Refresh Function
 export const refreshGoogleAccessToken = async (): Promise<string | null> => {
   if (auth.currentUser) {
     try {
@@ -104,39 +95,10 @@ export const refreshGoogleAccessToken = async (): Promise<string | null> => {
   const storedToken = localStorage.getItem('tlk_google_access_token');
   const expiresAt = Number(localStorage.getItem('tlk_google_token_expires_at') || '0');
 
-  // Reuse stored token if it's valid for more than 2 minutes
-  if (storedToken && expiresAt > Date.now() + 120000) {
+  // Reuse stored token if it's still valid
+  if (storedToken && expiresAt > Date.now() + 60000) {
     cachedAccessToken = storedToken;
     return storedToken;
-  }
-
-  const refreshToken = localStorage.getItem('tlk_google_refresh_token');
-  if (refreshToken) {
-    try {
-      const params = new URLSearchParams({
-        client_id: import.meta.env.VITE_FIREBASE_APP_ID || "1:731937394818:web:f782c88918ca186bd2a49b",
-        grant_type: 'refresh_token',
-        refresh_token: refreshToken
-      });
-
-      const response = await fetch('https://oauth2.googleapis.com/token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: params
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.access_token) {
-          cachedAccessToken = data.access_token;
-          localStorage.setItem('tlk_google_access_token', data.access_token);
-          localStorage.setItem('tlk_google_token_expires_at', String(Date.now() + (data.expires_in || 3500) * 1000));
-          return data.access_token;
-        }
-      }
-    } catch (err) {
-      console.warn('Google OAuth refresh_token fetch warning:', err);
-    }
   }
 
   return cachedAccessToken || storedToken;

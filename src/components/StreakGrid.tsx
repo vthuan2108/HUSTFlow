@@ -248,12 +248,15 @@ export default function StreakGrid({ dailyLogs, todoItems }: StreakGridProps) {
         {/* Contribution Matrix Grid - Fitted without scrolling */}
         <div className="w-full flex justify-center pt-2">
           <div className="flex gap-1.5 items-start">
-            {/* Day of week labels on the left (T2, T4, T6, CN) */}
-            <div className="flex flex-col justify-between text-[7.5px] text-slate-500 font-bold h-[82px] pr-0.5 select-none font-mono py-0.5">
-              <span>T2</span>
-              <span>T4</span>
-              <span>T6</span>
-              <span>CN</span>
+            {/* Day of week labels on the left (T2, T4, T6, CN) aligned with the 7 grid rows */}
+            <div className="flex flex-col gap-[2.5px] sm:gap-[3px] pt-3.5 select-none font-mono text-[7px] sm:text-[7.5px] font-bold text-slate-500 leading-none">
+              <div className="w-4 h-2.5 sm:h-[11px] flex items-center justify-end pr-0.5">T2</div>
+              <div className="w-4 h-2.5 sm:h-[11px] flex items-center justify-end pr-0.5" />
+              <div className="w-4 h-2.5 sm:h-[11px] flex items-center justify-end pr-0.5">T4</div>
+              <div className="w-4 h-2.5 sm:h-[11px] flex items-center justify-end pr-0.5" />
+              <div className="w-4 h-2.5 sm:h-[11px] flex items-center justify-end pr-0.5">T6</div>
+              <div className="w-4 h-2.5 sm:h-[11px] flex items-center justify-end pr-0.5" />
+              <div className="w-4 h-2.5 sm:h-[11px] flex items-center justify-end pr-0.5">CN</div>
             </div>
 
             {/* Weeks List */}

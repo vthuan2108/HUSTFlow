@@ -179,8 +179,8 @@ export default function CultivationManualsSection({
     },
     THAN: { 
       name: 'Thần Cấp (Cực Hạn)', 
-      color: 'from-rose-600 to-red-950 animate-pulse', 
-      border: 'border-rose-500/40 shadow-[0_0_8px_rgba(244,63,94,0.15)]', 
+      color: 'from-rose-600 to-red-950', 
+      border: 'border-rose-500/40', 
       bg: 'bg-rose-950/10', 
       text: 'text-rose-400 font-bold',
       reward: 50
@@ -533,9 +533,6 @@ export default function CultivationManualsSection({
                   manual.status === 'DAI_VIEN_MAN' ? 'opacity-85 border-emerald-950/40' : ''
                 }`}
               >
-                {/* Visual Glow Layer based on Tier */}
-                <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${meta.color} opacity-[0.03] blur-xl`} />
-
                 <div className="space-y-2 z-10">
                   {/* Category & Delete Icon */}
                   <div className="flex justify-between items-center text-[9px] font-bold font-mono">
