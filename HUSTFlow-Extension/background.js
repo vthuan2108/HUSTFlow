@@ -90,37 +90,64 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 async function startBlocking(domains) {
-  const existingRules = await chrome.declarativeNetRequest.getDynamicRules();
-  const removeRuleIds = existingRules.map(r => r.id);
+  try {
+    const existingRules = await chrome.declarativeNetRequest.getDynamicRules();
+    const removeRuleIds = existingRules.map(r => r.id);
 
-  const addRules = domains.map((domain, index) => {
-    let cleaned = domain.replace(/^(https?:\/\/)?(www\.)?/, '').trim();
-    if (!cleaned) return null;
+    const validDomains = [];
+    const addRules = domains.map((domain, index) => {
+      let cleaned = domain.replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0].trim().toLowerCase();
+      if (!cleaned) return null;
+      validDomains.push(cleaned);
 
-    return {
-      id: index + 1,
-      priority: 1,
-      action: {
-        type: 'redirect',
-        redirect: { extensionPath: '/blocked.html' }
-      },
-      condition: {
-        urlFilter: '||' + cleaned,
-        resourceTypes: ['main_frame']
-      }
-    };
-  }).filter(Boolean);
+      return {
+        id: index + 1,
+        priority: 1,
+        action: {
+          type: 'redirect',
+          redirect: { extensionPath: '/blocked.html' }
+        },
+        condition: {
+          urlFilter: '||' + cleaned,
+          resourceTypes: ['main_frame']
+        }
+      };
+    }).filter(Boolean);
 
-  await chrome.declarativeNetRequest.updateDynamicRules({
-    removeRuleIds,
-    addRules
-  });
+    await chrome.declarativeNetRequest.updateDynamicRules({
+      removeRuleIds,
+      addRules
+    });
+
+    // Also scan and immediately redirect any currently open tabs matching blocked domains
+    if (validDomains.length > 0 && typeof chrome.tabs !== 'undefined') {
+      chrome.tabs.query({}, (tabs) => {
+        if (!tabs) return;
+        tabs.forEach(tab => {
+          if (tab.url) {
+            const isBlocked = validDomains.some(d => tab.url.toLowerCase().includes(d));
+            if (isBlocked && tab.id) {
+              chrome.tabs.update(tab.id, { url: chrome.runtime.getURL('blocked.html') });
+            }
+          }
+        });
+      });
+    }
+  } catch (err) {
+    console.error('Failed to update dynamic blocking rules:', err);
+    throw err;
+  }
 }
 
 async function stopBlocking() {
-  const existingRules = await chrome.declarativeNetRequest.getDynamicRules();
-  const removeRuleIds = existingRules.map(r => r.id);
-  await chrome.declarativeNetRequest.updateDynamicRules({
-    removeRuleIds
-  });
+  try {
+    const existingRules = await chrome.declarativeNetRequest.getDynamicRules();
+    const removeRuleIds = existingRules.map(r => r.id);
+    await chrome.declarativeNetRequest.updateDynamicRules({
+      removeRuleIds
+    });
+  } catch (err) {
+    console.error('Failed to stop blocking rules:', err);
+    throw err;
+  }
 }

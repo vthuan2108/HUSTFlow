@@ -618,7 +618,7 @@ export default function MeditationTimer({
   }, []);
 
   useEffect(() => {
-    const detail = (isBlockerEnabled && isRunning && mode === 'FOCUS')
+    const detail = (isBlockerEnabled && isRunning && (mode === 'FOCUS' || mode === 'FREE'))
       ? { action: 'START_BLOCKING', blocklist: blockedDomains }
       : { action: 'STOP_BLOCKING' };
 
