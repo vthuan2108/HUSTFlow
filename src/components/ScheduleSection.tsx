@@ -257,14 +257,14 @@ export default function ScheduleSection({
 
     setIsSyncing(true);
     try {
-      // Calculate 3-month window for sync
-      const prevMonth = new Date(anchorDate);
-      prevMonth.setMonth(prevMonth.getMonth() - 1);
-      const nextMonth = new Date(anchorDate);
-      nextMonth.setMonth(nextMonth.getMonth() + 2);
+      // Calculate 1-year window (6 months past, 6 months future) for sync
+      const pastWindow = new Date(anchorDate);
+      pastWindow.setMonth(pastWindow.getMonth() - 6);
+      const futureWindow = new Date(anchorDate);
+      futureWindow.setMonth(futureWindow.getMonth() + 6);
 
-      const timeMin = prevMonth.toISOString();
-      const timeMax = nextMonth.toISOString();
+      const timeMin = pastWindow.toISOString();
+      const timeMax = futureWindow.toISOString();
 
       const result = await syncGoogleCalendarData(token, calendarGroups, calendarEvents, timeMin, timeMax);
       onUpdateCalendarGroups(result.syncedGroups);
@@ -300,11 +300,11 @@ export default function ScheduleSection({
     if (token && calendarGroups.length > 0) {
       const syncQuietly = async () => {
         try {
-          const prevMonth = new Date();
-          prevMonth.setMonth(prevMonth.getMonth() - 1);
-          const nextMonth = new Date();
-          nextMonth.setMonth(nextMonth.getMonth() + 2);
-          const result = await syncGoogleCalendarData(token, calendarGroups, calendarEvents, prevMonth.toISOString(), nextMonth.toISOString());
+          const pastWindow = new Date();
+          pastWindow.setMonth(pastWindow.getMonth() - 6);
+          const futureWindow = new Date();
+          futureWindow.setMonth(futureWindow.getMonth() + 6);
+          const result = await syncGoogleCalendarData(token, calendarGroups, calendarEvents, pastWindow.toISOString(), futureWindow.toISOString());
           onUpdateCalendarGroups(result.syncedGroups);
           onUpdateCalendarEvents(result.syncedEvents);
         } catch (e) {

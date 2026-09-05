@@ -25,14 +25,24 @@ async function apiCall(endpoint: string, token: string, options: RequestInit = {
   return response.json();
 }
 
+// Get all task lists from user's Google account
+export async function getAllUserTaskLists(token: string): Promise<any[]> {
+  try {
+    const data = await apiCall('/users/@me/lists?maxResults=100', token);
+    return data?.items || [];
+  } catch (e) {
+    console.warn('Failed to fetch all task lists:', e);
+    return [];
+  }
+}
+
 // Find or create the "Nhiệm Vụ Tông Môn" task list
 export async function getOrCreateTaskList(token: string): Promise<string> {
   const targetTitle = 'Nhiệm Vụ Tông Môn';
   const legacyTitle = 'Tiên Lộ Ký - Đạo Tràng';
   
   // 1. List all task lists
-  const data = await apiCall('/users/@me/lists', token);
-  const lists = data.items || [];
+  const lists = await getAllUserTaskLists(token);
   
   const existingList = lists.find((l: any) => l.title === targetTitle);
   if (existingList) {
@@ -70,14 +80,22 @@ function formatToRFC3339(dateStr: string): string {
   return `${dateStr}T12:00:00.000Z`;
 }
 
-// Sync local todos with Google Tasks
+// Sync local todos with Google Tasks (Fetches ALL tasks, completed & uncompleted across lists)
 export async function syncGoogleTasks(
   token: string,
   localTodos: TodoItem[],
   deletedIds: string[] = []
 ): Promise<{ syncedTodos: TodoItem[]; addedCount: number; updatedCount: number }> {
   try {
-    const listId = await getOrCreateTaskList(token);
+    const targetListId = await getOrCreateTaskList(token);
+    const allLists = await getAllUserTaskLists(token);
+    
+    // Collect all task list IDs to pull from (Target list + @default + any other lists)
+    const listIdsToSync = new Set<string>();
+    if (targetListId) listIdsToSync.add(targetListId);
+    allLists.forEach((l: any) => {
+      if (l.id) listIdsToSync.add(l.id);
+    });
 
     // 1. Delete tasks on Google Tasks if they are in deletedIds list
     for (const gid of deletedIds) {
@@ -88,9 +106,39 @@ export async function syncGoogleTasks(
       }
     }
     
-    // Fetch all tasks from Google Tasks
-    const googleData = await apiCall(`/lists/${listId}/tasks?showCompleted=true&showHidden=true`, token);
-    const googleTasks = googleData.items || [];
+    // 2. Fetch all tasks from ALL task lists with full pagination
+    let rawGoogleTasks: any[] = [];
+    for (const listId of Array.from(listIdsToSync)) {
+      let pageToken: string | undefined = undefined;
+      do {
+        try {
+          const query = new URLSearchParams({
+            showCompleted: 'true',
+            showHidden: 'true',
+            maxResults: '100',
+            ...(pageToken ? { pageToken } : {})
+          });
+          const googleData = await apiCall(`/lists/${listId}/tasks?${query.toString()}`, token);
+          if (googleData && googleData.items) {
+            const items = googleData.items.map((item: any) => ({ ...item, _listId: listId }));
+            rawGoogleTasks = rawGoogleTasks.concat(items);
+          }
+          pageToken = googleData ? googleData.nextPageToken : undefined;
+        } catch (err) {
+          console.warn(`Failed to fetch tasks for list ${listId}:`, err);
+          break;
+        }
+      } while (pageToken);
+    }
+    
+    // Deduplicate by task ID
+    const uniqueGoogleTasksMap = new Map<string, any>();
+    rawGoogleTasks.forEach((gt: any) => {
+      if (gt.id && !gt.deleted && !uniqueGoogleTasksMap.has(gt.id)) {
+        uniqueGoogleTasksMap.set(gt.id, gt);
+      }
+    });
+    const googleTasks = Array.from(uniqueGoogleTasksMap.values());
     
     let addedCount = 0;
     let updatedCount = 0;
@@ -133,11 +181,12 @@ export async function syncGoogleTasks(
           if (isGoogleCompleted) {
             // Completed on Google -> complete locally
             todo.isCompleted = true;
-            todo.completedAt = matchedGoogleTask.completed || new Date().toISOString();
+            todo.completedAt = matchedGoogleTask.completed || matchedGoogleTask.updated || new Date().toISOString();
             updatedCount++;
           } else {
             // Completed locally -> complete on Google
-            await apiCall(`/lists/${listId}/tasks/${todo.googleTaskId}`, token, {
+            const activeListId = matchedGoogleTask._listId || targetListId;
+            await apiCall(`/lists/${activeListId}/tasks/${todo.googleTaskId}`, token, {
               method: 'PATCH',
               body: JSON.stringify({
                 status: 'completed',
@@ -175,21 +224,27 @@ export async function syncGoogleTasks(
         const tuViReward = 15;
         const linhThachReward = 5;
         
-        // Parse due date
+        // Parse accurate date: Priority: due -> completed -> updated -> today
         let dueDate = new Date().toISOString().split('T')[0];
         if (gt.due) {
           dueDate = gt.due.split('T')[0];
+        } else if (gt.completed) {
+          dueDate = gt.completed.split('T')[0];
+        } else if (gt.updated) {
+          dueDate = gt.updated.split('T')[0];
         }
         
         const isCompleted = gt.status === 'completed';
+        const completedAt = isCompleted ? (gt.completed || gt.updated || new Date().toISOString()) : undefined;
+        const createdAt = gt.updated || (isCompleted ? completedAt : new Date().toISOString());
         
         const pulledTodo: TodoItem = {
           id: `todo_pulled_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-          title: gt.title,
+          title: gt.title || 'Nhiệm vụ không tên',
           type,
           isCompleted,
-          createdAt: gt.updated || new Date().toISOString(),
-          completedAt: isCompleted ? (gt.completed || new Date().toISOString()) : undefined,
+          createdAt: createdAt || new Date().toISOString(),
+          completedAt,
           tuViReward,
           linhThachReward,
           googleTaskId: gt.id,

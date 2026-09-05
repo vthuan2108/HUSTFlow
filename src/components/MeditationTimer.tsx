@@ -846,13 +846,6 @@ export default function MeditationTimer({
 
           playCompletionSound();
 
-          const cycle1Plants = [
-            { name: 'Ngọc Linh Chi', icon: '🍄' },
-            { name: 'Cửu Diệp Thảo', icon: '🌿' },
-            { name: 'Bạch Ngọc Liên', icon: '🪷' },
-            { name: 'Thanh Long Thảo', icon: '🌵' }
-          ];
-
           const spellingQi = state.activeSpells?.includes('spell_tu_khi_quyet');
           const spellingTamMa = state.activeSpells?.includes('spell_tam_ma_tram');
           const activeSpellMultiplier = spellingQi ? 0.30 : 0;
@@ -864,15 +857,16 @@ export default function MeditationTimer({
           const finalXp = Math.round(baseXP * (1 + pillBonus + activeSpellMultiplier));
           const finalCoins = Math.round(baseCoins * (1 + coinSpellMultiplier));
 
-          const randomPlant = cycle1Plants[Math.floor(Math.random() * cycle1Plants.length)];
+          // Randomize across all 15 legendary spiritual herbs
+          const randomSeed = SPIRITUAL_SEEDS[Math.floor(Math.random() * SPIRITUAL_SEEDS.length)];
 
           if ('Notification' in window && Notification.permission === 'granted') {
             new Notification('🧘 Tự Do Bế Quan Đắc Đạo!', {
-              body: `Đạo hữu thiền định tự do đạt ${25 * cyclesCompleted} phút! Nhận linh thảo [${randomPlant.name}]. Nhận +${finalXp} Tu Vi và +${finalCoins} Linh Thạch.`,
+              body: `Đạo hữu thiền định tự do đạt ${25 * cyclesCompleted} phút! Nhận linh thảo [${randomSeed.name}]. Nhận +${finalXp} Tu Vi và +${finalCoins} Linh Thạch.`,
               icon: '/icon.png'
             });
           }
-          onMeditationComplete(25 * cyclesCompleted, finalXp, finalCoins, randomPlant.name, 'HARVESTED');
+          onMeditationComplete(25 * cyclesCompleted, finalXp, finalCoins, randomSeed.name, 'HARVESTED');
         }
 
         setTimeLeft(calculatedSeconds);

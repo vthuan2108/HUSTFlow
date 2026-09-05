@@ -273,7 +273,7 @@ export default function StreakGrid({ dailyLogs, todoItems }: StreakGridProps) {
                 }
 
                 return (
-                  <div key={colIdx} className="flex flex-col gap-[2.5px] sm:gap-[3px] relative pt-3.5">
+                  <div key={colIdx} className="flex flex-col gap-[2.5px] sm:gap-[3px] relative pt-3.5 hover:z-50">
                     {monthLabel && (
                       <span className="absolute top-0 left-0 text-[7px] sm:text-[7.5px] text-slate-400 font-bold font-mono whitespace-nowrap">
                         {monthLabel}
@@ -283,14 +283,14 @@ export default function StreakGrid({ dailyLogs, todoItems }: StreakGridProps) {
                       return (
                         <div
                           key={dayIdx}
-                          className={`w-2.5 h-2.5 sm:w-[11px] sm:h-[11px] rounded-[2px] relative group border border-slate-950 transition-all ${getColorClass(
+                          className={`w-2.5 h-2.5 sm:w-[11px] sm:h-[11px] rounded-[2px] relative group hover:z-50 border border-slate-950 transition-all ${getColorClass(
                             day.log,
                             day.isCurrentPeriod
                           )} ${day.isToday ? 'ring-1 ring-amber-400' : ''}`}
                         >
                           {/* Rich Tooltip */}
                           {day.isCurrentPeriod && (
-                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 w-36 p-1.5 bg-slate-950 border-2 border-slate-950 rounded-lg shadow-[3px_3px_0px_#000] text-[8.5px] leading-normal text-slate-300 opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-150 z-50 font-sans text-left">
+                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 w-36 p-1.5 bg-slate-950 border-2 border-slate-950 rounded-lg shadow-[3px_3px_0px_#000] text-[8.5px] leading-normal text-slate-300 opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-150 z-[100] font-sans text-left">
                               <p className="font-bold text-slate-200 border-b border-slate-900 pb-0.5 mb-1 font-mono text-center text-[9px]">
                                 {day.dateStr} {day.isToday ? '(Hôm nay)' : ''}
                               </p>
