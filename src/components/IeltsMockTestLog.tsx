@@ -130,7 +130,7 @@ export default function IeltsMockTestLog({
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .map(log => ({
       ...log,
-      formattedDate: new Date(log.date).toLocaleDateString('vi-VN', { month: 'numeric', day: 'numeric' })
+      formattedDate: new Date(log.date).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' })
     }));
 
 
@@ -198,11 +198,11 @@ export default function IeltsMockTestLog({
       if (words >= minRequired) {
         // Success!
         onAddExp(50, 20); // +50 Tu Vi, +20 Linh Thach
-        alert(`⌛ HẾT GIỜ KHẢO THÍ!\n\nBài viết của đạo hữu đã đạt ${words}/${minRequired} từ tối thiểu.\nVấn đạo thành công viên mãn! Nhận thêm +50 Tu Vi và +20 Linh Thạch.`);
+        alert(`⌛ TIME IS UP!\n\nYour essay achieved ${words}/${minRequired} words minimum.\nExamination completed successfully! Received +50 Exp and +20 Spirit Stones.`);
       } else {
         // Failure!
         onAddExp(-10, 0); // penalize -10 EXP
-        alert(`⌛ HẾT GIỜ KHẢO THÍ!\n\nĐạo hữu chỉ viết được ${words}/${minRequired} từ, chưa đạt yêu cầu tối thiểu.\nVấn đạo thất bại! Bị trừ -10 Tu Vi để cảnh tỉnh đạo tâm trì trệ.`);
+        alert(`⌛ TIME IS UP!\n\nYou only wrote ${words}/${minRequired} words, which does not meet the minimum requirement.\nExamination failed! Penalized -10 Exp as a warning.`);
       }
     }
     setActiveEssayLog(null);
@@ -210,7 +210,7 @@ export default function IeltsMockTestLog({
 
   const handleQuickAdd = () => {
     if (!testName.trim()) {
-      setWarning('Vui lòng nhập tên bài thi hoặc đề thi để đan điểm!');
+      setWarning('Please enter a test or mock name!');
       return;
     }
     setWarning('');
@@ -256,11 +256,11 @@ export default function IeltsMockTestLog({
     const minRequired = activeTask === 1 ? 150 : 250;
 
     if (words < minRequired) {
-      alert(`⚠️ Chưa đủ số từ tối thiểu để hoàn tất vấn đạo!\n(Yêu cầu: ${minRequired} từ. Hiện tại: ${words} từ)`);
+      alert(`⚠️ Not enough words to submit!\n(Required: ${minRequired} words. Current: ${words} words)`);
       return;
     }
 
-    if (examMode === 'TIMED' && !confirm('Đạo hữu có chắc chắn muốn nộp bài khảo hạch trước thời hạn để tổng kết đan điền?')) {
+    if (examMode === 'TIMED' && !confirm('Are you sure you want to submit before the time limit expires?')) {
       return;
     }
 
@@ -278,7 +278,7 @@ export default function IeltsMockTestLog({
     onUpdateLog(updatedLog);
     onAddExp(50, 20); // Reward for successful completion
     
-    alert(`🎉 VẤN ĐẠO THÀNH CÔNG!\n\nĐạo hữu đã hoàn thành bài viết đạt chuẩn từ (${words} từ) đúng thời hạn.\nLĩnh hội trọn vẹn tinh túy cổ thư, nhận thêm +50 Tu Vi và +20 Linh Thạch!`);
+    alert(`🎉 SUBMISSION SUCCESS!\n\nYou completed the essay meeting the required word count (${words} words) on time.\nReceived +50 Exp and +20 Spirit Stones!`);
     setActiveEssayLog(null);
   };
 
@@ -294,7 +294,7 @@ export default function IeltsMockTestLog({
       notes: selfReview
     };
     onUpdateLog(updatedLog);
-    alert('💾 Đạo tâm đã ghi nhận! Bài viết đã được lưu nháp thành công.');
+    alert('💾 Draft saved successfully!');
   };
 
   // Auto-compress local image upload using canvas to prevent localStorage overflow
@@ -336,11 +336,11 @@ export default function IeltsMockTestLog({
     e.preventDefault();
     const num = parseInt(newCamBook);
     if (isNaN(num) || num <= 0 || num > 99) {
-      alert('⚠️ Số cuốn Cambridge phải là số nguyên hợp lệ (1 - 99)!');
+      alert('⚠️ Cambridge book number must be a valid integer (1 - 99)!');
       return;
     }
     if (camBooks.includes(num)) {
-      alert(`⚠️ Cuốn Cambridge ${num} đã tồn tại trong ma trận!`);
+      alert(`⚠️ Cambridge book ${num} already exists in the matrix!`);
       return;
     }
     const updatedList = [...camBooks, num].sort((a, b) => b - a);
@@ -349,7 +349,7 @@ export default function IeltsMockTestLog({
   };
 
   const handleDeleteCamBook = (book: number) => {
-    if (confirm(`Đạo hữu có chắc chắn muốn ẩn phó bản Cambridge ${book} khỏi ma trận? Dữ liệu điểm thi bên dưới vẫn được giữ nguyên.`)) {
+    if (confirm(`Are you sure you want to hide Cambridge ${book} from the matrix? Your test scores below will still be preserved.`)) {
       const updatedList = camBooks.filter(b => b !== book);
       onUpdateCamBooks(updatedList);
     }
@@ -400,10 +400,10 @@ export default function IeltsMockTestLog({
     const count = logs.length;
     
     const skills = [
-      { name: 'Listening (Nghe)', score: Number((lSum / count).toFixed(2)), icon: '🎧' },
-      { name: 'Reading (Đọc)', score: Number((rSum / count).toFixed(2)), icon: '📖' },
-      { name: 'Writing (Viết)', score: Number((wSum / count).toFixed(2)), icon: '✍️' },
-      { name: 'Speaking (Nói)', score: Number((sSum / count).toFixed(2)), icon: '🗣️' }
+      { name: 'Listening', score: Number((lSum / count).toFixed(2)), icon: '🎧' },
+      { name: 'Reading', score: Number((rSum / count).toFixed(2)), icon: '📖' },
+      { name: 'Writing', score: Number((wSum / count).toFixed(2)), icon: '✍️' },
+      { name: 'Speaking', score: Number((sSum / count).toFixed(2)), icon: '🗣️' }
     ];
 
     const sorted = [...skills].sort((a, b) => b.score - a.score);
@@ -424,7 +424,7 @@ export default function IeltsMockTestLog({
     const sweetMax = activeTask === 1 ? 190 : 290;
 
     if (words === 0) {
-      return { percent: 0, colorClass: 'bg-slate-700', statusText: 'Đang đợi đạo hữu nhập văn...' };
+      return { percent: 0, colorClass: 'bg-slate-700', statusText: 'Waiting for your input...' };
     }
 
     const percent = Math.min(100, Math.round((words / sweetMax) * 100));
@@ -433,25 +433,25 @@ export default function IeltsMockTestLog({
       return { 
         percent, 
         colorClass: 'bg-rose-500', 
-        statusText: `Chưa đạt số từ tối thiểu (Còn thiếu ${minVal - words} từ)` 
+        statusText: `Below minimum word count (${minVal - words} words left)` 
       };
     } else if (words < sweetMin) {
       return { 
         percent, 
         colorClass: 'bg-emerald-500', 
-        statusText: `Đã đạt tối thiểu! Tiến tới vùng ngọt tối ưu (${sweetMin}-${sweetMax} từ)` 
+        statusText: `Minimum reached! Aim for optimal sweet spot (${sweetMin}-${sweetMax} words)` 
       };
     } else if (words <= sweetMax) {
       return { 
         percent, 
         colorClass: 'bg-cyan-400 shadow-[0_0_8px_#22d3ee] animate-pulse', 
-        statusText: `🌟 Tuyệt vời! Nằm trong Vùng Ngọt Lý Tưởng (${words} từ)` 
+        statusText: `🌟 Excellent! In optimal sweet spot (${words} words)` 
       };
     } else {
       return { 
         percent, 
         colorClass: 'bg-amber-500', 
-        statusText: `⚠️ Viết quá dài (${words} từ) - Hãy cô đọng lại để tránh thiếu giờ làm bài!` 
+        statusText: `⚠️ Too long (${words} words) - Keep it concise to save time!` 
       };
     }
   };
@@ -465,17 +465,17 @@ export default function IeltsMockTestLog({
         {/* Target vs Current Average Band Card */}
         <div className="bg-gradient-to-br from-indigo-950/40 to-slate-950/40 border border-indigo-800/30 rounded-2xl p-5 shadow-xl col-span-2 relative overflow-hidden flex flex-col justify-between h-44">
           <div className="absolute right-0 bottom-0 translate-x-2 translate-y-2 opacity-5 font-mono text-5xl font-black">
-            CỔ KINH
+            IELTS
           </div>
           
           <div className="space-y-1 z-10">
             <div className="flex justify-between items-center">
-              <span className="text-[9px] text-indigo-400 uppercase font-black tracking-widest font-mono">ĐẠO TÂM CỔ KINH</span>
+              <span className="text-[9px] text-indigo-400 uppercase font-black tracking-widest font-mono">IELTS TARGET BAND</span>
               <button
                 onClick={() => setIsEditingTargets(!isEditingTargets)}
                 className="text-[9.5px] text-slate-400 hover:text-amber-400 font-bold underline cursor-pointer flex items-center gap-1"
               >
-                <Edit3 className="w-3 h-3" /> {isEditingTargets ? 'Đang Sửa' : 'Đặt mục tiêu'}
+                <Edit3 className="w-3 h-3" /> {isEditingTargets ? 'Editing' : 'Set Targets'}
               </button>
             </div>
             
@@ -510,20 +510,20 @@ export default function IeltsMockTestLog({
                   onClick={handleSaveTargets}
                   className="col-span-4 mt-1 bg-indigo-600 hover:bg-indigo-700 text-slate-100 py-1.5 rounded-lg text-[9px] font-bold tracking-wider cursor-pointer"
                 >
-                  XÁC NHẬN MỤC TIÊU
+                  CONFIRM TARGETS
                 </button>
               </div>
             ) : (
               <div className="flex items-end justify-between pt-2">
                 <div className="space-y-1">
-                  <span className="text-[10px] text-slate-400 block font-sans">Mục tiêu Cổ Kinh:</span>
+                  <span className="text-[10px] text-slate-400 block font-sans">Target Band:</span>
                   <h4 className="text-3xl font-extrabold text-indigo-300 font-mono">
                     {targets.overall.toFixed(1)} <span className="text-[10px] text-slate-500 font-normal">Band</span>
                   </h4>
                 </div>
                 
                 <div className="text-right">
-                  <span className="text-[10px] text-slate-400 block font-sans">Trung bình hiện tại:</span>
+                  <span className="text-[10px] text-slate-400 block font-sans">Current Average:</span>
                   <h4 className="text-xl font-bold text-amber-400 font-mono">
                     {avgs.overall > 0 ? avgs.overall.toFixed(1) : '0.0'}
                   </h4>
@@ -534,16 +534,16 @@ export default function IeltsMockTestLog({
 
           {!isEditingTargets && (
             <div className="mt-2.5 pt-2 border-t border-slate-900 flex justify-between items-center text-[10px]">
-              <span className="text-slate-500 font-sans">Khoảng cách đến Đạo Quả:</span>
+              <span className="text-slate-500 font-sans">Gap to Target:</span>
               {avgs.overall === 0 ? (
-                <span className="text-slate-400 italic">Chưa có bài thi nào</span>
+                <span className="text-slate-400 italic">No tests recorded</span>
               ) : avgs.overall >= targets.overall ? (
                 <span className="text-emerald-400 font-black flex items-center gap-0.5">
-                  🎉 ĐÃ ĐẠT CẢNH GIỚI
+                  🎉 TARGET REACHED
                 </span>
               ) : (
                 <span className="text-amber-500 font-mono font-bold">
-                  Còn thiếu {(targets.overall - avgs.overall).toFixed(1)} band
+                  Missing {(targets.overall - avgs.overall).toFixed(1)} band
                 </span>
               )}
             </div>
@@ -566,7 +566,7 @@ export default function IeltsMockTestLog({
                 <span className={`text-[8.5px] font-bold font-mono px-1 rounded ${
                   avgs.listening >= targets.listening ? 'bg-emerald-950 text-emerald-400' : 'bg-amber-950 text-amber-500'
                 }`}>
-                  {avgs.listening >= targets.listening ? '✓ Đạt' : `-${(targets.listening - avgs.listening).toFixed(1)}`}
+                  {avgs.listening >= targets.listening ? '✓ Met' : `-${(targets.listening - avgs.listening).toFixed(1)}`}
                 </span>
               )}
             </div>
@@ -586,7 +586,7 @@ export default function IeltsMockTestLog({
                 <span className={`text-[8.5px] font-bold font-mono px-1 rounded ${
                   avgs.reading >= targets.reading ? 'bg-emerald-950 text-emerald-400' : 'bg-amber-950 text-amber-500'
                 }`}>
-                  {avgs.reading >= targets.reading ? '✓ Đạt' : `-${(targets.reading - avgs.reading).toFixed(1)}`}
+                  {avgs.reading >= targets.reading ? '✓ Met' : `-${(targets.reading - avgs.reading).toFixed(1)}`}
                 </span>
               )}
             </div>
@@ -606,7 +606,7 @@ export default function IeltsMockTestLog({
                 <span className={`text-[8.5px] font-bold font-mono px-1 rounded ${
                   avgs.writing >= targets.writing ? 'bg-emerald-950 text-emerald-400' : 'bg-amber-950 text-amber-500'
                 }`}>
-                  {avgs.writing >= targets.writing ? '✓ Đạt' : `-${(targets.writing - avgs.writing).toFixed(1)}`}
+                  {avgs.writing >= targets.writing ? '✓ Met' : `-${(targets.writing - avgs.writing).toFixed(1)}`}
                 </span>
               )}
             </div>
@@ -626,7 +626,7 @@ export default function IeltsMockTestLog({
                 <span className={`text-[8.5px] font-bold font-mono px-1 rounded ${
                   avgs.speaking >= targets.speaking ? 'bg-emerald-950 text-emerald-400' : 'bg-amber-950 text-amber-500'
                 }`}>
-                  {avgs.speaking >= targets.speaking ? '✓ Đạt' : `-${(targets.speaking - avgs.speaking).toFixed(1)}`}
+                  {avgs.speaking >= targets.speaking ? '✓ Met' : `-${(targets.speaking - avgs.speaking).toFixed(1)}`}
                 </span>
               )}
             </div>
@@ -640,8 +640,8 @@ export default function IeltsMockTestLog({
           <div className="flex items-center gap-2">
             <Grid className="w-4 h-4 text-emerald-500" />
             <div>
-              <h4 className="text-xs font-bold text-slate-100 uppercase tracking-wider">Cambridge Mock-Test Matrix (Linh Bản Cambridge)</h4>
-              <p className="text-[9px] text-slate-500">Đập phá các phó bản Cambridge để tích lũy tu vi. Click vào ô trống để điền nhanh đề!</p>
+              <h4 className="text-xs font-bold text-slate-100 uppercase tracking-wider">Cambridge Mock-Test Matrix</h4>
+              <p className="text-[9px] text-slate-500">Conquer Cambridge practice tests to build proficiency. Click an empty slot to quick-add a test!</p>
             </div>
           </div>
 
@@ -652,7 +652,7 @@ export default function IeltsMockTestLog({
                 type="number"
                 min="1"
                 max="99"
-                placeholder="Số tập"
+                placeholder="Book #"
                 value={newCamBook}
                 onChange={(e) => setNewCamBook(e.target.value)}
                 className="w-12 bg-slate-900 border border-slate-800 rounded px-1.5 py-0.5 text-[9px] text-slate-300 focus:outline-none font-mono text-center"
@@ -661,7 +661,7 @@ export default function IeltsMockTestLog({
                 type="submit"
                 className="bg-emerald-600 hover:bg-emerald-700 text-slate-100 font-bold text-[8.5px] px-2 py-0.5 rounded transition-colors cursor-pointer"
               >
-                + Thêm
+                + Add
               </button>
             </form>
 
@@ -685,7 +685,7 @@ export default function IeltsMockTestLog({
                 <button
                   onClick={() => handleDeleteCamBook(book)}
                   className="opacity-0 group-hover/card:opacity-100 text-slate-500 hover:text-rose-400 font-bold text-xs transition-opacity cursor-pointer leading-none"
-                  title={`Ẩn Cambridge ${book}`}
+                  title={`Hide Cambridge ${book}`}
                 >
                   &times;
                 </button>
@@ -708,7 +708,7 @@ export default function IeltsMockTestLog({
                         }
                       }}
                       className={`h-9 rounded-lg border text-center flex flex-col items-center justify-center font-mono transition-all cursor-pointer ${colorClass}`}
-                      title={log ? `${log.testName} (Overall: ${log.overall.toFixed(1)})` : `Bấm để nhận nhiệm vụ Cambridge ${book} Test ${test}`}
+                      title={log ? `${log.testName} (Overall: ${log.overall.toFixed(1)})` : `Click to start Cambridge ${book} Test ${test}`}
                     >
                       <span className="text-[8px] text-slate-500 font-bold">T{test}</span>
                       <span className="text-[9.5px] font-black">{score !== undefined ? score.toFixed(1) : '—'}</span>
@@ -730,9 +730,9 @@ export default function IeltsMockTestLog({
             </div>
             <div>
               <h3 className="text-sm font-bold text-slate-100">
-                Lịch Sử Nghiên Cứu & Biên Soạn Cổ Kinh
+                IELTS Test History & Essay Log
               </h3>
-              <p className="text-[10px] text-slate-500">Bảng nhập điểm khảo thí và biên soạn Essay cổ văn</p>
+              <p className="text-[10px] text-slate-500">Record mock test scores and compose exam essays</p>
             </div>
           </div>
         </div>
@@ -760,7 +760,7 @@ export default function IeltsMockTestLog({
                     }
                   }}
                 >
-                  Tên Bài Thi / Đề Luyện {sortBy === 'name' ? (sortOrder === 'asc' ? '▲' : '▼') : '↕'}
+                  Test / Practice Name {sortBy === 'name' ? (sortOrder === 'asc' ? '▲' : '▼') : '↕'}
                 </th>
                 <th 
                   className="py-2.5 px-3 w-1/6 cursor-pointer hover:text-amber-500 transition-colors"
@@ -773,15 +773,15 @@ export default function IeltsMockTestLog({
                     }
                   }}
                 >
-                  Ngày Thi {sortBy === 'date' ? (sortOrder === 'asc' ? '▲' : '▼') : '↕'}
+                  Test Date {sortBy === 'date' ? (sortOrder === 'asc' ? '▲' : '▼') : '↕'}
                 </th>
                 <th className="py-2.5 px-3 text-center">Listening</th>
                 <th className="py-2.5 px-3 text-center">Reading</th>
                 <th className="py-2.5 px-3 text-center">Writing</th>
                 <th className="py-2.5 px-3 text-center">Speaking</th>
                 <th className="py-2.5 px-3 text-center">Overall</th>
-                <th className="py-2.5 px-3 w-1/5">Ghi Chú</th>
-                <th className="py-2.5 px-3 text-center">Thao Tác</th>
+                <th className="py-2.5 px-3 w-1/5">Notes</th>
+                <th className="py-2.5 px-3 text-center">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -791,7 +791,7 @@ export default function IeltsMockTestLog({
                   <input
                     type="text"
                     required
-                    placeholder="VD: Cambridge 19 Test 2"
+                    placeholder="E.g., Cambridge 19 Test 2"
                     value={testName}
                     onChange={(e) => setTestName(e.target.value)}
                     className="w-full bg-slate-950 border border-slate-900 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500 font-semibold"
@@ -850,7 +850,7 @@ export default function IeltsMockTestLog({
                 <td className="py-3 px-2">
                   <input
                     type="text"
-                    placeholder="VD: Sai phần Map, Writing..."
+                    placeholder="E.g., Made mistakes in Map, Writing..."
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     className="w-full bg-slate-950 border border-slate-900 rounded-lg px-2.5 py-1.5 text-xs text-slate-300 focus:outline-none"
@@ -862,7 +862,7 @@ export default function IeltsMockTestLog({
                     onClick={handleQuickAdd}
                     className="bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold text-xs px-3 py-1.5 rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1 mx-auto"
                   >
-                    <Plus className="w-3.5 h-3.5" /> Thêm
+                    <Plus className="w-3.5 h-3.5" /> Add
                   </button>
                 </td>
               </tr>
@@ -953,7 +953,7 @@ export default function IeltsMockTestLog({
                         <button
                           onClick={() => onDeleteLog(log.id)}
                           className="p-1.5 text-slate-600 hover:text-rose-400 hover:bg-slate-950 rounded transition-colors cursor-pointer"
-                          title="Xóa đề"
+                          title="Delete test"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -964,7 +964,7 @@ export default function IeltsMockTestLog({
               ) : (
                 <tr>
                   <td colSpan={9} className="py-12 text-center text-slate-500 italic">
-                    Chưa có bài thi thử nào được lưu trữ. Hãy điền dòng trên hoặc click ma trận Cambridge để bắt đầu luyện đề!
+                    No mock tests recorded yet. Fill the row above or click the Cambridge matrix to get started!
                   </td>
                 </tr>
               )}
@@ -980,9 +980,9 @@ export default function IeltsMockTestLog({
           <div>
             <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-amber-500" />
-              Đại Lộ Thăng Tiến Điểm Số
+              Band Score Progression
             </h3>
-            <p className="text-[10px] text-slate-500">Biểu đồ biểu diễn tiến độ IELTS theo thời gian của bạn</p>
+            <p className="text-[10px] text-slate-500">Visual representation of your IELTS band scores over time</p>
           </div>
 
           <div className="h-64 w-full text-xs font-mono">
@@ -1006,7 +1006,7 @@ export default function IeltsMockTestLog({
             ) : (
               <div className="h-full flex flex-col items-center justify-center text-slate-500 gap-1.5 border border-dashed border-slate-800 rounded-xl">
                 <BookOpen className="w-8 h-8 text-slate-600 animate-pulse" />
-                <span>Chưa có dữ liệu bài test nào để vẽ biểu đồ tiên mạch!</span>
+                <span>No test data recorded yet to render progression graph!</span>
               </div>
             )}
           </div>
@@ -1018,7 +1018,7 @@ export default function IeltsMockTestLog({
             <div className="bg-slate-950/40 border border-slate-900 rounded-2xl p-5 space-y-4">
               <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
                 <Sparkles className="w-4 h-4 text-yellow-400" />
-                Lời Khuyên Đạo Trưởng (Phân Tích Mạnh & Yếu)
+                Mentor's Feedback (Strengths & Weaknesses Analysis)
               </h4>
 
               <div className="space-y-4">
@@ -1027,12 +1027,12 @@ export default function IeltsMockTestLog({
                   <div className="flex items-center gap-2">
                     <span className="text-xl">{analysis.strongest.icon}</span>
                     <div>
-                      <p className="text-[9px] text-emerald-500 font-mono uppercase tracking-widest font-bold">KỸ NĂNG VÔ ĐỊCH</p>
+                      <p className="text-[9px] text-emerald-500 font-mono uppercase tracking-widest font-bold">TOP SKILL</p>
                       <h5 className="text-xs font-bold text-slate-200">{analysis.strongest.name}</h5>
                     </div>
                   </div>
                   <div className="text-[11px] text-slate-400 leading-relaxed pt-1.5 border-t border-emerald-950">
-                    Bản lĩnh tuyệt hảo với điểm trung bình <strong className="text-emerald-400 font-mono">{analysis.strongest.score}</strong>. Kỹ năng này giống như nội lực vững chắc của bạn, hãy tiếp tục duy trì và nâng tầm thần thông này!
+                    Outstanding proficiency with an average of <strong className="text-emerald-400 font-mono">{analysis.strongest.score}</strong>. This skill is your solid foundation; keep maintaining and refining it!
                   </div>
                 </div>
 
@@ -1041,16 +1041,16 @@ export default function IeltsMockTestLog({
                   <div className="flex items-center gap-2">
                     <span className="text-xl">{analysis.weakest.icon}</span>
                     <div>
-                      <p className="text-[9px] text-rose-500 font-mono uppercase tracking-widest font-bold">BẤT TÚC HUYỆT (TÂM MA)</p>
+                      <p className="text-[9px] text-rose-500 font-mono uppercase tracking-widest font-bold">AREAS FOR IMPROVEMENT</p>
                       <h5 className="text-xs font-bold text-slate-200">{analysis.weakest.name}</h5>
                     </div>
                   </div>
                   <div className="text-[11px] text-slate-400 leading-relaxed pt-1.5 border-t border-rose-950">
-                    Điểm nghẽn ở mức <strong className="text-rose-400 font-mono">{analysis.weakest.score}</strong>. Cần gấp rút bế quan luyện thêm.
-                    {analysis.weakest.name.includes('Writing') && ' Tập trung học cấu trúc câu phức, cách lập luận Task 2 mạch lạc và phân bổ thời gian viết.'}
-                    {analysis.weakest.name.includes('Speaking') && ' Luyện tự nói ghi âm, sửa lỗi phát âm và luyện phản xạ trả lời part 2/part 3.'}
-                    {analysis.weakest.name.includes('Listening') && ' Luyện chép chính tả và nghe thụ động khi thiền định, chú ý các từ nối và trọng âm.'}
-                    {analysis.weakest.name.includes('Reading') && ' Áp dụng Skimming & Scanning, bổ sung kho từ vựng Academic tối đa hằng ngày.'}
+                    Bottleneck at <strong className="text-rose-400 font-mono">{analysis.weakest.score}</strong>. Needs dedicated focus:
+                    {analysis.weakest.name.includes('Writing') && ' Focus on complex sentence variety, coherent Task 2 argumentation, and timing.'}
+                    {analysis.weakest.name.includes('Speaking') && ' Record speaking practice, correct pronunciation, and train fast Part 2/3 responses.'}
+                    {analysis.weakest.name.includes('Listening') && ' Practice dictation and passive listening, paying close attention to transitions and word stress.'}
+                    {analysis.weakest.name.includes('Reading') && ' Apply Skimming & Scanning, and expand your Academic vocabulary daily.'}
                   </div>
                 </div>
               </div>
@@ -1058,7 +1058,7 @@ export default function IeltsMockTestLog({
           ) : (
             <div className="bg-slate-950/40 border border-slate-900 rounded-2xl p-6 text-center text-xs text-slate-500 space-y-2">
               <FileText className="w-8 h-8 text-slate-700 mx-auto" />
-              <p>Chưa có đủ chỉ số học tập để phân tích. Hãy ghi nhận ít nhất 1 bài khảo thí để Đạo trưởng khai mở nhãn phân tích tiên thiên!</p>
+              <p>Not enough data for analysis. Record at least 1 mock test to unlock personalized mentor insights!</p>
             </div>
           )}
         </div>
@@ -1073,7 +1073,7 @@ export default function IeltsMockTestLog({
               <button
                 onClick={() => {
                   if (isExamStarted) {
-                    if (!confirm('⚠️ Đạo hữu đang trong phòng thi tính giờ! Thoát ra giữa chừng sẽ tính là VẤN ĐẠO THẤT BẠI và bị phạt -10 Tu Vi. Bạn vẫn muốn thoát?')) {
+                    if (!confirm('⚠️ You are currently in a timed exam! Exiting now will count as an incomplete exam and penalize -10 Exp. Do you still wish to exit?')) {
                       return;
                     }
                     onAddExp(-10, 0);
@@ -1082,11 +1082,11 @@ export default function IeltsMockTestLog({
                 }}
                 className="text-slate-400 hover:text-slate-200 transition-colors cursor-pointer flex items-center gap-1 text-xs font-bold"
               >
-                <ArrowLeft className="w-4 h-4" /> THOÁT
+                <ArrowLeft className="w-4 h-4" /> EXIT
               </button>
               <div className="h-4 w-px bg-slate-700"></div>
               <span className="text-[11px] font-black tracking-widest text-amber-500 uppercase">
-                📖 LINH CẢNH KHẢO THÍ: {activeEssayLog.testName}
+                📖 EXAM WORKSPACE: {activeEssayLog.testName}
               </span>
             </div>
 
@@ -1101,7 +1101,7 @@ export default function IeltsMockTestLog({
                         examMode === 'FREE' ? 'bg-indigo-600 text-slate-100' : 'text-slate-500 hover:text-slate-300'
                       }`}
                     >
-                      Luyện Tập Tự Do
+                      Free Practice
                     </button>
                     <button
                       onClick={() => {
@@ -1112,7 +1112,7 @@ export default function IeltsMockTestLog({
                         examMode === 'TIMED' ? 'bg-indigo-600 text-slate-100' : 'text-slate-500 hover:text-slate-300'
                       }`}
                     >
-                      Khảo Thí Tính Giờ
+                      Timed Exam
                     </button>
                   </div>
 
@@ -1122,11 +1122,11 @@ export default function IeltsMockTestLog({
                       onChange={(e) => setExamDuration(parseInt(e.target.value))}
                       className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-[10px] text-slate-300 focus:outline-none"
                     >
-                      <option value={1}>1 phút (Test nhanh)</option>
-                      <option value={10}>10 phút</option>
-                      <option value={20}>20 phút (Chuẩn Task 1)</option>
-                      <option value={40}>40 phút (Chuẩn Task 2)</option>
-                      <option value={60}>60 phút (Đồng bộ cả 2)</option>
+                      <option value={1}>1 min (Quick test)</option>
+                      <option value={10}>10 mins</option>
+                      <option value={20}>20 mins (Standard Task 1)</option>
+                      <option value={40}>40 mins (Standard Task 2)</option>
+                      <option value={60}>60 mins (Both Tasks)</option>
                     </select>
                   )}
 
@@ -1139,7 +1139,7 @@ export default function IeltsMockTestLog({
                     }}
                     className="bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 font-black px-4.5 py-1.5 rounded-lg flex items-center gap-1 hover:from-amber-600 hover:to-yellow-600 cursor-pointer shadow-lg tracking-wider"
                   >
-                    <Play className="w-3.5 h-3.5 fill-current" /> KHỞI ĐỘNG VẤN ĐẠO
+                    <Play className="w-3.5 h-3.5 fill-current" /> START EXAM
                   </button>
                 </div>
               ) : (
@@ -1155,21 +1155,21 @@ export default function IeltsMockTestLog({
                       <span>{formatTime(timeLeft)}</span>
                     </div>
                   ) : (
-                    <span className="text-[10px] text-slate-500 uppercase tracking-widest font-black font-mono">Chế độ: Luyện Tập Tự Do</span>
+                    <span className="text-[10px] text-slate-500 uppercase tracking-widest font-black font-mono">Mode: Free Practice</span>
                   )}
 
                   <button
                     onClick={handleSaveDraft}
                     className="bg-[#0f121a] border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-slate-100 px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-all"
                   >
-                    Lưu Nháp
+                    Save Draft
                   </button>
 
                   <button
                     onClick={handleManualSubmit}
                     className="bg-indigo-600 hover:bg-indigo-700 text-slate-100 font-bold px-4 py-1.5 rounded-lg text-xs shadow-md transition-all cursor-pointer"
                   >
-                    NỘP BÀI KHẢO HẠCH
+                    SUBMIT EXAM
                   </button>
                 </div>
               )}
@@ -1181,17 +1181,17 @@ export default function IeltsMockTestLog({
             {/* Left Panel: Prompt Questions & Prompt Image (Academic Chart) */}
             <div className="w-[42%] bg-[#0e1017] border-r border-slate-900 flex flex-col overflow-y-auto p-6 space-y-5">
               <div className="space-y-1">
-                <span className="text-[9px] text-indigo-400 font-black tracking-widest uppercase font-mono block">ĐỀ BÀI KHẢO HẠCH</span>
+                <span className="text-[9px] text-indigo-400 font-black tracking-widest uppercase font-mono block">EXAM PROMPT</span>
                 <h4 className="text-sm font-bold text-slate-200 uppercase tracking-wider">{activeEssayLog.testName}</h4>
               </div>
 
               {/* Prompt Text / Notes Editor */}
               <div className="space-y-2">
-                <label className="text-[9px] text-slate-500 font-bold uppercase tracking-wider font-mono">Nội dung đề bài chi tiết:</label>
+                <label className="text-[9px] text-slate-500 font-bold uppercase tracking-wider font-mono">Prompt details:</label>
                 <textarea
                   value={promptText}
                   onChange={(e) => setPromptText(e.target.value)}
-                  placeholder="Dán hoặc gõ nội dung đề bài thi viết tại đây..."
+                  placeholder="Paste or type the writing prompt here..."
                   disabled={isExamStarted && examMode === 'TIMED'}
                   className="w-full bg-[#0a0d14] border border-slate-900 focus:border-slate-800 rounded-xl p-3.5 text-xs text-slate-300 font-sans focus:outline-none h-28 resize-none leading-relaxed"
                 />
@@ -1202,16 +1202,16 @@ export default function IeltsMockTestLog({
                 <div className="flex justify-between items-center">
                   <label className="text-[9px] text-slate-500 font-bold uppercase tracking-wider font-mono flex items-center gap-1.5">
                     <ImageIcon className="w-3.5 h-3.5 text-indigo-400" />
-                    Ảnh đồ thị đề bài (Task 1 Prompt Image)
+                    Task 1 Prompt Image (Graph/Chart)
                   </label>
                   {promptImgUrl && (
                     <button
                       onClick={() => {
-                        if (confirm('Xóa ảnh đề bài hiện tại?')) setPromptImgUrl('');
+                        if (confirm('Delete current prompt image?')) setPromptImgUrl('');
                       }}
                       className="text-[9.5px] text-rose-500 hover:underline cursor-pointer"
                     >
-                      Xóa ảnh
+                      Delete image
                     </button>
                   )}
                 </div>
@@ -1235,8 +1235,8 @@ export default function IeltsMockTestLog({
                     />
                     <Upload className="w-6 h-6 text-slate-600" />
                     <div>
-                      <span className="text-[10px] text-slate-400 font-bold block">Tải tệp ảnh biểu đồ đề bài lên</span>
-                      <span className="text-[8.5px] text-slate-600 block mt-0.5">Hệ thống sẽ tự động nén dung lượng trước khi lưu</span>
+                      <span className="text-[10px] text-slate-400 font-bold block">Upload chart/graph image file</span>
+                      <span className="text-[8.5px] text-slate-600 block mt-0.5">System will automatically compress image size before saving</span>
                     </div>
                   </div>
                 )}
@@ -1246,7 +1246,7 @@ export default function IeltsMockTestLog({
                   <div className="flex gap-1.5">
                     <input
                       type="text"
-                      placeholder="Hoặc dán trực tiếp link ảnh đề bài từ internet..."
+                      placeholder="Or paste direct image URL from internet..."
                       value={promptImgUrl}
                       onChange={(e) => setPromptImgUrl(e.target.value)}
                       disabled={isExamStarted && examMode === 'TIMED'}
@@ -1256,15 +1256,15 @@ export default function IeltsMockTestLog({
                 )}
               </div>
 
-              {/* Nhận xét / Tự rút kinh nghiệm (Self-Review / Remarks) */}
+              {/* Notes / Remarks */}
               <div className="space-y-2 border-t border-slate-900/60 pt-4">
                 <label className="text-[9px] text-slate-500 font-bold uppercase tracking-wider font-mono flex items-center gap-1">
-                  📝 Bút Ký Nhận Xét & Đúc Kết Đạo Tâm:
+                  📝 Notes, Teacher Feedback & Self-Review:
                 </label>
                 <textarea
                   value={selfReview}
                   onChange={(e) => setSelfReview(e.target.value)}
-                  placeholder="Sau khi vấn đạo xong, đạo hữu hãy ghi chú lại các lỗi sai thường gặp (ví dụ: sai ngữ pháp, viết thiếu ý, lặp từ...) hoặc nhận xét của thầy cô tại đây để ôn tập sau..."
+                  placeholder="After finishing, record common mistakes (e.g. grammar errors, lack of development, repetitive vocabulary) or feedback from instructors here for later review..."
                   className="w-full bg-[#0a0d14] border border-slate-900 focus:border-slate-800 rounded-xl p-3.5 text-xs text-slate-300 font-sans focus:outline-none h-28 resize-none leading-relaxed"
                 />
               </div>
@@ -1278,7 +1278,7 @@ export default function IeltsMockTestLog({
                   <button
                     onClick={() => {
                       if (!isExamStarted) setActiveTask(1);
-                      else alert('⚠️ Không thể chuyển đổi bài viết khi cuộc thi đang bắt đầu tính giờ!');
+                      else alert('⚠️ Cannot switch tasks while a timed exam is running!');
                     }}
                     className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${
                       activeTask === 1
@@ -1286,12 +1286,12 @@ export default function IeltsMockTestLog({
                         : 'text-slate-500 hover:text-slate-300'
                     }`}
                   >
-                    Task 1 (Luyện Đồ Thị - 150 Từ)
+                    Task 1 (Report - 150 Words)
                   </button>
                   <button
                     onClick={() => {
                       if (!isExamStarted) setActiveTask(2);
-                      else alert('⚠️ Không thể chuyển đổi bài viết khi cuộc thi đang bắt đầu tính giờ!');
+                      else alert('⚠️ Cannot switch tasks while a timed exam is running!');
                     }}
                     className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${
                       activeTask === 2
@@ -1299,12 +1299,12 @@ export default function IeltsMockTestLog({
                         : 'text-slate-500 hover:text-slate-300'
                     }`}
                   >
-                    Task 2 (Viết Nghị Luận - 250 Từ)
+                    Task 2 (Essay - 250 Words)
                   </button>
                 </div>
 
                 <div className="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-widest">
-                  Chuẩn CDT: Bàn phím QWERTY
+                  Standard CDT: QWERTY Keyboard
                 </div>
               </div>
 
@@ -1316,9 +1316,9 @@ export default function IeltsMockTestLog({
                       <Bookmark className="w-7 h-7" />
                     </div>
                     <div className="space-y-1.5 max-w-sm">
-                      <h4 className="text-xs font-bold text-slate-200 uppercase tracking-widest">Đạo Kính Khảo Thí Chưa Khởi Động</h4>
+                      <h4 className="text-xs font-bold text-slate-200 uppercase tracking-widest">Exam Workspace Not Started</h4>
                       <p className="text-[10px] text-slate-500 leading-relaxed font-sans">
-                        Hãy chọn chế độ làm bài (Luyện tập tự do hoặc Thi thử tính giờ) ở thanh tiêu đề trên, sau đó bấm **Khởi Động Vấn Đạo** để bắt đầu viết bài luận!
+                        Choose your mode (Free practice or Timed test) on the top bar, then click **START EXAM** to begin writing!
                       </p>
                     </div>
                   </div>
@@ -1344,15 +1344,15 @@ export default function IeltsMockTestLog({
               <div className="bg-[#12151d] border-t border-slate-900 px-6 py-4 space-y-2.5 shrink-0">
                 <div className="flex justify-between items-center text-xs">
                   <div className="flex items-center gap-2">
-                    <span className="text-[9px] text-slate-500 uppercase tracking-widest font-black font-mono">Tiến Trình Đạo Tâm:</span>
+                    <span className="text-[9px] text-slate-500 uppercase tracking-widest font-black font-mono">Writing Progress:</span>
                     <span className="text-[10.5px] font-sans text-slate-300">
                       {wordProgress.statusText}
                     </span>
                   </div>
                   <div className="font-mono font-bold flex items-center gap-1.5">
-                    <span className="text-[9px] text-slate-500 uppercase">Đã viết:</span>
+                    <span className="text-[9px] text-slate-500 uppercase">Word count:</span>
                     <span className="text-slate-100 bg-slate-900 border border-slate-800 px-2 py-0.5 rounded text-xs">
-                      {activeTask === 1 ? countWords(task1Text) : countWords(task2Text)} từ
+                      {activeTask === 1 ? countWords(task1Text) : countWords(task2Text)} words
                     </span>
                   </div>
                 </div>

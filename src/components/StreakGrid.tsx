@@ -9,6 +9,7 @@ import { DailyLog, TodoItem } from '../types';
 interface StreakGridProps {
   dailyLogs: DailyLog[];
   todoItems: TodoItem[];
+  totalMeditationMinutes?: number;
 }
 
 type PeriodType = 'T1_4' | 'T5_8' | 'T9_12';
@@ -19,7 +20,7 @@ const PERIOD_CONFIG: Record<PeriodType, { startMonth: number; endMonth: number; 
   'T9_12': { startMonth: 8, endMonth: 11, label: 'Tháng 9 - 12' },
 };
 
-export default function StreakGrid({ dailyLogs, todoItems }: StreakGridProps) {
+export default function StreakGrid({ dailyLogs, todoItems, totalMeditationMinutes }: StreakGridProps) {
   const today = new Date();
   const currentYear = today.getFullYear();
   const currentMonth = today.getMonth(); // 0-indexed
@@ -42,7 +43,7 @@ export default function StreakGrid({ dailyLogs, todoItems }: StreakGridProps) {
       return 'bg-[#161b22] border-slate-900/80 hover:border-slate-600';
     }
     
-    const activity = (log.tuViGained || 0) + (log.meditationMinutes * 2) + (log.tasksCompleted * 10);
+    const activity = (log.tuViGained || 0) + (log.meditationMinutes * 2) + (log.tasksCompleted * 10) + (log.isStreakProtected ? 20 : 0);
     if (activity === 0) return 'bg-[#161b22] border-slate-900/80 hover:border-slate-600';
     if (activity < 20) return 'bg-[#0e4429] border-[#0e4429]/60 hover:brightness-125';
     if (activity < 60) return 'bg-[#006d32] border-[#006d32]/60 hover:brightness-125';
@@ -124,7 +125,7 @@ export default function StreakGrid({ dailyLogs, todoItems }: StreakGridProps) {
 
   const calculateStreaks = () => {
     const activeDates = dailyLogs
-      .filter(log => log.tuViGained > 0 || log.meditationMinutes > 0 || log.tasksCompleted > 0)
+      .filter(log => log.tuViGained > 0 || log.meditationMinutes > 0 || log.tasksCompleted > 0 || !!log.isStreakProtected)
       .map(log => log.date)
       .sort();
     
@@ -188,7 +189,9 @@ export default function StreakGrid({ dailyLogs, todoItems }: StreakGridProps) {
   };
 
   const { current: currentStreak, longest: longestStreak, activeDaysCount: activeDays } = calculateStreaks();
-  const totalFocusMinutes = dailyLogs.reduce((acc, log) => acc + (log.meditationMinutes || 0), 0);
+  const totalFocusMinutes = totalMeditationMinutes !== undefined
+    ? totalMeditationMinutes
+    : dailyLogs.reduce((acc, log) => acc + (log.meditationMinutes || 0), 0);
 
   return (
     <div className="neo-card p-4 sm:p-5 space-y-4" id="streak-grid-container">
@@ -198,25 +201,25 @@ export default function StreakGrid({ dailyLogs, todoItems }: StreakGridProps) {
           <h5 className="text-lg sm:text-2xl font-black text-emerald-400 tracking-tight pixel-label">
             {totalReviews.toLocaleString('en-US')}
           </h5>
-          <p className="text-[8.5px] text-slate-500 font-bold uppercase tracking-wider font-sans">TỔNG NHIỆM VỤ HOÀN THÀNH</p>
+          <p className="text-[8.5px] text-slate-500 font-bold uppercase tracking-wider font-sans">TOTAL TASKS COMPLETED</p>
         </div>
         <div className="space-y-0.5">
           <h5 className="text-lg sm:text-2xl font-black text-emerald-400 tracking-tight pixel-label">
             {activeDays.toLocaleString('en-US')}
           </h5>
-          <p className="text-[8.5px] text-slate-500 font-bold uppercase tracking-wider font-sans">NGÀY TU LUYỆN</p>
+          <p className="text-[8.5px] text-slate-500 font-bold uppercase tracking-wider font-sans">ACTIVE DAYS</p>
         </div>
         <div className="space-y-0.5">
           <h5 className="text-lg sm:text-2xl font-black text-emerald-400 tracking-tight pixel-label">
             {currentStreak.toLocaleString('en-US')}
           </h5>
-          <p className="text-[8.5px] text-slate-500 font-bold uppercase tracking-wider font-sans">NGÀY BẾ QUAN HIỆN TẠI</p>
+          <p className="text-[8.5px] text-slate-500 font-bold uppercase tracking-wider font-sans">CURRENT STREAK</p>
         </div>
         <div className="space-y-0.5">
           <h5 className="text-lg sm:text-2xl font-black text-emerald-400 tracking-tight pixel-label">
             {longestStreak.toLocaleString('en-US')}
           </h5>
-          <p className="text-[8.5px] text-slate-500 font-bold uppercase tracking-wider font-sans">NGÀY BẾ QUAN DÀI NHẤT</p>
+          <p className="text-[8.5px] text-slate-500 font-bold uppercase tracking-wider font-sans">LONGEST STREAK</p>
         </div>
       </div>
 
@@ -225,38 +228,38 @@ export default function StreakGrid({ dailyLogs, todoItems }: StreakGridProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-mono font-extrabold uppercase tracking-widest text-slate-400">
-              HOẠT ĐỘNG
+              ACTIVITY
             </span>
           </div>
 
           {/* Legend on Top Right */}
           <div className="flex items-center gap-1.5 text-[8.5px] text-slate-400 font-mono">
-            <span>Ít</span>
+            <span>Less</span>
             <span className="w-2 h-2 rounded-[2px] border border-slate-950 bg-[#161b22]" />
             <span className="w-2 h-2 rounded-[2px] border border-slate-950 bg-[#0e4429]" />
             <span className="w-2 h-2 rounded-[2px] border border-slate-950 bg-[#006d32]" />
             <span className="w-2 h-2 rounded-[2px] border border-slate-950 bg-[#26a641]" />
             <span className="w-2 h-2 rounded-[2px] border border-slate-950 bg-[#39d353] shadow-[0_0_4px_rgba(57,211,83,0.5)]" />
-            <span>Nhiều</span>
+            <span>More</span>
           </div>
         </div>
 
         <p className="text-xs font-semibold text-slate-200">
-          <span className="font-mono text-emerald-400 font-bold">{totalFocusMinutes.toLocaleString('en-US')} phút</span> tập trung đã tích lũy
+          <span className="font-mono text-emerald-400 font-bold">{totalFocusMinutes.toLocaleString('en-US')} focus minutes</span> accumulated
         </p>
 
         {/* Contribution Matrix Grid - Fitted without scrolling */}
         <div className="w-full flex justify-center pt-2">
           <div className="flex gap-1.5 items-start">
-            {/* Day of week labels on the left (T2, T4, T6, CN) aligned with the 7 grid rows */}
+            {/* Day of week labels on the left (Mon, Wed, Fri, Sun) aligned with the 7 grid rows */}
             <div className="flex flex-col gap-[2.5px] sm:gap-[3px] pt-3.5 select-none font-mono text-[7px] sm:text-[7.5px] font-bold text-slate-500 leading-none">
-              <div className="w-4 h-2.5 sm:h-[11px] flex items-center justify-end pr-0.5">T2</div>
+              <div className="w-4 h-2.5 sm:h-[11px] flex items-center justify-end pr-0.5">Mon</div>
               <div className="w-4 h-2.5 sm:h-[11px] flex items-center justify-end pr-0.5" />
-              <div className="w-4 h-2.5 sm:h-[11px] flex items-center justify-end pr-0.5">T4</div>
+              <div className="w-4 h-2.5 sm:h-[11px] flex items-center justify-end pr-0.5">Wed</div>
               <div className="w-4 h-2.5 sm:h-[11px] flex items-center justify-end pr-0.5" />
-              <div className="w-4 h-2.5 sm:h-[11px] flex items-center justify-end pr-0.5">T6</div>
+              <div className="w-4 h-2.5 sm:h-[11px] flex items-center justify-end pr-0.5">Fri</div>
               <div className="w-4 h-2.5 sm:h-[11px] flex items-center justify-end pr-0.5" />
-              <div className="w-4 h-2.5 sm:h-[11px] flex items-center justify-end pr-0.5">CN</div>
+              <div className="w-4 h-2.5 sm:h-[11px] flex items-center justify-end pr-0.5">Sun</div>
             </div>
 
             {/* Weeks List */}
@@ -264,12 +267,13 @@ export default function StreakGrid({ dailyLogs, todoItems }: StreakGridProps) {
               {weeks.map((week, colIdx) => {
                 const firstDayInWeek = week[0];
                 const firstOfMonth = week.find(d => d.isCurrentPeriod && d.dayNum === 1);
+                const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
                 let monthLabel: string | null = null;
                 
                 if (firstOfMonth) {
-                  monthLabel = `Th${firstOfMonth.month + 1}`;
+                  monthLabel = MONTH_NAMES[firstOfMonth.month] || `M${firstOfMonth.month + 1}`;
                 } else if (colIdx === 0 && firstDayInWeek.isCurrentPeriod) {
-                  monthLabel = `Th${firstDayInWeek.month + 1}`;
+                  monthLabel = MONTH_NAMES[firstDayInWeek.month] || `M${firstDayInWeek.month + 1}`;
                 }
 
                 return (
@@ -292,25 +296,25 @@ export default function StreakGrid({ dailyLogs, todoItems }: StreakGridProps) {
                           {day.isCurrentPeriod && (
                             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 w-36 p-1.5 bg-slate-950 border-2 border-slate-950 rounded-lg shadow-[3px_3px_0px_#000] text-[8.5px] leading-normal text-slate-300 opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-150 z-[100] font-sans text-left">
                               <p className="font-bold text-slate-200 border-b border-slate-900 pb-0.5 mb-1 font-mono text-center text-[9px]">
-                                {day.dateStr} {day.isToday ? '(Hôm nay)' : ''}
+                                {day.dateStr} {day.isToday ? '(Today)' : ''}
                               </p>
                               {day.log ? (
                                 <div className="space-y-0.5">
                                   <p className="flex justify-between">
-                                    <span>Thiền Định:</span>
-                                    <span className="font-bold text-emerald-400">{day.log.meditationMinutes}p</span>
+                                    <span>Meditation:</span>
+                                    <span className="font-bold text-emerald-400">{day.log.meditationMinutes}m</span>
                                   </p>
                                   <p className="flex justify-between">
-                                    <span>Nhiệm Vụ:</span>
+                                    <span>Tasks:</span>
                                     <span className="font-bold text-cyan-400">{day.log.tasksCompleted}</span>
                                   </p>
                                   <p className="flex justify-between">
-                                    <span>Tu Vi:</span>
+                                    <span>Exp:</span>
                                     <span className="font-bold text-amber-400">+{day.log.tuViGained} XP</span>
                                   </p>
                                 </div>
                               ) : (
-                                <p className="text-slate-500 text-center italic py-0.5">Chưa bế quan</p>
+                                <p className="text-slate-500 text-center italic py-0.5">No activity</p>
                               )}
                             </div>
                           )}

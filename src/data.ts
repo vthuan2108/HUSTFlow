@@ -8,8 +8,8 @@ import { StoreItem, WeeklyChallenge, Achievement, BottleneckRequirement } from '
 export const STORE_ITEMS: StoreItem[] = [
   {
     id: 'tu_khi_dan',
-    name: 'Tụ Khí Đan (Sơ Cấp)',
-    description: 'Thần dược khai thông kinh mạch. Khi bế quan tu luyện (Pomodoro) nhận thêm +25% Tu Vi tích lũy.',
+    name: 'Qi Gathering Pill (Basic)',
+    description: 'A miraculous elixir clearing meridians. When in seclusion (Pomodoro), gain +25% bonus Cultivation.',
     cost: 40,
     type: 'CONSUMABLE',
     effectType: 'POMODORO_XP',
@@ -18,8 +18,8 @@ export const STORE_ITEMS: StoreItem[] = [
   },
   {
     id: 'tu_linh_tran',
-    name: 'Tụ Linh Trận Pháp',
-    description: 'Bảo trận thu thập linh khí tự nhiên. Giúp nhận thụ động +2 Tu Vi mỗi 5 giây khi đang bế quan thiền định.',
+    name: 'Spirit Gathering Array',
+    description: 'A formation gathering natural spirit energy. Passively yields +2 Cultivation every 5 seconds during seclusion.',
     cost: 120,
     type: 'CONSUMABLE', // Keep as consumable for single session activation
     effectType: 'SUCCESS_RATE',
@@ -28,8 +28,8 @@ export const STORE_ITEMS: StoreItem[] = [
   },
   {
     id: 'ho_tam_kinh',
-    name: 'Hộ Tâm Kính',
-    description: 'Bảo vật phòng thân tối thượng. Bảo vệ đạo tâm khỏi bị tiêu hao Tu Vi nếu chẳng may đột phá thất bại.',
+    name: 'Heart Protecting Mirror',
+    description: 'Ultimate defensive artifact. Protects your Dao Heart from losing Cultivation if a breakthrough fails.',
     cost: 80,
     type: 'CONSUMABLE',
     effectType: 'SUCCESS_RATE',
@@ -38,8 +38,8 @@ export const STORE_ITEMS: StoreItem[] = [
   },
   {
     id: 'dao_tam_phu',
-    name: 'Đạo Tâm Phù (Bảo Vệ Streak)',
-    description: 'Thần phù bảo hộ đạo tâm. Khi sử dụng, lập tức tăng thêm +1 ngày liên tiếp (streak) cho tất cả các thói quen hiện có để giữ vững phong độ tu luyện.',
+    name: 'Dao Heart Talisman (Streak Protection)',
+    description: 'Sacred talisman protecting your Dao Heart. Immediately adds +1 consecutive day to streak to maintain cultivation momentum.',
     cost: 50,
     type: 'CONSUMABLE',
     effectType: 'SUCCESS_RATE',
@@ -48,8 +48,8 @@ export const STORE_ITEMS: StoreItem[] = [
   },
   {
     id: 'linh_chi_duoc',
-    name: 'Linh Chi Đại Bổ Hoàn',
-    description: 'Dược lực bồi bổ nguyên khí thâm sâu. Nhận ngay lập tức +100 Tu Vi khi sử dụng.',
+    name: 'Lingzhi Tonic Pill',
+    description: 'Deep vitality nourishment. Instantly grants +100 Cultivation when consumed.',
     cost: 60,
     type: 'CONSUMABLE',
     effectType: 'INSTANT_XP',
@@ -58,8 +58,8 @@ export const STORE_ITEMS: StoreItem[] = [
   },
   {
     id: 'thanh_tam_phu',
-    name: 'Thanh Tâm Phù',
-    description: 'Linh phù tịnh hóa tâm cảnh. Trấn áp và hóa giải trạng thái "Tâm Ma Xâm Nhập" trong ngày hôm nay, khôi phục hiệu suất tu luyện 100%.',
+    name: 'Pure Heart Talisman',
+    description: 'Purifies state of mind. Suppresses and dispels "Inner Demon Infiltration" for today, restoring 100% cultivation efficiency.',
     cost: 60,
     type: 'CONSUMABLE',
     effectType: 'SUCCESS_RATE',
@@ -68,8 +68,8 @@ export const STORE_ITEMS: StoreItem[] = [
   },
   {
     id: 'spell_tu_khi_quyet',
-    name: 'Tụ Khí Quyết',
-    description: 'Bí tịch sơ cấp. Khi trang bị, nhận thêm +30% Tu Vi khi hoàn thành thiền định (Pomodoro).',
+    name: 'Qi Gathering Art',
+    description: 'Introductory manual. When equipped, grants +30% Cultivation upon completing Pomodoro meditation.',
     cost: 100,
     type: 'PERMANENT',
     effectType: 'POMODORO_XP',
@@ -78,8 +78,8 @@ export const STORE_ITEMS: StoreItem[] = [
   },
   {
     id: 'spell_tam_ma_tram',
-    name: 'Tâm Ma Trảm',
-    description: 'Trảm trừ tạp niệm. Khi trang bị, nhận gấp đôi (+100%) lượng Linh Thạch từ mọi nguồn.',
+    name: 'Inner Demon Slash',
+    description: 'Severs stray thoughts. When equipped, doubles (+100%) Spirit Stone rewards from all sources.',
     cost: 180,
     type: 'PERMANENT',
     effectType: 'COIN_BUFF',
@@ -88,8 +88,8 @@ export const STORE_ITEMS: StoreItem[] = [
   },
   {
     id: 'spell_than_hanh_bo',
-    name: 'Thần Hành Bộ',
-    description: 'Thân pháp nhẹ nhàng. Tăng +50% hiệu quả hấp thụ Tu Vi từ nhật khóa thói quen.',
+    name: 'Godspeed Steps',
+    description: 'Agile movement technique. Increases Cultivation absorption from daily habit rituals by +50%.',
     cost: 120,
     type: 'PERMANENT',
     effectType: 'HABIT_XP',
@@ -98,8 +98,8 @@ export const STORE_ITEMS: StoreItem[] = [
   },
   {
     id: 'truc_co_dan',
-    name: 'Trúc Cơ Đan',
-    description: 'Thần dược đúc kết tiên cơ. Bắt buộc sở hữu để đột phá vượt qua Bình Cảnh Trúc Cơ.',
+    name: 'Foundation Pill',
+    description: 'Miraculous pill solidifying foundation. Required to break through the Foundation Establishment bottleneck.',
     cost: 100,
     type: 'CONSUMABLE',
     effectType: 'SUCCESS_RATE',
@@ -108,8 +108,8 @@ export const STORE_ITEMS: StoreItem[] = [
   },
   {
     id: 'ket_dan_hoan',
-    name: 'Kết Đan Hoàn',
-    description: 'Bảo đan ngưng tụ Kim Đan. Bắt buộc sở hữu để đột phá vượt qua Bình Cảnh Kết Đan.',
+    name: 'Core Formation Pellet',
+    description: 'Precious pellet condensing golden core. Required to break through the Core Formation bottleneck.',
     cost: 150,
     type: 'CONSUMABLE',
     effectType: 'SUCCESS_RATE',
@@ -118,8 +118,8 @@ export const STORE_ITEMS: StoreItem[] = [
   },
   {
     id: 'nguyen_anh_dan',
-    name: 'Nguyên Anh Đan',
-    description: 'Bồi bổ thần trí ngưng tụ Nguyên Anh. Bắt buộc sở hữu để đột phá Bình Cảnh Nguyên Anh.',
+    name: 'Nascent Soul Pill',
+    description: 'Nourishes consciousness to condense the Nascent Soul. Required to break through the Nascent Soul bottleneck.',
     cost: 220,
     type: 'CONSUMABLE',
     effectType: 'SUCCESS_RATE',
@@ -128,8 +128,8 @@ export const STORE_ITEMS: StoreItem[] = [
   },
   {
     id: 'do_kiep_phu',
-    name: 'Độ Kiếp Phù',
-    description: 'Bí phù vượt kiếp nạn cao cấp. Bắt buộc sở hữu để đột phá các mốc Bình Cảnh đại năng.',
+    name: 'Tribulation Crossing Talisman',
+    description: 'Advanced talisman for overcoming tribulations. Required to break through supreme bottleneck barriers.',
     cost: 320,
     type: 'CONSUMABLE',
     effectType: 'SUCCESS_RATE',
@@ -141,7 +141,7 @@ export const STORE_ITEMS: StoreItem[] = [
 export const DEFAULT_CHALLENGES: WeeklyChallenge[] = [
   {
     id: 'challenge_meditation',
-    title: 'Bế Quan Vượt Giới (Thiền Định 120 phút)',
+    title: 'Transcendent Seclusion (120 Mins Meditation)',
     targetType: 'MEDITATION_MINUTES',
     targetValue: 120,
     currentValue: 0,
@@ -151,7 +151,7 @@ export const DEFAULT_CHALLENGES: WeeklyChallenge[] = [
   },
   {
     id: 'challenge_tasks',
-    title: 'Giải Quyết Tâm Ma (Hoàn thành 10 nhiệm vụ)',
+    title: 'Slay Inner Demons (Complete 10 Tasks)',
     targetType: 'TASKS_COMPLETED',
     targetValue: 10,
     currentValue: 0,
@@ -161,7 +161,7 @@ export const DEFAULT_CHALLENGES: WeeklyChallenge[] = [
   },
   {
     id: 'challenge_habits',
-    title: 'Gìn Giữ Đạo Tâm (Tích lũy 15 lượt thói quen)',
+    title: 'Uphold Dao Heart (Complete 15 Habit Check-ins)',
     targetType: 'HABITS_COMPLETED',
     targetValue: 15,
     currentValue: 0,
@@ -457,133 +457,133 @@ export const getRealmInfo = (level: number): RealmInfo => {
       title: 'Bình Cảnh Trúc Cơ',
       minMeditationMinutes: 45,
       requiredItemId: 'truc_co_dan',
-      requiredItemName: 'Trúc Cơ Đan'
+      requiredItemName: 'Foundation Pill'
     };
   } else if (safeLvl === 19) {
     bottleneck = {
       title: 'Bình Cảnh Kết Đan',
       minMeditationMinutes: 60,
       requiredItemId: 'ket_dan_hoan',
-      requiredItemName: 'Kết Đan Hoàn'
+      requiredItemName: 'Core Formation Pellet'
     };
   } else if (safeLvl === 23) {
     bottleneck = {
       title: 'Bình Cảnh Nguyên Anh',
       minMeditationMinutes: 90,
       requiredItemId: 'nguyen_anh_dan',
-      requiredItemName: 'Nguyên Anh Đan'
+      requiredItemName: 'Nascent Soul Pill'
     };
   } else if (safeLvl === 27) {
     bottleneck = {
       title: 'Bình Cảnh Hóa Thần',
       minMeditationMinutes: 100,
       requiredItemId: 'do_kiep_phu',
-      requiredItemName: 'Độ Kiếp Phù'
+      requiredItemName: 'Tribulation Crossing Talisman'
     };
   } else if (safeLvl === 31) {
     bottleneck = {
       title: 'Bình Cảnh Anh Biến',
       minMeditationMinutes: 120,
       requiredItemId: 'do_kiep_phu',
-      requiredItemName: 'Độ Kiếp Phù'
+      requiredItemName: 'Tribulation Crossing Talisman'
     };
   } else if (safeLvl === 35) {
     bottleneck = {
       title: 'Bình Cảnh Vấn Đỉnh',
       minMeditationMinutes: 130,
       requiredItemId: 'do_kiep_phu',
-      requiredItemName: 'Độ Kiếp Phù'
+      requiredItemName: 'Tribulation Crossing Talisman'
     };
   } else if (safeLvl === 39) {
     bottleneck = {
       title: 'Bình Cảnh Âm Hư',
       minMeditationMinutes: 140,
       requiredItemId: 'do_kiep_phu',
-      requiredItemName: 'Độ Kiếp Phù'
+      requiredItemName: 'Tribulation Crossing Talisman'
     };
   } else if (safeLvl === 40) {
     bottleneck = {
       title: 'Bình Cảnh Dương Thực',
       minMeditationMinutes: 145,
       requiredItemId: 'do_kiep_phu',
-      requiredItemName: 'Độ Kiếp Phù'
+      requiredItemName: 'Tribulation Crossing Talisman'
     };
   } else if (safeLvl === 41) {
     bottleneck = {
       title: 'Bình Cảnh Khuy Niết',
       minMeditationMinutes: 150,
       requiredItemId: 'do_kiep_phu',
-      requiredItemName: 'Độ Kiếp Phù'
+      requiredItemName: 'Tribulation Crossing Talisman'
     };
   } else if (safeLvl === 45) {
     bottleneck = {
       title: 'Bình Cảnh Tịnh Niết',
       minMeditationMinutes: 165,
       requiredItemId: 'do_kiep_phu',
-      requiredItemName: 'Độ Kiếp Phù'
+      requiredItemName: 'Tribulation Crossing Talisman'
     };
   } else if (safeLvl === 49) {
     bottleneck = {
       title: 'Bình Cảnh Toái Niết',
       minMeditationMinutes: 180,
       requiredItemId: 'do_kiep_phu',
-      requiredItemName: 'Độ Kiếp Phù'
+      requiredItemName: 'Tribulation Crossing Talisman'
     };
   } else if (safeLvl === 53) {
     bottleneck = {
       title: 'Bình Cảnh Thiên Nhân Ngũ Suy',
       minMeditationMinutes: 200,
       requiredItemId: 'do_kiep_phu',
-      requiredItemName: 'Độ Kiếp Phù'
+      requiredItemName: 'Tribulation Crossing Talisman'
     };
   } else if (safeLvl === 58) {
     bottleneck = {
       title: 'Bình Cảnh Không Niết Cảnh',
       minMeditationMinutes: 220,
       requiredItemId: 'do_kiep_phu',
-      requiredItemName: 'Độ Kiếp Phù'
+      requiredItemName: 'Tribulation Crossing Talisman'
     };
   } else if (safeLvl === 62) {
     bottleneck = {
       title: 'Bình Cảnh Không Linh Cảnh',
       minMeditationMinutes: 240,
       requiredItemId: 'do_kiep_phu',
-      requiredItemName: 'Độ Kiếp Phù'
+      requiredItemName: 'Tribulation Crossing Talisman'
     };
   } else if (safeLvl === 66) {
     bottleneck = {
       title: 'Bình Cảnh Không Huyền Cảnh',
       minMeditationMinutes: 260,
       requiredItemId: 'do_kiep_phu',
-      requiredItemName: 'Độ Kiếp Phù'
+      requiredItemName: 'Tribulation Crossing Talisman'
     };
   } else if (safeLvl === 70) {
     bottleneck = {
       title: 'Bình Cảnh 9 Kiếp Huyền Kiếp',
       minMeditationMinutes: 280,
       requiredItemId: 'do_kiep_phu',
-      requiredItemName: 'Độ Kiếp Phù'
+      requiredItemName: 'Tribulation Crossing Talisman'
     };
   } else if (safeLvl === 79) {
     bottleneck = {
       title: 'Bình Cảnh Không Kiếp Đại Tôn',
       minMeditationMinutes: 320,
       requiredItemId: 'do_kiep_phu',
-      requiredItemName: 'Độ Kiếp Phù'
+      requiredItemName: 'Tribulation Crossing Talisman'
     };
   } else if (safeLvl === 85) {
     bottleneck = {
       title: 'Bình Cảnh Đạp Thiên Kiều',
       minMeditationMinutes: 360,
       requiredItemId: 'do_kiep_phu',
-      requiredItemName: 'Độ Kiếp Phù'
+      requiredItemName: 'Tribulation Crossing Talisman'
     };
   } else if (safeLvl === 94) {
     bottleneck = {
       title: 'Bình Cảnh Đạp Thiên Chí Tôn',
       minMeditationMinutes: 400,
       requiredItemId: 'do_kiep_phu',
-      requiredItemName: 'Độ Kiếp Phù'
+      requiredItemName: 'Tribulation Crossing Talisman'
     };
   }
 

@@ -21,7 +21,7 @@ export default function TreasureStore({ state, onBuyItem, onUseConsumable }: Tre
         <div className="neo-card p-5">
           <div className="flex items-center gap-2 mb-4 border-b-2 border-slate-950 pb-3">
             <ShoppingBag className="w-5 h-5 text-amber-500" />
-            <h3 className="text-sm font-bold text-slate-100 uppercase tracking-wider">Tàng Bảo Các (Spiritual Shop)</h3>
+            <h3 className="text-sm font-bold text-slate-100 uppercase tracking-wider">Treasure Pavilion (Spiritual Shop)</h3>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -58,7 +58,7 @@ export default function TreasureStore({ state, onBuyItem, onUseConsumable }: Tre
                         : 'bg-slate-900 text-slate-650 border-2 border-slate-950 rounded-lg cursor-not-allowed font-extrabold'
                     }`}
                   >
-                    {alreadyOwned ? 'ĐÃ SỞ HỮU BÍ TỊCH' : canAfford ? 'MUA BẰNG LINH THẠCH' : 'CHƯA ĐỦ LINH THẠCH'}
+                    {alreadyOwned ? 'OWNED (MANUAL)' : canAfford ? 'BUY WITH SPIRIT STONES' : 'NOT ENOUGH SPIRIT STONES'}
                   </button>
                 </div>
               );
@@ -72,7 +72,7 @@ export default function TreasureStore({ state, onBuyItem, onUseConsumable }: Tre
         <div className="neo-card p-5 h-full flex flex-col">
           <div className="flex items-center gap-2 mb-4 border-b-2 border-slate-950 pb-3">
             <Package className="w-5 h-5 text-indigo-400" />
-            <h3 className="text-sm font-bold text-slate-100 uppercase tracking-wider">Hành Trang Nhân Vật</h3>
+            <h3 className="text-sm font-bold text-slate-100 uppercase tracking-wider">Character Inventory</h3>
           </div>
 
           {/* Active Shield Indicator */}
@@ -80,8 +80,8 @@ export default function TreasureStore({ state, onBuyItem, onUseConsumable }: Tre
             <div className="bg-[#1e2638] border-2 border-slate-950 p-3 rounded-xl mb-4 flex items-center gap-3 shadow-[2px_2px_0px_#000]">
               <Shield className="w-5 h-5 text-indigo-400 animate-pulse shrink-0" />
               <div>
-                <p className="text-[10px] font-bold text-indigo-300">HỘ TÂM KÍNH ĐANG KÍCH HOẠT</p>
-                <p className="text-[9px] text-slate-500">Đạo tâm được bảo vệ vững vàng trong lần đột phá tiếp theo!</p>
+                <p className="text-[10px] font-bold text-indigo-300">HEART PROTECTING MIRROR ACTIVE</p>
+                <p className="text-[9px] text-slate-500">Dao heart is shielded against tribulation failure on your next breakthrough!</p>
               </div>
             </div>
           )}
@@ -110,8 +110,8 @@ export default function TreasureStore({ state, onBuyItem, onUseConsumable }: Tre
                       </div>
                       <p className="text-[9px] text-slate-500 mt-1">
                         {isSpell 
-                          ? <>Trạng thái: <strong className={isEquipped ? 'text-emerald-450' : 'text-slate-400'}>{isEquipped ? 'Đang trang bị' : 'Đang cất giữ'}</strong></>
-                          : <>Số lượng: <strong className="text-slate-300 font-mono">{inv.quantity}</strong></>
+                          ? <>Status: <strong className={isEquipped ? 'text-emerald-450' : 'text-slate-400'}>{isEquipped ? 'Equipped' : 'Stored in Bag'}</strong></>
+                          : <>Quantity: <strong className="text-slate-300 font-mono">{inv.quantity}</strong></>
                         }
                       </p>
                     </div>
@@ -122,11 +122,11 @@ export default function TreasureStore({ state, onBuyItem, onUseConsumable }: Tre
                         isSpell 
                           ? (isEquipped ? 'bg-slate-950 text-amber-400 hover:text-amber-300' : 'neo-btn-success text-slate-950')
                           : 'neo-btn neo-btn-success text-slate-950'
-                      } text-[9px] shrink-0 font-bold`}
+                      } text-[9px] shrink-0 font-bold cursor-pointer`}
                     >
                       {isSpell 
-                        ? (isEquipped ? 'THÁO RA' : 'TRANG BỊ') 
-                        : 'SỬ DỤNG'}
+                        ? (isEquipped ? 'UNEQUIP' : 'EQUIP') 
+                        : 'USE'}
                     </button>
                   </div>
                 );
@@ -134,7 +134,7 @@ export default function TreasureStore({ state, onBuyItem, onUseConsumable }: Tre
             ) : (
               <div className="text-center py-24 text-slate-600 text-xs flex flex-col items-center justify-center gap-2 border-2 border-dashed border-slate-950 rounded-xl h-full">
                 <Package className="w-6 h-6 text-slate-700 animate-pulse" />
-                <span>Hành trang trống rỗng. Hãy mua đan dược bổ trợ!</span>
+                <span>Inventory is empty. Purchase pills and artifacts to assist your cultivation!</span>
               </div>
             )}
           </div>

@@ -18,7 +18,7 @@ function getLocalDateString(d: Date = new Date()): string {
 
 function getStreakFromLogs(logs: DailyLog[]): number {
   const activeDates = logs
-    .filter(log => log.tuViGained > 0 || log.meditationMinutes > 0 || log.tasksCompleted > 0)
+    .filter(log => log.tuViGained > 0 || log.meditationMinutes > 0 || log.tasksCompleted > 0 || !!log.isStreakProtected)
     .map(log => log.date)
     .sort();
   if (activeDates.length === 0) return 0;
@@ -97,7 +97,7 @@ export default function PerformanceStats({
         meditationMinutes: realLog.meditationMinutes,
         tuViGained: realLog.tuViGained,
         tasksCompleted: realLog.tasksCompleted,
-        formattedDate: d.toLocaleDateString('vi-VN', { day: 'numeric', month: 'numeric' })
+        formattedDate: d.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' })
       });
     } else {
       const isLogEmpty = dailyLogs.length === 0;
@@ -110,7 +110,7 @@ export default function PerformanceStats({
         meditationMinutes: seedVal,
         tuViGained: seedVal * 10,
         tasksCompleted: isLogEmpty ? ((29 - i) % 5 === 0 ? 1 : 0) : 0,
-        formattedDate: d.toLocaleDateString('vi-VN', { day: 'numeric', month: 'numeric' })
+        formattedDate: d.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' })
       });
     }
   }
@@ -145,11 +145,11 @@ export default function PerformanceStats({
 
   const monthlyPieData = totalMonthlyTodos > 0
     ? [
-        { name: 'Đại Nguyện Hoàn Thành', value: completedMonthlyTodos, color: '#10b981' },
-        { name: 'Đại Nguyện Chưa Hoàn Thành', value: pendingMonthlyTodos, color: '#f43f5e' }
+        { name: 'Completed Tasks', value: completedMonthlyTodos, color: '#10b981' },
+        { name: 'Pending Tasks', value: pendingMonthlyTodos, color: '#f43f5e' }
       ]
     : [
-        { name: 'Chưa có đại nguyện tháng này', value: 1, color: '#475569' }
+        { name: 'No tasks this month', value: 1, color: '#475569' }
       ];
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -174,7 +174,7 @@ export default function PerformanceStats({
               : 'bg-[#1e2638] text-slate-450 hover:text-slate-200'
           }`}
         >
-          📊 Đạo Nhãn Thống Kê
+          📊 Insights & Analytics
         </button>
         <button
           onClick={() => {
@@ -187,7 +187,7 @@ export default function PerformanceStats({
               : 'bg-[#1e2638] text-slate-450 hover:text-slate-200'
           }`}
         >
-          ⚔️ Đại Đạo Phong Thần Bảng
+          ⚔️ Immortal Leaderboard
         </button>
       </div>
 
@@ -198,8 +198,8 @@ export default function PerformanceStats({
             <div className="flex items-center gap-2 border-b-2 border-slate-950 pb-3">
               <Compass className="w-5 h-5 text-amber-500" />
               <div>
-                <h3 className="text-sm font-black text-slate-100 uppercase tracking-wider">Đạo Nhãn Thông Tuệ - Thống Kê Đắc Đạo</h3>
-                <p className="text-[10px] text-slate-550">Chiêm nghiệm thuộc tính tu luyện và tỷ lệ hoàn thành đạo tâm.</p>
+                <h3 className="text-sm font-black text-slate-100 uppercase tracking-wider">Cultivation Insights & Performance</h3>
+                <p className="text-[10px] text-slate-550">Inspect your cultivation attributes and quest completion rates.</p>
               </div>
             </div>
 
@@ -207,7 +207,7 @@ export default function PerformanceStats({
               {/* Radar Chart Column */}
               <div className="flex flex-col items-center bg-slate-950/60 border-2 border-slate-950 p-4 rounded-xl shadow-[2px_2px_0px_#000] relative">
                 <h4 className="text-[10px] font-black text-amber-400 uppercase tracking-wider mb-2 pixel-label">
-                  🛡️ Đại Đạo Nguyên Thần Đồ
+                  🛡️ Primordial Soul Radar
                 </h4>
                 
                 {/* SVG Radar Chart */}
@@ -216,7 +216,7 @@ export default function PerformanceStats({
                   {[20, 40, 60, 80, 100].map((pct, idx) => {
                     const r = (pct / 100) * 75;
                     const points = Array.from({ length: 5 }).map((_, stepIdx) => {
-                      const angle = -Math.PI/2 + (stepIdx * 2 * Math.PI / 5);
+                       const angle = -Math.PI/2 + (stepIdx * 2 * Math.PI / 5);
                       return `${110 + r * Math.cos(angle)},${110 + r * Math.sin(angle)}`;
                     }).join(' ');
                     return (
@@ -314,15 +314,15 @@ export default function PerformanceStats({
 
                   {/* Labels text with custom placement adjustment */}
                   {/* Axis 0: Top Center */}
-                  <text x="110" y="20" textAnchor="middle" fill="#94a3b8" fontSize="8" fontWeight="bold" className="font-sans">ĐỊNH LỰC</text>
+                  <text x="110" y="20" textAnchor="middle" fill="#94a3b8" fontSize="8" fontWeight="bold" className="font-sans">FOCUS</text>
                   {/* Axis 1: Right Top */}
-                  <text x="200" y="88" textAnchor="start" fill="#94a3b8" fontSize="8" fontWeight="bold" className="font-sans">NGHỊ LỰC</text>
+                  <text x="200" y="88" textAnchor="start" fill="#94a3b8" fontSize="8" fontWeight="bold" className="font-sans">RESOLVE</text>
                   {/* Axis 2: Right Bottom */}
-                  <text x="165" y="202" textAnchor="start" fill="#94a3b8" fontSize="8" fontWeight="bold" className="font-sans">TÂM CẢNH</text>
+                  <text x="165" y="202" textAnchor="start" fill="#94a3b8" fontSize="8" fontWeight="bold" className="font-sans">MINDSET</text>
                   {/* Axis 3: Left Bottom */}
-                  <text x="55" y="202" textAnchor="end" fill="#94a3b8" fontSize="8" fontWeight="bold" className="font-sans">TÀI PHÚ</text>
+                  <text x="55" y="202" textAnchor="end" fill="#94a3b8" fontSize="8" fontWeight="bold" className="font-sans">WEALTH</text>
                   {/* Axis 4: Left Top */}
-                  <text x="20" y="88" textAnchor="end" fill="#94a3b8" fontSize="8" fontWeight="bold" className="font-sans">TUỆ CĂN</text>
+                  <text x="20" y="88" textAnchor="end" fill="#94a3b8" fontSize="8" fontWeight="bold" className="font-sans">WISDOM</text>
                 </svg>
               </div>
 
@@ -350,8 +350,8 @@ export default function PerformanceStats({
                     </div>
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-purple-400 uppercase tracking-wide">Tông Môn Nhiệm Vụ</h4>
-                    <p className="text-[10px] text-slate-400 mt-1">Đã chém trừ <strong className="text-slate-200 font-mono">{completedTasks}/{totalTasks}</strong> chướng ngại trong Lịch Trình.</p>
+                    <h4 className="text-xs font-bold text-purple-400 uppercase tracking-wide">Sect Quests</h4>
+                    <p className="text-[10px] text-slate-400 mt-1">Completed <strong className="text-slate-200 font-mono">{completedTasks}/{totalTasks}</strong> scheduled quests.</p>
                   </div>
                 </div>
 
@@ -361,10 +361,10 @@ export default function PerformanceStats({
                     <CheckCircle className="w-4 h-4 text-emerald-450 shrink-0" />
                     <span className="text-[10.5px] leading-relaxed text-slate-350">
                       {overallRate >= 80 
-                        ? "Tông môn hân hoan! Đạo hạnh của đạo hữu cực kỳ kiên định, tâm ma khó lòng xâm lấn."
+                        ? "Splendid! Your Dao heart is rock solid; inner demons stand no chance."
                         : overallRate >= 50 
-                        ? "Khá lắm! Tiến độ tu hành đạt mức trung bình, hãy giữ vững đạo tâm để sớm đột phá đại cảnh giới."
-                        : "Cảnh báo! Đạo hữu đang có biểu hiện trì hoãn, hãy bế quan thiền định ngay để chấn hưng tiên phong."}
+                        ? "Good progress! Maintain your focus and diligence to break through to the next realm soon."
+                        : "Alert! You are falling behind schedule. Enter deep focus seclusion immediately to overcome obstacles."}
                     </span>
                   </div>
                 </div>
@@ -372,15 +372,13 @@ export default function PerformanceStats({
             </div>
           </div>
 
-
-
           {/* Productivity Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* 1-Month Meditation Line Chart */}
             <div className="bg-[#0f141c] border border-slate-800/80 rounded-2xl p-5 shadow-xl">
               <div className="flex items-center gap-2 mb-4">
                 <TrendingUp className="w-4 h-4 text-amber-500" />
-                <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider">Đường Thời Gian Bế Quan Thiền Định (30 Ngày)</h4>
+                <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider">Meditation Focus History (30 Days)</h4>
               </div>
 
               <div className="h-60 text-[10px] font-mono">
@@ -394,17 +392,17 @@ export default function PerformanceStats({
                       labelStyle={{ fontWeight: 'bold', color: '#94a3b8' }}
                     />
                     <Legend iconSize={8} />
-                    <Line type="monotone" dataKey="meditationMinutes" name="Thời Gian Bế Quan (Phút)" stroke="#f59e0b" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
+                    <Line type="monotone" dataKey="meditationMinutes" name="Focus Time (Minutes)" stroke="#f59e0b" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
-            {/* Monthly Đại Nguyện Completion Pie Chart */}
+            {/* Monthly Task Completion Pie Chart */}
             <div className="bg-[#0f141c] border border-slate-800/80 rounded-2xl p-5 shadow-xl">
               <div className="flex items-center gap-2 mb-4">
                 <Award className="w-4 h-4 text-emerald-400" />
-                <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider">Tỉ Lệ Đại Nguyện Hoàn Thành Trong Tháng</h4>
+                <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider">Monthly Task Completion Rate</h4>
               </div>
 
               <div className="h-60 text-[10px] font-mono flex items-center justify-center relative">
@@ -431,7 +429,7 @@ export default function PerformanceStats({
                 </ResponsiveContainer>
                 {totalMonthlyTodos > 0 && (
                   <div className="absolute top-[40%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none">
-                    <span className="text-[10px] text-slate-500 uppercase font-black tracking-wider">Hoàn Thành</span>
+                    <span className="text-[10px] text-slate-500 uppercase font-black tracking-wider">COMPLETED</span>
                     <span className="text-xl font-mono font-black text-emerald-400">{monthlyCompletionRate}%</span>
                   </div>
                 )}
@@ -446,8 +444,8 @@ export default function PerformanceStats({
             <div className="flex items-center gap-2">
               <Trophy className="w-5 h-5 text-amber-400" />
               <div>
-                <h3 className="text-sm font-black text-slate-100 uppercase tracking-wider">⚔️ Đại Đạo Phong Thần Bảng</h3>
-                <p className="text-[10px] text-slate-500">Nơi vinh danh các đạo hữu có đạo tâm kiên định, tu vi võng lượng.</p>
+                <h3 className="text-sm font-black text-slate-100 uppercase tracking-wider">⚔️ Immortal Leaderboard</h3>
+                <p className="text-[10px] text-slate-500">Honoring disciples with resolute Dao hearts and profound cultivation.</p>
               </div>
             </div>
             <button
@@ -456,7 +454,7 @@ export default function PerformanceStats({
               className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 border border-slate-800 text-slate-300 hover:text-slate-100 hover:border-slate-700 rounded-lg text-xs font-semibold cursor-pointer disabled:opacity-40 transition-all"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isFetchingLeaderboard ? 'animate-spin' : ''}`} />
-              CẬP NHẬT
+              REFRESH
             </button>
           </div>
 
@@ -466,9 +464,9 @@ export default function PerformanceStats({
                 <Lock className="w-5 h-5 text-amber-500/60" />
               </div>
               <div className="space-y-1">
-                <h4 className="text-xs font-bold text-slate-300">Đạo Tâm Chưa Kết Nối Đám Mây</h4>
+                <h4 className="text-xs font-bold text-slate-300">Account Not Connected</h4>
                 <p className="text-[10px] text-slate-500 max-w-[260px] leading-relaxed">
-                  Đạo hữu cần đăng nhập Google ở góc phải Header chính để đưa tên mình lên bảng phong thần tông môn!
+                  Please sign in with Google to place your name on the sect leaderboard!
                 </p>
               </div>
             </div>
@@ -477,11 +475,11 @@ export default function PerformanceStats({
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="border-b border-slate-800/40 text-slate-500 text-[10px] uppercase tracking-wider">
-                    <th className="py-2 px-3">Hạng</th>
-                    <th className="py-2 px-3">Đạo Hiệu</th>
-                    <th className="py-2 px-3">Cảnh Giới</th>
-                    <th className="py-2 px-3 text-right">Tổng Tu Vi</th>
-                    <th className="py-2 px-3 text-right">Chuỗi Bế Quan</th>
+                    <th className="py-2 px-3">Rank</th>
+                    <th className="py-2 px-3">Daoist Name</th>
+                    <th className="py-2 px-3">Realm</th>
+                    <th className="py-2 px-3 text-right">Total Exp</th>
+                    <th className="py-2 px-3 text-right">Streak</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-900/60 text-slate-300">
@@ -517,7 +515,7 @@ export default function PerformanceStats({
                                 className="w-5 h-5 rounded-full border border-slate-750 shrink-0 object-cover select-none"
                               />
                               <span className={isMe ? 'text-amber-400 font-extrabold' : 'text-slate-200 font-medium'}>
-                                {user.userName} {isMe && <span className="text-[8px] bg-amber-500/10 text-amber-500 border border-amber-500/20 px-1 py-0.5 rounded-full ml-1 font-bold animate-pulse">Ta</span>}
+                                {user.userName} {isMe && <span className="text-[8px] bg-amber-500/10 text-amber-500 border border-amber-500/20 px-1 py-0.5 rounded-full ml-1 font-bold animate-pulse">You</span>}
                               </span>
                             </div>
                           </td>
@@ -530,7 +528,7 @@ export default function PerformanceStats({
                             {user.totalExp.toLocaleString()} Exp
                           </td>
                           <td className="py-3 px-3 text-right text-orange-400 font-bold">
-                            {user.currentStreak > 0 ? `🔥 ${user.currentStreak} ngày` : '0 ngày'}
+                            {user.currentStreak > 0 ? `🔥 ${user.currentStreak}d` : '0d'}
                           </td>
                         </tr>
                       );
@@ -538,7 +536,7 @@ export default function PerformanceStats({
                   ) : (
                     <tr>
                       <td colSpan={5} className="py-8 text-center text-slate-500 italic">
-                        Đang học đòi thần tiên tranh chấp phong thần...
+                        Gathering leaderboard rankings...
                       </td>
                     </tr>
                   )}

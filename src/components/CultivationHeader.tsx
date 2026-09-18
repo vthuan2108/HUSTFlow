@@ -299,7 +299,7 @@ export default function CultivationHeader({ state, onRename, onBreakthrough, use
                     maxLength={15}
                     autoFocus
                   />
-                  <button type="submit" className="text-[10px] neo-btn neo-btn-success px-2 py-0.5 rounded">Lưu</button>
+                  <button type="submit" className="text-[10px] neo-btn neo-btn-success px-2 py-0.5 rounded">Save</button>
                 </form>
               ) : (
                 <div className="flex items-center gap-1.5 flex-wrap">
@@ -308,7 +308,7 @@ export default function CultivationHeader({ state, onRename, onBreakthrough, use
                     onClick={() => { setTempName(userName); setIsEditingName(true); }}
                     className="text-[9px] text-slate-500 hover:text-slate-300 cursor-pointer"
                   >
-                    (Đổi Danh)
+                    (Rename)
                   </button>
                   {state.equippedTitle && (
                     <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 inline-block shadow-[0_0_10px_rgba(245,158,11,0.2)]">
@@ -351,10 +351,10 @@ export default function CultivationHeader({ state, onRename, onBreakthrough, use
             <button
               onClick={onOpenAchievements}
               className="bg-slate-950 border-2 border-slate-950 px-3 py-1.5 rounded-xl flex items-center gap-1.5 text-amber-400 font-bold hover:bg-slate-900 transition-all cursor-pointer shadow-[2px_2px_0px_#000] active:translate-x-[1px] active:translate-y-[1px]"
-              title="Mở bảng Huy Hiệu Đạo Tâm"
+              title="Open Achievements"
             >
               <Trophy className="w-4 h-4 text-amber-400" />
-              <span className="text-[10px] uppercase tracking-wider font-mono hidden sm:inline">HUY HIỆU</span>
+              <span className="text-[10px] uppercase tracking-wider font-mono hidden sm:inline">BADGES</span>
             </button>
           )}
 
@@ -362,7 +362,7 @@ export default function CultivationHeader({ state, onRename, onBreakthrough, use
           {safeState.shieldActive && (
             <div className="flex items-center gap-1 bg-indigo-950/20 border-2 border-slate-950 px-2.5 py-1 rounded-xl text-indigo-400 shadow-[2px_2px_0px_#000]">
               <Shield className="w-3.5 h-3.5" />
-              <span className="text-[10px] font-bold">HỘ THÂN</span>
+              <span className="text-[10px] font-bold">SHIELDED</span>
             </div>
           )}
 
@@ -370,7 +370,7 @@ export default function CultivationHeader({ state, onRename, onBreakthrough, use
           <div className="bg-slate-950 border-2 border-slate-950 px-3 py-1.5 rounded-xl flex items-center gap-2 shadow-[2px_2px_0px_#000]">
             <Gem className="w-4 h-4 text-amber-400" />
             <div>
-              <p className="text-[8px] text-slate-600 font-bold uppercase leading-none">Linh Thạch</p>
+              <p className="text-[8px] text-slate-600 font-bold uppercase leading-none">Spirit Stones</p>
               <p className="text-xs font-bold text-slate-200 mt-0.5">{safeState.linhThach || 0}</p>
             </div>
           </div>
@@ -381,11 +381,11 @@ export default function CultivationHeader({ state, onRename, onBreakthrough, use
       <div className="space-y-2 relative z-10">
         <div className="flex justify-between items-end text-[10px] font-mono">
           <span className="text-slate-500 font-semibold uppercase flex items-center gap-1">
-            {isBottleneck && <span className="text-amber-400 font-bold">🔒 BÌNH CẢNH CẬN KỀ</span>}
-            {!isBottleneck && 'Đạo Hạnh Tu Vi Tích Lũy'}
+            {isBottleneck && <span className="text-amber-400 font-bold">🔒 BOTTLENECK REACHED</span>}
+            {!isBottleneck && 'Accumulated Cultivation Exp'}
           </span>
           <span className="text-slate-400">
-            {safeCurrentExp} / {xpNeeded} Tu Vi ({rawPercentage}%) {rawPercentage > 100 && '⚡ NÉN LINH LỰC'}
+            {safeCurrentExp} / {xpNeeded} Exp ({rawPercentage}%) {rawPercentage > 100 && '⚡ COMPRESSED'}
           </span>
         </div>
 
@@ -411,7 +411,7 @@ export default function CultivationHeader({ state, onRename, onBreakthrough, use
         <div className="flex items-center justify-between flex-wrap gap-2 pt-1 text-[11px]">
           <span className="text-slate-500 flex items-center gap-1 select-none">
             <Sparkles className="w-3.5 h-3.5 text-yellow-500" />
-            {isBottleneck ? 'Chạm mốc Bình Cảnh! Tu Vi vẫn nén tràn, hoàn thành thử thách để Độ Kiếp.' : 'Khi tu vi tràn đầy, hãy tiến hành đột phá để thăng cảnh giới!'}
+            {isBottleneck ? 'Bottleneck reached! Complete trials to break through and advance.' : 'When Exp is full, initiate breakthrough to advance your realm!'}
           </span>
 
           <button
@@ -425,7 +425,7 @@ export default function CultivationHeader({ state, onRename, onBreakthrough, use
                 : 'bg-slate-900 text-slate-400 border-2 border-slate-950'
             }`}
           >
-            {isBottleneck ? '⚡ XEM THỬ THÁCH BÌNH CẢNH' : 'ĐỘT PHÁ CẢNH GIỚI'}
+            {isBottleneck ? '⚡ VIEW BOTTLENECK TRIALS' : 'BREAKTHROUGH REALM'}
           </button>
         </div>
       </div>
@@ -446,7 +446,7 @@ export default function CultivationHeader({ state, onRename, onBreakthrough, use
                   onClick={() => setIsBreakthroughModalOpen(false)}
                   className="absolute top-4 right-4 text-xs text-slate-500 hover:text-slate-300 font-bold"
                 >
-                  Đóng
+                  Close
                 </button>
               )}
 
@@ -457,12 +457,12 @@ export default function CultivationHeader({ state, onRename, onBreakthrough, use
                   </div>
                   <div>
                     <h3 className="text-md font-bold text-slate-100 uppercase tracking-widest pixel-label">
-                      {isBottleneck ? `🔒 ${bottleneckReq?.title}` : 'ĐỘT PHÁ CẢNH GIỚI'}
+                      {isBottleneck ? `🔒 ${bottleneckReq?.title}` : 'BREAKTHROUGH REALM'}
                     </h3>
                     <p className="text-xs text-slate-400 mt-1">
                       {isBottleneck 
-                        ? 'Hoàn thành các thử thách Độ Kiếp để khai phá bình cảnh và thăng tiến cấp bậc!'
-                        : 'Tiến hành vượt qua lôi kiếp để đột phá tiến cấp danh hiệu mới.'}
+                        ? 'Complete the Tribulation Trials to break through the bottleneck and advance!'
+                        : 'Endure the heavenly lightning tribulation to advance your realm.'}
                     </p>
                   </div>
 
@@ -470,26 +470,26 @@ export default function CultivationHeader({ state, onRename, onBreakthrough, use
                   {isBottleneck && bottleneckReq && (
                     <div className="bg-slate-950 p-3.5 rounded-xl space-y-2 border-2 border-slate-950 text-left font-mono text-[10px] shadow-[2px_2px_0px_#000]">
                       <div className="font-extrabold uppercase text-amber-400 tracking-wider pb-1 border-b border-slate-900 flex justify-between">
-                        <span>📜 Thử Thách Độ Kiếp Cần Đạt:</span>
+                        <span>📜 Tribulation Requirements:</span>
                         <span className={bottleneckMet ? 'text-emerald-400' : 'text-rose-400'}>
-                          {bottleneckMet ? '✓ ĐỦ ĐIỀU KIỆN' : '✗ CHƯA ĐỦ'}
+                          {bottleneckMet ? '✓ QUALIFIED' : '✗ INCOMPLETE'}
                         </span>
                       </div>
 
                       {bottleneckReq.minMeditationMinutes && (
                         <div className="flex justify-between items-center">
-                          <span className="text-slate-400">🧘 Bế quan Thiền Định (từ bình cảnh):</span>
+                          <span className="text-slate-400">🧘 Meditation Time (from bottleneck):</span>
                           <span className={safeMeditationDiff >= bottleneckReq.minMeditationMinutes ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>
-                            {safeMeditationDiff} / {bottleneckReq.minMeditationMinutes} phút
+                            {safeMeditationDiff} / {bottleneckReq.minMeditationMinutes} mins
                           </span>
                         </div>
                       )}
 
                       {bottleneckReq.requiredItemName && (
                         <div className="flex justify-between items-center">
-                          <span className="text-slate-400">💊 Mua {bottleneckReq.requiredItemName} (Shop):</span>
+                          <span className="text-slate-400">💊 Own {bottleneckReq.requiredItemName} (Shop):</span>
                           <span className={safeInventory.some(i => i && i.itemId === bottleneckReq.requiredItemId && i.quantity > 0) ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>
-                            {safeInventory.some(i => i && i.itemId === bottleneckReq.requiredItemId && i.quantity > 0) ? '✓ Đã có' : '✗ Chưa có'}
+                            {safeInventory.some(i => i && i.itemId === bottleneckReq.requiredItemId && i.quantity > 0) ? '✓ Owned' : '✗ Missing'}
                           </span>
                         </div>
                       )}
@@ -498,21 +498,21 @@ export default function CultivationHeader({ state, onRename, onBreakthrough, use
 
                   <div className="bg-slate-950 p-3 rounded-xl space-y-2 border-2 border-slate-950 text-left font-mono text-[10px] shadow-[2px_2px_0px_#000]">
                     <div className="flex justify-between">
-                      <span className="text-slate-500">Tỉ lệ thành công:</span>
+                      <span className="text-slate-500">Success Rate:</span>
                       <span className="text-amber-400 font-bold">{successRate.toFixed(1)}%</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-500">Vật phẩm hộ pháp:</span>
+                      <span className="text-slate-500">Protection Artifact:</span>
                       <span className={safeState.shieldActive ? 'text-emerald-400 font-bold' : 'text-slate-600'}>
-                        {safeState.shieldActive ? 'Hộ Tâm Kính (Hoạt động)' : 'Không có'}
+                        {safeState.shieldActive ? 'Heart Mirror (Active)' : 'None'}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-500">Hình phạt thất bại:</span>
+                      <span className="text-slate-500">Failure Penalty:</span>
                       <span className="text-rose-400 font-bold">
                         {safeState.shieldActive
-                          ? 'Bảo vệ nguyên vẹn (Hộ Tâm Kính)'
-                          : 'Xóa sạch Tu Vi tích lũy (Cảnh giới giữ nguyên)'}
+                          ? 'Fully Protected (Heart Mirror)'
+                          : 'Lose accumulated Exp (Realm preserved)'}
                       </span>
                     </div>
                   </div>
@@ -526,7 +526,7 @@ export default function CultivationHeader({ state, onRename, onBreakthrough, use
                         : 'bg-slate-900 text-slate-600 border-2 border-slate-950 cursor-not-allowed'
                     }`}
                   >
-                    {canBreakthrough ? '⚡ CHÍNH THỨC ĐỘ KIẾP ĐỘT PHÁ' : '🔒 CHƯA ĐỦ ĐIỀU KIỆN ĐỘ KIẾP'}
+                    {canBreakthrough ? '⚡ INITIATE BREAKTHROUGH' : '🔒 REQUIREMENTS NOT MET'}
                   </button>
                 </div>
               )}
@@ -538,8 +538,8 @@ export default function CultivationHeader({ state, onRename, onBreakthrough, use
                     <div className="absolute inset-0 rounded-full border border-dashed border-indigo-500 animate-ping opacity-30" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-indigo-400 uppercase tracking-widest">Đang triệu hồi chân lôi...</h4>
-                    <p className="text-[10px] text-slate-500 mt-1 italic">"Càn khôn xoay chuyển, đan điền hội khí tụ tâm..."</p>
+                    <h4 className="text-xs font-bold text-indigo-400 uppercase tracking-widest">Summoning Heavenly Tribulation...</h4>
+                    <p className="text-[10px] text-slate-500 mt-1 italic">"The heavens churn as celestial Qi converges..."</p>
                   </div>
                 </div>
               )}
@@ -550,16 +550,16 @@ export default function CultivationHeader({ state, onRename, onBreakthrough, use
                     <Trophy className="w-6 h-6 text-emerald-400" />
                   </div>
                   <div>
-                    <h3 className="text-md font-bold text-emerald-400 uppercase tracking-widest pixel-label">ĐỘT PHÁ THÀNH CÔNG!</h3>
+                    <h3 className="text-md font-bold text-emerald-400 uppercase tracking-widest pixel-label">BREAKTHROUGH SUCCESS!</h3>
                     <p className="text-xs text-slate-300 mt-2">
-                      Chúc mừng bạn đã độ kiếp viên mãn, chính thức thăng tiến danh hiệu cao quý mới!
+                      Congratulations on your successful tribulation! Your realm has ascended.
                     </p>
                   </div>
                   <button
                     onClick={() => setIsBreakthroughModalOpen(false)}
                     className="w-full py-2 neo-btn neo-btn-success text-xs font-bold tracking-widest"
                   >
-                    XÁC NHẬN SỰ KIỆN
+                    CONFIRM
                   </button>
                 </div>
               )}
@@ -570,18 +570,18 @@ export default function CultivationHeader({ state, onRename, onBreakthrough, use
                     <Shield className="w-6 h-6 text-rose-400" />
                   </div>
                   <div>
-                    <h3 className="text-md font-bold text-rose-400 uppercase tracking-widest pixel-label">ĐỘT PHÁ THẤT BẠI</h3>
+                    <h3 className="text-md font-bold text-rose-400 uppercase tracking-widest pixel-label">BREAKTHROUGH FAILED</h3>
                     <p className="text-xs text-slate-300 mt-2">
                       {state.shieldActive
-                        ? 'Lôi kiếp giáng xuống nhưng Hộ Tâm Kính đã cản phá toàn bộ đòn đánh. Tu vi nguyên vẹn!'
-                        : 'Kiếp vỡ đan điền, tu vi tiêu tan một phần. Hãy nỗ lực tu hành bồi dưỡng lại đạo tâm!'}
+                        ? 'The lightning struck, but Heart Mirror shielded your cultivation base intact!'
+                        : 'The tribulation shattered your dantian, exp was lost. Re-cultivate and try again!'}
                     </p>
                   </div>
                   <button
                     onClick={() => setIsBreakthroughModalOpen(false)}
                     className="w-full py-2 neo-btn neo-btn-danger text-xs font-bold tracking-widest text-white"
                   >
-                    CHẤP NHẬN SỰ THẬT
+                    ACCEPT
                   </button>
                 </div>
               )}

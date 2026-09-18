@@ -90,17 +90,17 @@ export default function TodoSection({
   // Handle manual Google Sign In
   const handleSignIn = async () => {
     try {
-      setSyncMessage('Đang kết nối Tiên Đài Google...');
+      setSyncMessage('Connecting to Google Tasks...');
       const result = await googleSignIn();
       if (result) {
         setIsLoggedIn(true);
         setUserProfile(result.user);
-        setSyncMessage('Kết nối Tiên Đài thành công! Đang tự động đồng bộ...');
+        setSyncMessage('Connected to Google Tasks! Auto-syncing...');
         handleSync(result.accessToken);
       }
     } catch (err: any) {
       console.error('Sign in failed:', err);
-      setSyncMessage('Kết nối Tiên Đài thất bại. Hãy thử lại!');
+      setSyncMessage('Connection failed. Please try again!');
     }
   };
 
@@ -112,7 +112,7 @@ export default function TodoSection({
     await logout();
     setIsLoggedIn(false);
     setUserProfile(null);
-    setSyncMessage('Đã ngắt kết nối Tiên Đài.');
+    setSyncMessage('Disconnected from Google Tasks.');
     setShowLogoutConfirm(false);
   };
 
@@ -125,7 +125,7 @@ export default function TodoSection({
     }
 
     setIsSyncing(true);
-    setSyncMessage('Đang đồng bộ với Google Tiên Đài...');
+    setSyncMessage('Syncing with Google Tasks...');
     try {
       const result = await syncGoogleTasks(token, todoItems, deletedGoogleTaskIds);
       onSyncTodos(result.syncedTodos);
@@ -133,7 +133,7 @@ export default function TodoSection({
         onClearDeletedGoogleTaskIds();
       }
       setSyncMessage(
-        `Đồng bộ hoàn tất! Đã thêm/cập nhật ${result.addedCount + result.updatedCount} nhiệm vụ.`
+        `Sync completed! Added/updated ${result.addedCount + result.updatedCount} tasks.`
       );
     } catch (err: any) {
       console.error('Sync failed:', err);
@@ -142,9 +142,9 @@ export default function TodoSection({
         await logout();
         setIsLoggedIn(false);
         setUserProfile(null);
-        setSyncMessage('Phiên kết nối Google Tasks đã hết hạn. Đạo hữu vui lòng bấm kết nối lại!');
+        setSyncMessage('Google Tasks session expired. Please reconnect!');
       } else {
-        setSyncMessage('Lỗi đồng bộ. Đạo hữu vui lòng kiểm tra kết nối mạng!');
+        setSyncMessage('Sync error. Please check your network connection!');
       }
     } finally {
       setIsSyncing(false);
@@ -216,23 +216,23 @@ export default function TodoSection({
   const weekDays = getDaysOfCurrentWeek(weekOffset);
   const weekDayStrings = weekDays.map(d => getLocalDateString(d));
 
-  // Helpers to get day titles in Vietnamese
+  // Helpers to get day titles in English
   const getDayLabel = (date: Date): { short: string; full: string; color: string } => {
     const day = date.getDay();
     const isToday = getLocalDateString(date) === getLocalDateString();
 
     let labels = { short: '', full: '', color: 'border-slate-900 bg-slate-950/20' };
     if (isToday) {
-      labels = { short: 'H.Nay', full: 'Hôm Nay', color: 'border-amber-500/40 bg-amber-500/5' };
+      labels = { short: 'Today', full: 'Today', color: 'border-amber-500/40 bg-amber-500/5' };
     } else {
       switch (day) {
-        case 1: labels = { short: 'T2', full: 'Thứ Hai', color: 'border-slate-900/60' }; break;
-        case 2: labels = { short: 'T3', full: 'Thứ Ba', color: 'border-slate-900/60' }; break;
-        case 3: labels = { short: 'T4', full: 'Thứ Tư', color: 'border-slate-900/60' }; break;
-        case 4: labels = { short: 'T5', full: 'Thứ Năm', color: 'border-slate-900/60' }; break;
-        case 5: labels = { short: 'T6', full: 'Thứ Sáu', color: 'border-slate-900/60' }; break;
-        case 6: labels = { short: 'T7', full: 'Thứ Bảy', color: 'border-slate-900/60' }; break;
-        case 0: labels = { short: 'CN', full: 'Chủ Nhật', color: 'border-slate-900/60' }; break;
+        case 1: labels = { short: 'Mon', full: 'Monday', color: 'border-slate-900/60' }; break;
+        case 2: labels = { short: 'Tue', full: 'Tuesday', color: 'border-slate-900/60' }; break;
+        case 3: labels = { short: 'Wed', full: 'Wednesday', color: 'border-slate-900/60' }; break;
+        case 4: labels = { short: 'Thu', full: 'Thursday', color: 'border-slate-900/60' }; break;
+        case 5: labels = { short: 'Fri', full: 'Friday', color: 'border-slate-900/60' }; break;
+        case 6: labels = { short: 'Sat', full: 'Saturday', color: 'border-slate-900/60' }; break;
+        case 0: labels = { short: 'Sun', full: 'Sunday', color: 'border-slate-900/60' }; break;
       }
     }
     return labels;
@@ -356,15 +356,15 @@ export default function TodoSection({
   const getDifficultyInfo = (diff?: Priority) => {
     switch (diff) {
       case 'SO_CAP':
-        return { label: 'Sơ Cấp', color: 'text-slate-300 border-slate-800 bg-slate-900/40', xp: 15, stones: 5 };
+        return { label: 'Novice', color: 'text-slate-300 border-slate-800 bg-slate-900/40', xp: 15, stones: 5 };
       case 'TRUNG_CAP':
-        return { label: 'Trung Cấp', color: 'text-blue-400 border-blue-900/50 bg-blue-950/20', xp: 30, stones: 15 };
+        return { label: 'Adept', color: 'text-blue-400 border-blue-900/50 bg-blue-950/20', xp: 30, stones: 15 };
       case 'CAO_CAP':
-        return { label: 'Địa Cấp', color: 'text-orange-400 border-orange-900/50 bg-orange-950/20', xp: 60, stones: 35 };
+        return { label: 'Earth', color: 'text-orange-400 border-orange-900/50 bg-orange-950/20', xp: 60, stones: 35 };
       case 'THAN_CAP':
-        return { label: 'Thiên Cấp', color: 'text-amber-400 border-amber-500/30 bg-amber-950/10', xp: 120, stones: 75 };
+        return { label: 'Heaven', color: 'text-amber-400 border-amber-500/30 bg-amber-950/10', xp: 120, stones: 75 };
       default:
-        return { label: 'Sơ Cấp', color: 'text-slate-300 border-slate-800 bg-slate-900/40', xp: 15, stones: 5 };
+        return { label: 'Novice', color: 'text-slate-300 border-slate-800 bg-slate-900/40', xp: 15, stones: 5 };
     }
   };
 
@@ -394,11 +394,11 @@ export default function TodoSection({
         {/* Core Stat 1 */}
         <div className="neo-card p-4 flex items-center justify-between">
           <div>
-            <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">TẬP HỢP ĐẠO QUẢ</p>
+            <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">COMPLETED TASKS</p>
             <h4 className="text-2xl font-black text-slate-100 font-mono mt-0.5 pixel-label">
               {todoItems.filter(i => i.isCompleted).length}/{todoItems.length}
             </h4>
-            <p className="text-[9px] text-slate-400 mt-0.5">Tổng nhiệm vụ hoàn thành</p>
+            <p className="text-[9px] text-slate-400 mt-0.5">Total completed tasks</p>
           </div>
           <div className="p-2.5 bg-slate-950 border-2 border-slate-950 rounded-xl text-amber-500 shadow-[1px_1px_0px_#000]">
             <ListTodo className="w-5 h-5" />
@@ -408,11 +408,11 @@ export default function TodoSection({
         {/* Daily Stat */}
         <div className="neo-card p-4 flex items-center justify-between">
           <div>
-            <p className="text-[10px] text-emerald-500 uppercase tracking-wider font-semibold">NHIỆM VỤ HÔM NAY</p>
+            <p className="text-[10px] text-emerald-500 uppercase tracking-wider font-semibold">TODAY'S TASKS</p>
             <h4 className="text-2xl font-black text-slate-100 font-mono mt-0.5 pixel-label">
               {todoItems.filter(i => (i.dueDate || i.createdAt.split('T')[0]) === new Date().toISOString().split('T')[0] && i.isCompleted).length}/{todoItems.filter(i => (i.dueDate || i.createdAt.split('T')[0]) === new Date().toISOString().split('T')[0]).length}
             </h4>
-            <p className="text-[9px] text-slate-400 mt-0.5">Nhiệm vụ tu trì trong ngày hôm nay</p>
+            <p className="text-[9px] text-slate-400 mt-0.5">Tasks scheduled for today</p>
           </div>
           <div className="p-2.5 bg-slate-950 border-2 border-slate-950 rounded-xl text-emerald-400 shadow-[1px_1px_0px_#000]">
             <CalendarDays className="w-5 h-5" />
@@ -426,9 +426,9 @@ export default function TodoSection({
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center gap-2">
             <CalendarDays className="w-4 h-4 text-amber-500" />
-            <h3 className="text-sm font-bold text-slate-100">Bảng nhiệm vụ tông môn</h3>
+            <h3 className="text-sm font-bold text-slate-100">Sect Quest Board</h3>
           </div>
-          <p className="text-[10px] text-slate-500">Kéo thả để dời ngày. Đồng bộ hai chiều với Google Tasks.</p>
+          <p className="text-[10px] text-slate-500">Drag & drop to reschedule. Two-way sync with Google Tasks.</p>
           
           {/* Week offset controls */}
           <div className="flex items-center gap-2 mt-1.5">
@@ -436,23 +436,23 @@ export default function TodoSection({
               onClick={() => setWeekOffset(prev => prev - 1)}
               className="px-2 py-1 bg-slate-950 border-2 border-slate-950 hover:border-amber-400 hover:text-amber-400 text-slate-400 text-[10px] rounded-lg cursor-pointer transition-all shadow-[1px_1px_0px_#000] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
             >
-              &larr; Tuần Trước
+              &larr; Prev Week
             </button>
             <span className="text-[10px] text-amber-400 font-mono font-bold bg-slate-950 px-2.5 py-1 rounded-lg border-2 border-slate-950 shadow-[1px_1px_0px_#000] pixel-label">
-              {weekOffset === 0 ? 'Tuần Hiện Tại' : weekOffset > 0 ? `Tuần Sau +${weekOffset}` : `Tuần Trước ${weekOffset}`}
+              {weekOffset === 0 ? 'Current Week' : weekOffset > 0 ? `Next Week +${weekOffset}` : `Prev Week ${weekOffset}`}
             </span>
             <button
               onClick={() => setWeekOffset(prev => prev + 1)}
               className="px-2 py-1 bg-slate-950 border-2 border-slate-950 hover:border-amber-400 hover:text-amber-400 text-slate-400 text-[10px] rounded-lg cursor-pointer transition-all shadow-[1px_1px_0px_#000] active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
             >
-              Tuần Tiếp Theo &rarr;
+              Next Week &rarr;
             </button>
             {weekOffset !== 0 && (
               <button
                 onClick={() => setWeekOffset(0)}
                 className="text-[9px] text-slate-500 hover:text-slate-300 underline cursor-pointer"
               >
-                Về Tuần Hiện Tại
+                Back to Current Week
               </button>
             )}
           </div>
@@ -463,11 +463,11 @@ export default function TodoSection({
           {isLoggedIn ? (
             <div className="flex items-center gap-2 bg-slate-950 border-2 border-slate-950 px-3 py-1.5 rounded-xl text-[10px] text-slate-300 shadow-[1px_1px_0px_#000]">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span className="font-mono truncate max-w-[120px] font-bold">{userProfile?.displayName || 'Đã liên kết'}</span>
+              <span className="font-mono truncate max-w-[120px] font-bold">{userProfile?.displayName || 'Connected'}</span>
               <button
                 onClick={handleLogout}
                 className="text-slate-500 hover:text-rose-400 cursor-pointer ml-1"
-                title="Ngắt kết nối Google"
+                title="Disconnect Google Tasks"
               >
                 <LogOut className="w-3 h-3" />
               </button>
@@ -478,7 +478,7 @@ export default function TodoSection({
               className="flex items-center gap-1.5 px-3 py-1.5 neo-btn neo-btn-secondary text-[10px]"
             >
               <LogIn className="w-3.5 h-3.5" />
-              Kết Nối Google Tasks
+              Connect Google Tasks
             </button>
           )}
 
@@ -489,7 +489,7 @@ export default function TodoSection({
             className="flex items-center gap-1.5 px-4 py-1.5 neo-btn neo-btn-primary text-[10px] disabled:opacity-50"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin text-slate-950' : ''}`} />
-            {isSyncing ? 'Đang Đồng Bộ...' : 'ĐỒNG BỘ GOOGLE TASKS'}
+            {isSyncing ? 'Syncing...' : 'SYNC GOOGLE TASKS'}
           </button>
         </div>
       </div>
@@ -552,7 +552,7 @@ export default function TodoSection({
                     setColumnNewTitle('');
                   }}
                   className="p-1 rounded-md bg-slate-950 border-2 border-slate-950 text-slate-400 hover:text-amber-400 hover:border-amber-400 shadow-[1px_1px_0px_#000] cursor-pointer transition-all active:translate-x-[0.5px] active:translate-y-[0.5px] active:shadow-none"
-                  title="Thêm nhanh nhiệm vụ cho ngày này"
+                  title="Quick add task for this day"
                 >
                   <Plus className="w-3 h-3" />
                 </button>
@@ -571,7 +571,7 @@ export default function TodoSection({
                       type="text"
                       required
                       autoFocus
-                      placeholder="Nội dung..."
+                      placeholder="Task title..."
                       value={columnNewTitle}
                       onChange={(e) => setColumnNewTitle(e.target.value)}
                       onKeyDown={(e) => {
@@ -584,23 +584,23 @@ export default function TodoSection({
                       onChange={(e) => setColumnDifficulty(e.target.value as Priority)}
                       className="w-full bg-slate-900 border border-slate-800 rounded-lg px-1 py-0.5 text-[9px] text-slate-300 focus:outline-none cursor-pointer"
                     >
-                      <option value="SO_CAP">Sơ Cấp (Trắng)</option>
-                      <option value="TRUNG_CAP">Trung Cấp (Lam)</option>
-                      <option value="CAO_CAP">Địa Cấp (Cam)</option>
-                      <option value="THAN_CAP">Thiên Cấp (Vàng)</option>
+                      <option value="SO_CAP">Novice (White)</option>
+                      <option value="TRUNG_CAP">Adept (Blue)</option>
+                      <option value="CAO_CAP">Earth (Orange)</option>
+                      <option value="THAN_CAP">Heaven (Gold)</option>
                     </select>
                     <div className="flex justify-between items-center gap-1.5">
                       <button
                         onClick={() => setActiveAddColumnDate(null)}
                         className="text-[9px] text-slate-500 hover:text-slate-300 px-1 py-0.5 rounded cursor-pointer"
                       >
-                        Hủy
+                        Cancel
                       </button>
                       <button
                         onClick={() => handleAddInColumn(dateStr)}
                         className="text-[9px] bg-amber-400 hover:bg-amber-500 text-slate-950 font-bold px-2 py-0.5 rounded border border-slate-950 cursor-pointer shadow-[1px_1px_0px_#000]"
                       >
-                        Thêm
+                        Add
                       </button>
                     </div>
                   </motion.div>
@@ -646,11 +646,11 @@ export default function TodoSection({
                             {item.googleTaskId ? (
                               <span className="text-[8px] text-emerald-400 bg-emerald-950/40 border border-emerald-900/40 px-1.5 py-0.5 rounded flex items-center gap-0.5 font-bold uppercase tracking-wider">
                                 <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" />
-                                Đã Đồng Bộ
+                                Synced
                               </span>
                             ) : (
                               <span className="text-[8px] text-slate-500 bg-slate-950/40 border border-slate-900/40 px-1.5 py-0.5 rounded">
-                                Ngoại Tuyến
+                                Offline
                               </span>
                             )}
 
@@ -666,14 +666,14 @@ export default function TodoSection({
                             {item.isPriority && (
                               <span className="text-[8px] text-amber-400 bg-amber-950/40 border border-amber-900/40 px-1.5 py-0.5 rounded flex items-center gap-0.5 font-bold uppercase tracking-wider">
                                 <Flame className="w-2 h-2 fill-current" />
-                                Trọng Tâm
+                                Priority
                               </span>
                             )}
 
                             {item.estimatedMinutes && (
                               <span className="text-[8px] text-blue-400 bg-blue-950/40 border border-blue-900/40 px-1.5 py-0.5 rounded flex items-center gap-0.5 font-bold font-mono">
                                 <Clock className="w-2.5 h-2.5" />
-                                {item.estimatedMinutes}p
+                                {item.estimatedMinutes}m
                               </span>
                             )}
                           </div>
@@ -681,7 +681,7 @@ export default function TodoSection({
                             <button
                               onClick={() => handleDeleteWithGoogleSync(item)}
                               className="text-slate-600 hover:text-rose-400 p-0.5 rounded cursor-pointer"
-                              title="Xóa Nhiệm Vụ"
+                              title="Delete Task"
                             >
                               <Trash2 className="w-2.5 h-2.5" />
                             </button>
@@ -693,7 +693,7 @@ export default function TodoSection({
                 ) : (
                   <div className="h-full flex flex-col items-center justify-center text-center text-[9px] text-slate-600 py-12 border border-dashed border-slate-900/60 rounded-xl">
                     <Clock className="w-3.5 h-3.5 opacity-40 mb-1" />
-                    Nhàn rỗi
+                    Idle
                   </div>
                 )}
               </div>
@@ -702,21 +702,21 @@ export default function TodoSection({
         })}
       </div>
 
-      {/* Báo Cáo Nhắc Nhở Nhiệm Vụ Chưa Thành */}
+      {/* Unfinished Quests Reminder */}
       {pendingTodosUpToToday.length > 0 && (
         <div className="bg-rose-950/20 border border-rose-900/60 rounded-2xl p-5 shadow-xl space-y-3">
           <div className="flex items-center gap-2 pb-2 border-b border-rose-900/40">
             <div className="px-2.5 py-1 bg-rose-950/80 border border-rose-900 text-rose-400 rounded-lg animate-pulse text-[10px] font-black">
-              ⚠️ CẢNH BÁO TÂM MA
+              ⚠️ INNER DEMON ALERT
             </div>
             <h4 className="text-xs font-bold text-rose-300 uppercase tracking-wider">
-              Bản Báo Cáo Nhắc Nhở Đạo Tâm Chưa Tròn
+              Unfinished Cultivation Quests Report
             </h4>
           </div>
 
           <p className="text-[11px] text-slate-300 leading-relaxed">
-            Hỡi Đạo hữu, Linh Trận phát hiện <strong className="text-rose-400 font-mono">{pendingTodosUpToToday.length} nhiệm vụ</strong> vẫn chưa hoàn thành tính đến ngày hôm nay. {pendingTodosUpToToday.filter(i => i.dueDate && i.dueDate < todayStr).length > 0 && <span>Trong đó có <strong className="text-rose-400 font-mono">{pendingTodosUpToToday.filter(i => i.dueDate && i.dueDate < todayStr).length} việc đã quá kỳ hạn</strong>! </span>}
-            Cơ duyên tu tiên trôi qua chớp mắt, nếu trì hoãn đạo quả sẽ tiêu hao, tâm ma quấy nhiễu. Hãy mau chóng thiền định và hoàn thành các nhiệm vụ dưới đây để vững bước trên con đường đắc đạo:
+            Fellow Daoist, the spiritual array detected <strong className="text-rose-400 font-mono">{pendingTodosUpToToday.length} unfinished tasks</strong> up to today. {pendingTodosUpToToday.filter(i => i.dueDate && i.dueDate < todayStr).length > 0 && <span>Including <strong className="text-rose-400 font-mono">{pendingTodosUpToToday.filter(i => i.dueDate && i.dueDate < todayStr).length} overdue tasks</strong>! </span>}
+            Cultivation opportunities pass in a flash. Procrastination consumes cultivation fruits and summons inner demons. Complete the following quests to advance your Dao:
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
@@ -728,10 +728,10 @@ export default function TodoSection({
                   <div className="flex-1 min-w-0">
                     <p className="text-[11px] text-slate-200 font-bold truncate">{item.title}</p>
                     <p className="text-[8px] text-slate-500 font-mono flex items-center gap-1 mt-0.5">
-                      <span>Chu kỳ: Ngày</span>
+                      <span>Cycle: Daily</span>
                       {item.dueDate && (
                         <span className={overdue ? 'text-rose-400 font-bold' : ''}>
-                          - Hạn: {new Date(item.dueDate).toLocaleDateString('vi-VN')} {overdue && '(ĐÃ QUÁ HẠN!)'}
+                          - Due: {new Date(item.dueDate).toLocaleDateString()} {overdue && '(OVERDUE!)'}
                         </span>
                       )}
                     </p>
@@ -740,14 +740,14 @@ export default function TodoSection({
                     onClick={() => handleToggleTodoWithGoogleSync(item)}
                     className="text-[9px] text-amber-500 hover:text-amber-400 bg-amber-950/20 border border-amber-900/30 px-2 py-0.5 rounded cursor-pointer shrink-0 transition-all font-semibold"
                   >
-                    Hoàn Thành Ngay
+                    Complete Now
                   </button>
                 </div>
               );
             })}
             {pendingTodosUpToToday.length > 6 && (
               <div className="col-span-full text-center text-[10px] text-slate-500 italic">
-                ... và {pendingTodosUpToToday.length - 6} nhiệm vụ chưa hoàn thành khác đang chờ Đạo hữu rèn luyện.
+                ... and {pendingTodosUpToToday.length - 6} more unfinished tasks waiting for you.
               </div>
             )}
           </div>
@@ -758,16 +758,16 @@ export default function TodoSection({
       <div className="bg-[#0f141c]/80 border border-slate-800/80 rounded-2xl p-5 shadow-xl">
         <h4 className="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-900 pb-2 mb-3">
           <Plus className="w-4 h-4 text-amber-500" />
-          Thiết Lập Nhiệm Vụ Mới
+          Create New Task
         </h4>
 
         <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-5 gap-3 items-end">
           <div className="md:col-span-2">
-            <label className="text-[9px] text-slate-500 uppercase tracking-wider font-semibold block mb-1">Nội dung đạo tâm (Tên việc cần làm)</label>
+            <label className="text-[9px] text-slate-500 uppercase tracking-wider font-semibold block mb-1">Task Description (Quest Title)</label>
             <input
               type="text"
               required
-              placeholder="Ví dụ: Viết 1 bài luận Task 2 IELTS..."
+              placeholder="e.g. Write IELTS Task 2 Essay..."
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               className="w-full bg-slate-950 border border-slate-900 rounded-xl px-3 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500 transition-colors"
@@ -775,21 +775,21 @@ export default function TodoSection({
           </div>
 
           <div className="md:col-span-1">
-            <label className="text-[9px] text-slate-500 uppercase tracking-wider font-semibold block mb-1">Phẩm Cấp (Độ khó)</label>
+            <label className="text-[9px] text-slate-500 uppercase tracking-wider font-semibold block mb-1">Difficulty Tier</label>
             <select
               value={difficulty}
               onChange={(e) => setDifficulty(e.target.value as Priority)}
               className="w-full bg-slate-950 border border-slate-900 rounded-xl px-2.5 py-2.5 text-xs text-slate-300 focus:outline-none focus:border-amber-500 transition-colors cursor-pointer"
             >
-              <option value="SO_CAP">Sơ Cấp (Trắng)</option>
-              <option value="TRUNG_CAP">Trung Cấp (Lam)</option>
-              <option value="CAO_CAP">Địa Cấp (Cam)</option>
-              <option value="THAN_CAP">Thiên Cấp (Vàng)</option>
+              <option value="SO_CAP">Novice (White)</option>
+              <option value="TRUNG_CAP">Adept (Blue)</option>
+              <option value="CAO_CAP">Earth (Orange)</option>
+              <option value="THAN_CAP">Heaven (Gold)</option>
             </select>
           </div>
 
           <div className="md:col-span-1">
-            <label className="text-[9px] text-slate-500 uppercase tracking-wider font-semibold block mb-1">Kỳ Hạn</label>
+            <label className="text-[9px] text-slate-500 uppercase tracking-wider font-semibold block mb-1">Due Date</label>
             <input
               type="date"
               value={todoDate}
@@ -802,7 +802,7 @@ export default function TodoSection({
             type="submit"
             className="w-full bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700 text-slate-950 text-xs font-bold py-2.5 rounded-xl transition-all shadow-lg cursor-pointer"
           >
-            Bồi Đắp Đạo Tâm
+            Add Quest
           </button>
         </form>
       </div>
@@ -822,10 +822,10 @@ export default function TodoSection({
                   <Trash2 className="w-5 h-5" />
                 </div>
                 <h3 className="text-sm font-black text-slate-100 uppercase tracking-wide">
-                  Xóa Nhiệm Vụ
+                  Delete Quest
                 </h3>
                 <p className="text-[11px] text-slate-400 leading-relaxed font-sans">
-                  Đạo hữu có chắc chắn muốn xóa nhiệm vụ: <span className="text-amber-400 font-bold">"{deletingTodo.title}"</span>? Hành động này không thể hoàn tác.
+                  Are you sure you want to delete quest: <span className="text-amber-400 font-bold">"{deletingTodo.title}"</span>? This action cannot be undone.
                 </p>
               </div>
 
@@ -834,13 +834,13 @@ export default function TodoSection({
                   onClick={() => setDeletingTodo(null)}
                   className="flex-1 py-2 bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 rounded-xl cursor-pointer transition-colors"
                 >
-                  HỦY BỎ
+                  CANCEL
                 </button>
                 <button
                   onClick={confirmDeleteTodo}
                   className="flex-1 py-2 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-slate-100 rounded-xl cursor-pointer transition-all shadow-lg shadow-rose-500/10"
                 >
-                  XÁC NHẬN XÓA
+                  CONFIRM DELETE
                 </button>
               </div>
             </motion.div>
@@ -860,10 +860,10 @@ export default function TodoSection({
                   <LogOut className="w-5 h-5" />
                 </div>
                 <h3 className="text-sm font-black text-slate-100 uppercase tracking-wide">
-                  Ngắt Kết Nối Google Tasks
+                  Disconnect Google Tasks
                 </h3>
                 <p className="text-[11px] text-slate-400 leading-relaxed font-sans">
-                  Đạo hữu có chắc chắn muốn ngắt kết nối với Google Tiên Đài không? Đồng bộ sẽ tạm ngưng.
+                  Are you sure you want to disconnect from Google Tasks? Synchronization will be paused.
                 </p>
               </div>
 
@@ -872,13 +872,13 @@ export default function TodoSection({
                   onClick={() => setShowLogoutConfirm(false)}
                   className="flex-1 py-2 bg-slate-900 hover:bg-slate-800 text-slate-400 border border-slate-800 rounded-xl cursor-pointer transition-colors"
                 >
-                  HỦY BỎ
+                  CANCEL
                 </button>
                 <button
                   onClick={confirmLogout}
                   className="flex-1 py-2 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-700 hover:to-yellow-700 text-slate-950 rounded-xl cursor-pointer transition-all shadow-lg"
                 >
-                  NGẮT KẾT NỐI
+                  DISCONNECT
                 </button>
               </div>
             </motion.div>

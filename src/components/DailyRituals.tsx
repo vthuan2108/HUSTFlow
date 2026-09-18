@@ -53,15 +53,15 @@ export default function DailyRituals({
   const getDifficultyInfo = (diff?: Priority) => {
     switch (diff) {
       case 'SO_CAP':
-        return { label: 'Sơ Cấp', color: 'text-slate-300 border-slate-800 bg-slate-900/40' };
+        return { label: 'Novice', color: 'text-slate-300 border-slate-800 bg-slate-900/40' };
       case 'TRUNG_CAP':
-        return { label: 'Trung Cấp', color: 'text-blue-400 border-blue-900/50 bg-blue-950/20' };
+        return { label: 'Adept', color: 'text-blue-400 border-blue-900/50 bg-blue-950/20' };
       case 'CAO_CAP':
-        return { label: 'Địa Cấp', color: 'text-orange-400 border-orange-900/50 bg-orange-950/20' };
+        return { label: 'Earth', color: 'text-orange-400 border-orange-900/50 bg-orange-950/20' };
       case 'THAN_CAP':
-        return { label: 'Thiên Cấp', color: 'text-amber-400 border-amber-500/30 bg-amber-950/10' };
+        return { label: 'Heaven', color: 'text-amber-400 border-amber-500/30 bg-amber-950/10' };
       default:
-        return { label: 'Sơ Cấp', color: 'text-slate-300 border-slate-800 bg-slate-900/40' };
+        return { label: 'Novice', color: 'text-slate-300 border-slate-800 bg-slate-900/40' };
     }
   };
 

@@ -232,7 +232,7 @@ const TAB_THEMES: Record<string, {
   arrowColor: string;
 }> = {
   MEDITATION: {
-    label: 'Thiền Định Pomodoro',
+    label: 'Focus & Pomodoro',
     icon: <Flame className="w-4 h-4" />,
     activeBg: 'bg-amber-950/40',
     activeText: 'text-amber-300 font-extrabold',
@@ -241,7 +241,7 @@ const TAB_THEMES: Record<string, {
     arrowColor: 'text-amber-400'
   },
   TODOS: {
-    label: 'Nhiệm Vụ Tông Môn',
+    label: 'Tasks & Quests',
     icon: <ListTodo className="w-4 h-4" />,
     activeBg: 'bg-emerald-950/40',
     activeText: 'text-emerald-300 font-extrabold',
@@ -250,7 +250,7 @@ const TAB_THEMES: Record<string, {
     arrowColor: 'text-emerald-400'
   },
   SCHEDULE: {
-    label: 'Lịch trình',
+    label: 'Schedule',
     icon: <Calendar className="w-4 h-4" />,
     activeBg: 'bg-sky-950/40',
     activeText: 'text-sky-300 font-extrabold',
@@ -259,7 +259,7 @@ const TAB_THEMES: Record<string, {
     arrowColor: 'text-sky-400'
   },
   IELTS_ARENA: {
-    label: 'Ielts logs',
+    label: 'IELTS Logs',
     icon: <BookOpen className="w-4 h-4" />,
     activeBg: 'bg-indigo-950/40',
     activeText: 'text-indigo-300 font-extrabold',
@@ -268,7 +268,7 @@ const TAB_THEMES: Record<string, {
     arrowColor: 'text-indigo-400'
   },
   CULT_PATH: {
-    label: 'Tiên Lộ (Lộ Trình)',
+    label: 'Immortal Roadmap',
     icon: <Scroll className="w-4 h-4" />,
     activeBg: 'bg-purple-950/40',
     activeText: 'text-purple-300 font-extrabold',
@@ -277,7 +277,7 @@ const TAB_THEMES: Record<string, {
     arrowColor: 'text-purple-400'
   },
   ANALYTICS: {
-    label: 'Đạo Nhãn Thống Kê',
+    label: 'Analytics & Insights',
     icon: <CompassIcon className="w-4 h-4" />,
     activeBg: 'bg-pink-950/40',
     activeText: 'text-pink-300 font-extrabold',
@@ -286,7 +286,7 @@ const TAB_THEMES: Record<string, {
     arrowColor: 'text-pink-400'
   },
   GRADES: {
-    label: 'Điểm số',
+    label: 'Grades & GPA',
     icon: <GraduationCap className="w-4 h-4" />,
     activeBg: 'bg-blue-950/40',
     activeText: 'text-blue-300 font-extrabold',
@@ -295,7 +295,7 @@ const TAB_THEMES: Record<string, {
     arrowColor: 'text-blue-400'
   },
   STORE: {
-    label: 'Tàng Bảo Các (Shop)',
+    label: 'Treasure Pavilion',
     icon: <Sparkles className="w-4 h-4" />,
     activeBg: 'bg-rose-950/40',
     activeText: 'text-rose-300 font-extrabold',
@@ -304,7 +304,7 @@ const TAB_THEMES: Record<string, {
     arrowColor: 'text-rose-400'
   },
   TANG_KINH_CAC: {
-    label: 'Tàng Kinh Các (Studocu)',
+    label: 'Studocu Library',
     icon: <Library className="w-4 h-4" />,
     activeBg: 'bg-indigo-950/40',
     activeText: 'text-indigo-300 font-extrabold',
@@ -467,7 +467,7 @@ export default function SidebarNavigation({
                   className={`p-1 rounded cursor-pointer transition-colors ${
                     autoSync ? 'text-amber-400 bg-amber-400/10' : 'text-slate-500 hover:text-slate-300'
                   }`}
-                  title={autoSync ? "Đang phát tự động khi bật Pomodoro" : "Phát độc lập không phụ thuộc Pomodoro"}
+                  title={autoSync ? "Auto-play with Pomodoro" : "Play independently"}
                 >
                   <Zap className="w-3.5 h-3.5" />
                 </button>
@@ -481,7 +481,7 @@ export default function SidebarNavigation({
                   className={`p-1 rounded cursor-pointer transition-colors ${
                     isEditingUrl ? 'text-amber-400 bg-amber-400/15' : 'text-slate-400 hover:text-amber-400'
                   }`}
-                  title="Đổi link YouTube"
+                  title="Change YouTube URL"
                 >
                   <LinkIcon className="w-3.5 h-3.5" />
                 </button>
@@ -490,7 +490,7 @@ export default function SidebarNavigation({
                   type="button"
                   onClick={() => setIsLofiMinimized(!isLofiMinimized)}
                   className="p-1 text-slate-400 hover:text-slate-200 cursor-pointer transition-colors"
-                  title={isLofiMinimized ? "Mở rộng Player" : "Thu gọn Player"}
+                  title={isLofiMinimized ? "Expand Player" : "Minimize Player"}
                 >
                   {isLofiMinimized ? <Maximize2 className="w-3.5 h-3.5" /> : <Minimize2 className="w-3.5 h-3.5" />}
                 </button>
@@ -500,7 +500,7 @@ export default function SidebarNavigation({
                     type="button"
                     onClick={onCloseLofi}
                     className="p-1 text-slate-400 hover:text-rose-400 cursor-pointer transition-colors"
-                    title="Tắt Lofi Stream (Về Banner Tu Vi)"
+                    title="Close Lofi Stream"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
@@ -513,7 +513,7 @@ export default function SidebarNavigation({
               <form onSubmit={handleSaveUrl} className="bg-[#121824] p-2 border-b border-slate-900 flex items-center gap-1.5">
                 <input
                   type="text"
-                  placeholder="Dán link YouTube vào đây..."
+                  placeholder="Paste YouTube link here..."
                   value={inputUrl}
                   onChange={(e) => setInputUrl(e.target.value)}
                   className="w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-1 text-[10px] text-slate-200 focus:outline-none focus:border-rose-500 font-mono"
@@ -523,7 +523,7 @@ export default function SidebarNavigation({
                   type="submit"
                   className="bg-rose-500 hover:bg-rose-600 text-slate-950 font-bold text-[9px] px-2.5 py-1 rounded-lg font-mono cursor-pointer shrink-0"
                 >
-                  Lưu
+                  Save
                 </button>
               </form>
             )}
@@ -542,8 +542,8 @@ export default function SidebarNavigation({
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center p-3 text-center bg-slate-950/80 space-y-1">
                     <Play className="w-6 h-6 text-slate-600 animate-pulse" />
-                    <p className="text-[10px] text-slate-400 font-mono">Tạm dừng (Chờ bật Pomodoro)</p>
-                    <p className="text-[8px] text-slate-600 font-mono">Bấm ⚡ góc trên để phát độc lập</p>
+                    <p className="text-[10px] text-slate-400 font-mono">Paused (Waiting for Pomodoro)</p>
+                    <p className="text-[8px] text-slate-600 font-mono">Click ⚡ above to play independently</p>
                   </div>
                 )}
               </div>
@@ -588,16 +588,16 @@ export default function SidebarNavigation({
                         maxLength={15}
                         autoFocus
                       />
-                      <button type="submit" className="text-[9px] bg-emerald-500 text-slate-950 font-bold px-2 py-0.5 rounded font-mono">Lưu</button>
+                      <button type="submit" className="text-[9px] bg-emerald-500 text-slate-950 font-bold px-2 py-0.5 rounded font-mono">Save</button>
                     </form>
                   ) : (
                     <>
-                      <span className="font-black text-sm text-slate-100 truncate font-mono">{userName || 'Đạo Hữu'}</span>
+                      <span className="font-black text-sm text-slate-100 truncate font-mono">{userName || 'Daoist'}</span>
                       <button
                         onClick={() => { setTempName(userName); setIsEditingName(true); }}
                         className="text-[9px] text-slate-500 hover:text-slate-300 font-mono cursor-pointer"
                       >
-                        (Đổi Danh)
+                        (Rename)
                       </button>
                       {equippedTitle && (
                         <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 inline-block shadow-[0_0_10px_rgba(245,158,11,0.2)] truncate max-w-[140px]">
@@ -640,11 +640,11 @@ export default function SidebarNavigation({
               <div className="space-y-1 font-mono">
                 <div className="flex justify-between text-[9px] text-slate-400">
                   <span className="uppercase font-semibold flex items-center gap-1">
-                    {isBottleneck && <span className="text-amber-400 font-bold">🔒 BÌNH CẢNH CẬN KỀ</span>}
-                    {!isBottleneck && 'ĐẠO HẠNH TU VI TÍCH LŨY'}
+                    {isBottleneck && <span className="text-amber-400 font-bold">🔒 BOTTLENECK REACHED</span>}
+                    {!isBottleneck && 'CULTIVATION EXP'}
                   </span>
                   <span className="text-amber-300 font-bold">
-                    {currentExp} / {xpNeeded} Tu Vi ({rawPercentage}%) {rawPercentage > 100 && '⚡ NÉN LINH LỰC'}
+                    {currentExp} / {xpNeeded} Exp ({rawPercentage}%) {rawPercentage > 100 && '⚡ COMPRESSED'}
                   </span>
                 </div>
                 <div className="relative w-full bg-slate-950 border-[3px] border-slate-950 rounded-xl h-4 overflow-hidden flex items-center shadow-none cultivation-exp-track">
@@ -672,14 +672,14 @@ export default function SidebarNavigation({
               <div className="flex items-center justify-between pt-1 text-[10px] font-mono border-t border-slate-900">
                 <div className="flex items-center gap-1.5 text-amber-300 font-bold">
                   <Gem className="w-3.5 h-3.5 text-amber-400" />
-                  <span>{linhThach} Linh Thạch</span>
+                  <span>{linhThach} Spirit Stones</span>
                 </div>
 
                 <div className="flex items-center gap-1.5">
                   {shieldActive && (
-                    <div className="flex items-center gap-1 text-[9px] font-bold text-sky-400 bg-sky-950/40 border border-sky-800/40 px-1.5 py-0.5 rounded-md" title="Đã kích hoạt Hộ Tâm Kính">
+                    <div className="flex items-center gap-1 text-[9px] font-bold text-sky-400 bg-sky-950/40 border border-sky-800/40 px-1.5 py-0.5 rounded-md" title="Heart Mirror Active">
                       <Shield className="w-3 h-3 text-sky-400" />
-                      <span>Hộ Thân</span>
+                      <span>Shielded</span>
                     </div>
                   )}
 
@@ -687,10 +687,10 @@ export default function SidebarNavigation({
                     <button
                       onClick={onOpenAchievements}
                       className="text-slate-400 hover:text-amber-400 flex items-center gap-1 cursor-pointer transition-colors"
-                      title="Mở bảng Huy Hiệu Đạo Tâm"
+                      title="Open Achievements"
                     >
                       <Trophy className="w-3.5 h-3.5 text-amber-400" />
-                      <span className="hidden sm:inline">Huy hiệu</span>
+                      <span className="hidden sm:inline">Badges</span>
                     </button>
                   )}
                 </div>
@@ -710,7 +710,7 @@ export default function SidebarNavigation({
               }`}
             >
               <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
-              <span>{isBottleneck ? '⚡ XEM THỬ THÁCH BÌNH CẢNH' : 'ĐỘT PHÁ CẢNH GIỚI'}</span>
+              <span>{isBottleneck ? '⚡ VIEW BOTTLENECK TRIALS' : 'BREAKTHROUGH REALM'}</span>
             </button>
           </div>
         )}
@@ -731,7 +731,7 @@ export default function SidebarNavigation({
                   onClick={() => setIsBreakthroughModalOpen(false)}
                   className="absolute top-4 right-4 text-xs text-slate-500 hover:text-slate-300 font-bold cursor-pointer"
                 >
-                  Đóng
+                  Close
                 </button>
               )}
 
@@ -742,12 +742,12 @@ export default function SidebarNavigation({
                   </div>
                   <div>
                     <h3 className="text-md font-bold text-slate-100 uppercase tracking-widest font-mono">
-                      {isBottleneck ? `🔒 ${bottleneckReq?.title}` : 'ĐỘT PHÁ CẢNH GIỚI'}
+                      {isBottleneck ? `🔒 ${bottleneckReq?.title}` : 'BREAKTHROUGH REALM'}
                     </h3>
                     <p className="text-xs text-slate-400 mt-1">
                       {isBottleneck 
-                        ? 'Hoàn thành các thử thách Độ Kiếp để khai phá bình cảnh và thăng tiến cấp bậc!'
-                        : 'Tiến hành vượt qua lôi kiếp để đột phá tiến cấp danh hiệu mới.'}
+                        ? 'Complete the Tribulation Trials to break through the bottleneck and advance!'
+                        : 'Endure the heavenly lightning tribulation to advance your realm.'}
                     </p>
                   </div>
 
@@ -755,26 +755,26 @@ export default function SidebarNavigation({
                   {isBottleneck && bottleneckReq && (
                     <div className="bg-slate-950 p-3.5 rounded-xl space-y-2 border-2 border-slate-950 text-left font-mono text-[10px] shadow-[2px_2px_0px_#000]">
                       <div className="font-extrabold uppercase text-amber-400 tracking-wider pb-1 border-b border-slate-900 flex justify-between">
-                        <span>📜 Thử Thách Độ Kiếp Cần Đạt:</span>
+                        <span>📜 Tribulation Requirements:</span>
                         <span className={bottleneckMet ? 'text-emerald-400' : 'text-rose-400'}>
-                          {bottleneckMet ? '✓ ĐỦ ĐIỀU KIỆN' : '✗ CHƯA ĐỦ'}
+                          {bottleneckMet ? '✓ QUALIFIED' : '✗ INCOMPLETE'}
                         </span>
                       </div>
 
                       {bottleneckReq.minMeditationMinutes && (
                         <div className="flex justify-between items-center">
-                          <span className="text-slate-400">🧘 Bế quan Thiền Định (từ bình cảnh):</span>
+                          <span className="text-slate-400">🧘 Meditation Time (from bottleneck):</span>
                           <span className={safeMeditationDiff >= bottleneckReq.minMeditationMinutes ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>
-                            {safeMeditationDiff} / {bottleneckReq.minMeditationMinutes} phút
+                            {safeMeditationDiff} / {bottleneckReq.minMeditationMinutes} mins
                           </span>
                         </div>
                       )}
 
                       {bottleneckReq.requiredItemName && (
                         <div className="flex justify-between items-center">
-                          <span className="text-slate-400">💊 Mua {bottleneckReq.requiredItemName} (Shop):</span>
+                          <span className="text-slate-400">💊 Own {bottleneckReq.requiredItemName} (Shop):</span>
                           <span className={safeInventory.some(i => i && i.itemId === bottleneckReq.requiredItemId && i.quantity > 0) ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>
-                            {safeInventory.some(i => i && i.itemId === bottleneckReq.requiredItemId && i.quantity > 0) ? '✓ Đã có' : '✗ Chưa có'}
+                            {safeInventory.some(i => i && i.itemId === bottleneckReq.requiredItemId && i.quantity > 0) ? '✓ Owned' : '✗ Missing'}
                           </span>
                         </div>
                       )}
@@ -783,21 +783,21 @@ export default function SidebarNavigation({
 
                   <div className="bg-slate-950 p-3 rounded-xl space-y-2 border-2 border-slate-950 text-left font-mono text-[10px] shadow-[2px_2px_0px_#000]">
                     <div className="flex justify-between">
-                      <span className="text-slate-500">Tỉ lệ thành công:</span>
+                      <span className="text-slate-500">Success Rate:</span>
                       <span className="text-amber-400 font-bold">{successRate.toFixed(1)}%</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-500">Vật phẩm hộ pháp:</span>
+                      <span className="text-slate-500">Protection Artifact:</span>
                       <span className={shieldActive ? 'text-emerald-400 font-bold' : 'text-slate-600'}>
-                        {shieldActive ? 'Hộ Tâm Kính (Hoạt động)' : 'Không có'}
+                        {shieldActive ? 'Heart Mirror (Active)' : 'None'}
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-500">Hình phạt thất bại:</span>
+                      <span className="text-slate-500">Failure Penalty:</span>
                       <span className="text-rose-400 font-bold">
                         {shieldActive
-                          ? 'Bảo vệ nguyên vẹn (Hộ Tâm Kính)'
-                          : 'Xóa sạch Tu Vi tích lũy (Cảnh giới giữ nguyên)'}
+                          ? 'Fully Protected (Heart Mirror)'
+                          : 'Lose accumulated Exp (Realm preserved)'}
                       </span>
                     </div>
                   </div>
@@ -811,7 +811,7 @@ export default function SidebarNavigation({
                         : 'bg-slate-900 text-slate-600 border-slate-950 cursor-not-allowed'
                     }`}
                   >
-                    {canBreakthrough ? '⚡ CHÍNH THỨC ĐỘ KIẾP ĐỘT PHÁ' : '🔒 CHƯA ĐỦ ĐIỀU KIỆN ĐỘ KIẾP'}
+                    {canBreakthrough ? '⚡ INITIATE BREAKTHROUGH' : '🔒 REQUIREMENTS NOT MET'}
                   </button>
                 </div>
               )}
@@ -822,8 +822,8 @@ export default function SidebarNavigation({
                     <CompassIcon className="w-8 h-8 animate-spin text-indigo-400" />
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-indigo-400 uppercase tracking-widest font-mono">Đang triệu hồi chân lôi...</h4>
-                    <p className="text-[10px] text-slate-500 mt-1 italic font-mono">"Càn khôn xoay chuyển, đan điền hội khí tụ tâm..."</p>
+                    <h4 className="text-xs font-bold text-indigo-400 uppercase tracking-widest font-mono">Summoning Heavenly Tribulation...</h4>
+                    <p className="text-[10px] text-slate-500 mt-1 italic font-mono">"The heavens churn as celestial Qi converges..."</p>
                   </div>
                 </div>
               )}
@@ -834,16 +834,16 @@ export default function SidebarNavigation({
                     <Trophy className="w-6 h-6 text-emerald-400" />
                   </div>
                   <div>
-                    <h3 className="text-md font-bold text-emerald-400 uppercase tracking-widest font-mono">ĐỘT PHÁ THÀNH CÔNG!</h3>
+                    <h3 className="text-md font-bold text-emerald-400 uppercase tracking-widest font-mono">BREAKTHROUGH SUCCESS!</h3>
                     <p className="text-xs text-slate-300 mt-2">
-                      Chúc mừng bạn đã độ kiếp viên mãn, chính thức thăng tiến danh hiệu cao quý mới!
+                      Congratulations on your successful tribulation! Your realm has ascended.
                     </p>
                   </div>
                   <button
                     onClick={() => setIsBreakthroughModalOpen(false)}
                     className="w-full py-2 bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-xs font-mono uppercase tracking-widest rounded-xl border-2 border-slate-950 shadow-[3px_3px_0px_#000] cursor-pointer"
                   >
-                    XÁC NHẬN SỰ KIỆN
+                    CONFIRM
                   </button>
                 </div>
               )}
@@ -854,18 +854,18 @@ export default function SidebarNavigation({
                     <Shield className="w-6 h-6 text-rose-400" />
                   </div>
                   <div>
-                    <h3 className="text-md font-bold text-rose-400 uppercase tracking-widest font-mono">ĐỘT PHÁ THẤT BẠI</h3>
+                    <h3 className="text-md font-bold text-rose-400 uppercase tracking-widest font-mono">BREAKTHROUGH FAILED</h3>
                     <p className="text-xs text-slate-300 mt-2">
                       {shieldActive
-                        ? 'Lôi kiếp giáng xuống nhưng Hộ Tâm Kính đã cản phá toàn bộ đòn đánh. Tu vi nguyên vẹn!'
-                        : 'Kiếp vỡ đan điền, tu vi tiêu tan một phần. Hãy nỗ lực tu hành bồi dưỡng lại đạo tâm!'}
+                        ? 'The lightning struck, but Heart Mirror shielded your cultivation base intact!'
+                        : 'The tribulation shattered your dantian, exp was lost. Re-cultivate and try again!'}
                     </p>
                   </div>
                   <button
                     onClick={() => setIsBreakthroughModalOpen(false)}
                     className="w-full py-2 bg-rose-500 hover:bg-rose-400 text-slate-950 font-black text-xs font-mono uppercase tracking-widest rounded-xl border-2 border-slate-950 shadow-[3px_3px_0px_#000] cursor-pointer"
                   >
-                    CHẤP NHẬN SỰ THẬT
+                    ACCEPT
                   </button>
                 </div>
               )}
@@ -877,7 +877,7 @@ export default function SidebarNavigation({
       {/* BOTTOM SECTION: 10 Navigation Tabs with EACH TAB HAVING ITS OWN DISTINCT COLOR PALETTE */}
       <div className="flex-1 p-3 space-y-1.5 overflow-y-auto font-mono">
         <span className="px-1 text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2 font-mono">
-          DANH MỤC CHỨC NĂNG:
+          NAVIGATION:
         </span>
         
         {effectiveTabOrder.map((tabId) => {
@@ -925,10 +925,10 @@ export default function SidebarNavigation({
           <button
             onClick={onOpenTabCustomize}
             className="w-full p-2.5 rounded-xl border-2 border-dashed border-slate-800 bg-[#090d16] hover:bg-[#0f1624] text-slate-400 hover:text-amber-400 font-mono font-bold text-xs transition-all cursor-pointer flex items-center gap-3 shadow-[1px_1px_0px_#000] mt-2"
-            title="Sắp xếp vị trí các Tab"
+            title="Customize tab order"
           >
             <SlidersHorizontal className="w-4 h-4 text-amber-400 shrink-0" />
-            <span className="truncate">Sắp Xếp Tab</span>
+            <span className="truncate">Customize Tabs</span>
           </button>
         )}
       </div>

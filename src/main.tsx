@@ -36,7 +36,7 @@ class ErrorBoundary extends Component<Props, State> {
   };
 
   private handleClearReset = () => {
-    if (confirm('⚠️ Đạo hữu có chắc chắn muốn xóa bộ nhớ tạm local storage để khôi phục ứng dụng?')) {
+    if (confirm('⚠️ Are you sure you want to clear local storage cache to restore the application?')) {
       localStorage.clear();
       window.location.reload();
     }
@@ -47,22 +47,22 @@ class ErrorBoundary extends Component<Props, State> {
       return (
         <div style={{ padding: 30, background: '#090d16', color: '#e2e8f0', fontFamily: 'sans-serif', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
           <div style={{ fontSize: 48, marginBottom: 16 }}>⚡</div>
-          <h2 style={{ fontSize: 20, fontWeight: 800, color: '#f59e0b', marginBottom: 8, textTransform: 'uppercase' }}>Càn Khôn Trầm Mê - Đạo Phủ Phát Sinh Sự Cố</h2>
+          <h2 style={{ fontSize: 20, fontWeight: 800, color: '#f59e0b', marginBottom: 8, textTransform: 'uppercase' }}>Domain Disturbance - Application Error Encountered</h2>
           <p style={{ fontSize: 13, color: '#94a3b8', maxWidth: 450, marginBottom: 20 }}>
-            Dữ liệu tu hành trong bộ nhớ tạm gặp sự cố bất thường ({this.state.error?.message}).
+            Cultivation data in temporary cache encountered an unexpected error ({this.state.error?.message}).
           </p>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
             <button
               onClick={this.handleReload}
               style={{ padding: '10px 20px', background: '#10b981', color: '#090d16', fontWeight: 800, border: '2px solid #000', borderRadius: 8, cursor: 'pointer' }}
             >
-              🔄 TẢI LẠI TRANG (GIỮ DỮ LIỆU)
+              🔄 RELOAD PAGE (KEEP DATA)
             </button>
             <button
               onClick={this.handleClearReset}
               style={{ padding: '10px 20px', background: '#3b82f6', color: '#fff', fontWeight: 800, border: '2px solid #000', borderRadius: 8, cursor: 'pointer' }}
             >
-              🧹 XÓA BỘ NHỚ TẠM & TẢI LẠI
+              🧹 CLEAR CACHE & RELOAD
             </button>
           </div>
         </div>

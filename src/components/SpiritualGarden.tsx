@@ -207,11 +207,11 @@ export default function SpiritualGarden({ plants, onClearGarden }: SpiritualGard
   });
 
   const getDateRangeLabel = () => {
-    if (filter === 'DAY') return `${today.toLocaleDateString('vi-VN')} (Hôm Nay)`;
+    if (filter === 'DAY') return `${today.toLocaleDateString('en-US')} (Today)`;
     if (filter === 'WEEK') {
-      return `Tuần này (${currentWeekMonday.toLocaleDateString('vi-VN', { day: 'numeric', month: 'numeric' })} - ${currentWeekSunday.toLocaleDateString('vi-VN', { day: 'numeric', month: 'numeric', year: 'numeric' })})`;
+      return `This Week (${currentWeekMonday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${currentWeekSunday.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })})`;
     }
-    return `Tháng ${today.getMonth() + 1}/${today.getFullYear()}`;
+    return `Month ${today.getMonth() + 1}/${today.getFullYear()}`;
   };
 
   // SVG bounding box setup
@@ -253,7 +253,7 @@ export default function SpiritualGarden({ plants, onClearGarden }: SpiritualGard
       <div className="flex justify-between items-center border-b-2 border-slate-950 pb-3">
         <div className="flex items-center gap-2">
           <Sprout className="w-5 h-5 text-emerald-400 animate-pulse" />
-          <h3 className="text-sm font-black text-slate-100 uppercase tracking-wider">🌿 Linh Viên</h3>
+          <h3 className="text-sm font-black text-slate-100 uppercase tracking-wider">🌿 Spiritual Herb Garden</h3>
         </div>
       </div>
 
@@ -269,7 +269,7 @@ export default function SpiritualGarden({ plants, onClearGarden }: SpiritualGard
                 : 'text-slate-500 hover:text-slate-400'
             }`}
           >
-            {t === 'DAY' ? 'Ngày' : t === 'WEEK' ? 'Tuần' : 'Tháng'}
+            {t === 'DAY' ? 'Day' : t === 'WEEK' ? 'Week' : 'Month'}
           </button>
         ))}
       </div>
@@ -358,8 +358,8 @@ export default function SpiritualGarden({ plants, onClearGarden }: SpiritualGard
 
       {/* Footer count */}
       <div className="text-center font-mono text-[10px] border-t-2 border-slate-950 pt-3 text-slate-400 italic">
-        Đạo hữu đã trồng được{' '}
-        <span className="text-emerald-400 font-bold font-sans">{harvestedCount}</span> gốc linh thảo.
+        Cultivated{' '}
+        <span className="text-emerald-400 font-bold font-sans">{harvestedCount}</span> spiritual herbs.
       </div>
 
       {/* Plant Details Modal */}
@@ -374,7 +374,7 @@ export default function SpiritualGarden({ plants, onClearGarden }: SpiritualGard
             >
               <button
                 onClick={() => setSelectedPlant(null)}
-                className="absolute top-3 right-3 text-xs text-slate-500 hover:text-slate-300 font-bold"
+                className="absolute top-3 right-3 text-xs text-slate-500 hover:text-slate-300 font-bold cursor-pointer"
               >
                 ✕
               </button>
@@ -396,28 +396,28 @@ export default function SpiritualGarden({ plants, onClearGarden }: SpiritualGard
                       rarity === 'TRUNG_CAP' ? 'bg-blue-400 text-slate-950' :
                       'bg-slate-355 text-slate-950'
                     }`}>
-                      {rarity === 'SO_CAP' ? 'Sơ Cấp' :
-                       rarity === 'TRUNG_CAP' ? 'Trung Cấp' :
-                       rarity === 'CAO_CAP' ? 'Cao Cấp' : 'Thần Cấp'}
+                      {rarity === 'SO_CAP' ? 'Novice' :
+                       rarity === 'TRUNG_CAP' ? 'Adept' :
+                       rarity === 'CAO_CAP' ? 'Earth' : 'Heaven'}
                     </span>
                   );
                 })()}
               </div>
 
               <div className="bg-slate-950 p-3 rounded-lg border-2 border-slate-950 text-left text-[10px] space-y-1.5 font-mono text-slate-300 shadow-[2px_2px_0px_#000]">
-                <p><span className="text-slate-500">Trạng thái:</span> <strong className={selectedPlant.status === 'HARVESTED' ? 'text-emerald-400' : 'text-rose-500'}>{selectedPlant.status === 'HARVESTED' ? 'Viên Mãn ✓' : 'Héo Úa 🥀'}</strong></p>
-                <p><span className="text-slate-500">Thu hoạch:</span> <span>{selectedPlant.harvestedAt}</span></p>
-                <p><span className="text-slate-500">Linh khí tích tụ:</span> <span className="text-emerald-400">+{selectedPlant.xpGained} XP</span> / <span className="text-amber-400">+{selectedPlant.linhThachGained} Đá</span></p>
+                <p><span className="text-slate-500">Status:</span> <strong className={selectedPlant.status === 'HARVESTED' ? 'text-emerald-400' : 'text-rose-500'}>{selectedPlant.status === 'HARVESTED' ? 'Harvested ✓' : 'Withered 🥀'}</strong></p>
+                <p><span className="text-slate-500">Harvested:</span> <span>{selectedPlant.harvestedAt}</span></p>
+                <p><span className="text-slate-500">Rewards:</span> <span className="text-emerald-400">+{selectedPlant.xpGained} XP</span> / <span className="text-amber-400">+{selectedPlant.linhThachGained} Stones</span></p>
                 <p className="text-[9px] text-slate-500 italic pt-1.5 border-t border-slate-900 font-sans">
-                  {SPIRITUAL_SEEDS.find(s => s.name === selectedPlant.name)?.description || 'Linh thảo quý hiếm được tẩm bổ đạo tâm của tông môn.'}
+                  {SPIRITUAL_SEEDS.find(s => s.name === selectedPlant.name)?.description || 'Rare spiritual herb nurtured through deep meditation.'}
                 </p>
               </div>
 
               <button
                 onClick={() => setSelectedPlant(null)}
-                className="w-full py-2 neo-btn neo-btn-primary text-[10px] font-bold"
+                className="w-full py-2 neo-btn neo-btn-primary text-[10px] font-bold cursor-pointer"
               >
-                LĨNH HỘI LINH KHÍ
+                CLOSE
               </button>
             </motion.div>
           </div>

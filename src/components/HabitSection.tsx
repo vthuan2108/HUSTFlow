@@ -71,7 +71,7 @@ export default function HabitSection({ habits, onAddHabit, onToggleHabitDay, onD
       const d = new Date(today);
       d.setDate(today.getDate() + mondayOffset + i);
       const dateStr = getLocalDateString(d);
-      const dayLabel = d.toLocaleDateString('vi-VN', { weekday: 'short' });
+      const dayLabel = d.toLocaleDateString('en-US', { weekday: 'short' });
       days.push({
         dateStr,
         dayLabel,
@@ -98,14 +98,14 @@ export default function HabitSection({ habits, onAddHabit, onToggleHabitDay, onD
       <div className="flex items-center justify-between mb-4 shrink-0">
         <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
           <CalendarCheck className="w-4 h-4 text-emerald-400" />
-          Nhật Khóa Thói Quen
+          Daily Habits
         </h3>
         <button
           onClick={() => setIsAdding(!isAdding)}
           className="text-[10px] neo-btn neo-btn-secondary px-2.5 py-1.5"
           id="toggle-add-habit-btn"
         >
-          {isAdding ? 'Hủy' : '+ Thêm'}
+          {isAdding ? 'Cancel' : '+ Add'}
         </button>
       </div>
 
@@ -120,21 +120,21 @@ export default function HabitSection({ habits, onAddHabit, onToggleHabitDay, onD
             className="bg-slate-950 border-2 border-slate-950 p-3 rounded-xl mb-4 space-y-2 shrink-0 overflow-hidden text-xs shadow-[2px_2px_0px_#000]"
           >
             <div>
-              <label className="text-[9px] text-slate-500 uppercase tracking-wider font-semibold block mb-0.5">Tên Thói Quen Luyện Tập</label>
+              <label className="text-[9px] text-slate-500 uppercase tracking-wider font-semibold block mb-0.5">Habit Name</label>
               <input
                 type="text"
                 required
-                placeholder="VD: Luyện phát âm IPA, Chép chính tả..."
+                placeholder="e.g. IPA pronunciation practice, Dictation..."
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 className="w-full bg-slate-900 border-2 border-slate-950 rounded-lg px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-emerald-500"
               />
             </div>
             <div>
-              <label className="text-[9px] text-slate-500 uppercase tracking-wider font-semibold block mb-0.5">Mục Tiêu / Chú thích</label>
+              <label className="text-[9px] text-slate-500 uppercase tracking-wider font-semibold block mb-0.5">Goal / Note</label>
               <input
                 type="text"
-                placeholder="VD: 15 phút mỗi ngày lúc sáng sớm..."
+                placeholder="e.g. 15 mins every morning..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 className="w-full bg-slate-900 border-2 border-slate-950 rounded-lg px-2 py-1 text-xs text-slate-200 focus:outline-none"
@@ -144,7 +144,7 @@ export default function HabitSection({ habits, onAddHabit, onToggleHabitDay, onD
               type="submit"
               className="w-full py-2 neo-btn neo-btn-success text-[10px]"
             >
-              THIẾT LẬP THÓI QUEN (+15 EXP NHẬN MỖI LẦN)
+              ESTABLISH HABIT (+15 EXP PER CHECK-IN)
             </button>
           </motion.form>
         )}
@@ -168,7 +168,7 @@ export default function HabitSection({ habits, onAddHabit, onToggleHabitDay, onD
                       const liveStreak = calculateHabitStreak(habit.history);
                       return liveStreak > 0 ? (
                         <span className="text-[8px] bg-amber-400 text-slate-950 border-2 border-slate-950 px-1.5 py-0.5 rounded-lg font-mono font-bold flex items-center gap-0.5 shadow-[1px_1px_0px_#000] pixel-label">
-                          🔥 {liveStreak} ngày
+                          🔥 {liveStreak}d streak
                         </span>
                       ) : null;
                     })()}
@@ -190,7 +190,7 @@ export default function HabitSection({ habits, onAddHabit, onToggleHabitDay, onD
                               ? 'bg-amber-400/20 border-amber-400'
                               : 'bg-slate-950 border-slate-950'
                           }`}
-                          title={`${day.dayLabel} (${day.dateStr}): ${isCompleted ? 'Đã hoàn thành' : 'Chưa hoàn thành'}`}
+                          title={`${day.dayLabel} (${day.dateStr}): ${isCompleted ? 'Completed' : 'Not completed'}`}
                         />
                       );
                     })}
@@ -211,7 +211,7 @@ export default function HabitSection({ habits, onAddHabit, onToggleHabitDay, onD
                             : 'neo-btn neo-btn-success text-slate-950'
                         }`}
                       >
-                        {isTodayCompleted ? 'ĐÃ XONG ✓' : 'HOÀN THÀNH'}
+                        {isTodayCompleted ? 'DONE ✓' : 'CHECK IN'}
                       </button>
                     );
                   })()}
@@ -219,7 +219,7 @@ export default function HabitSection({ habits, onAddHabit, onToggleHabitDay, onD
                   <button
                     onClick={() => onDeleteHabit(habit.id)}
                     className="text-slate-600 hover:text-rose-400 p-1.5 rounded hover:bg-slate-900 transition-colors cursor-pointer"
-                    title="Xóa thói quen"
+                    title="Delete habit"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -230,7 +230,7 @@ export default function HabitSection({ habits, onAddHabit, onToggleHabitDay, onD
         ) : (
           <div className="text-center py-16 text-slate-650 text-xs flex flex-col items-center gap-2">
             <AlertCircle className="w-5 h-5 text-slate-700" />
-            Nhật khóa trống trơn. Hãy thêm thói quen tốt để tinh tiến!
+            No habits tracked yet. Add good habits to cultivate daily!
           </div>
         )}
       </div>

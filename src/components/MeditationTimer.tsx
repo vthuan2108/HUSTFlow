@@ -541,14 +541,14 @@ function startLofiBeat(ctx: AudioContext, destination: AudioNode) {
 }
 
 const SPIRITUAL_QUOTES = [
-  'Lòng không tạp niệm, linh khí tự động hội tụ...',
-  'Đạo tâm kiên định, phá vỡ vạn trùng bình cảnh.',
-  'Thiền định tập trung, nhất niệm thông thiên địa.',
-  'Mài giũa ý chí, ngưng tụ nguyên anh thần hồn.',
-  'Hơi thở nhẹ nhàng, vạn vật giai không.',
-  'Mỗi giây bế quan, kinh mạch lại được củng cố một phần.',
-  'Ý chí sắt đá, xua tan tâm ma xâm nhập.',
-  'Trời đất bao la, đạo hằng ở trong tim ta.',
+  'Mind free of stray thoughts, spiritual Qi gathers naturally...',
+  'With a resolute Dao heart, break through myriad bottlenecks.',
+  'Focused meditation, a single thought connects Heaven and Earth.',
+  'Temper your willpower, condense divine soul.',
+  'Gentle breaths, all worldly illusions fade away.',
+  'Every second in seclusion tempers the meridians.',
+  'An iron will dispels all inner demons.',
+  'Vast is the cosmos, eternal is the Dao in our hearts.',
 ];
 
 export default function MeditationTimer({
@@ -861,8 +861,8 @@ export default function MeditationTimer({
           const randomSeed = SPIRITUAL_SEEDS[Math.floor(Math.random() * SPIRITUAL_SEEDS.length)];
 
           if ('Notification' in window && Notification.permission === 'granted') {
-            new Notification('🧘 Tự Do Bế Quan Đắc Đạo!', {
-              body: `Đạo hữu thiền định tự do đạt ${25 * cyclesCompleted} phút! Nhận linh thảo [${randomSeed.name}]. Nhận +${finalXp} Tu Vi và +${finalCoins} Linh Thạch.`,
+            new Notification('🧘 Free Meditation Milestone!', {
+              body: `Meditation reached ${25 * cyclesCompleted} mins! Harvested [${randomSeed.name}]. Gained +${finalXp} Exp and +${finalCoins} Spirit Stones.`,
               icon: '/icon.png'
             });
           }
@@ -886,8 +886,8 @@ export default function MeditationTimer({
 
             if (nextCycles >= reqCycles) {
               if ('Notification' in window && Notification.permission === 'granted') {
-                new Notification('🧘 Cảnh Giới Bế Quan Viên Mãn!', {
-                  body: `Chúc mừng đạo hữu! Thu hoạch thành công [${selectedSeed.name}]. Nhận ngay +${actualExpGained} Tu Vi và +${actualCoinsGained} Linh Thạch.`,
+                new Notification('🧘 Seclusion Fulfilled!', {
+                  body: `Congratulations! Successfully harvested [${selectedSeed.name}]. Gained +${actualExpGained} Exp and +${actualCoinsGained} Spirit Stones.`,
                   icon: '/icon.png'
                 });
               }
@@ -898,8 +898,8 @@ export default function MeditationTimer({
               setTimeLeft(5 * 60);
             } else {
               if ('Notification' in window && Notification.permission === 'granted') {
-                new Notification('🌱 Chu Kỳ Bế Quan Hoàn Thành!', {
-                  body: `Đạo hữu đã hoàn thành chu kỳ ${nextCycles}/${reqCycles} để nuôi trồng [${selectedSeed.name}]. Hãy nghỉ ngơi trước khi bắt đầu chu kỳ tiếp theo!`,
+                new Notification('🌱 Seclusion Cycle Complete!', {
+                  body: `Completed cycle ${nextCycles}/${reqCycles} for [${selectedSeed.name}]. Take a short break before the next cycle!`,
                   icon: '/icon.png'
                 });
               }
@@ -909,8 +909,8 @@ export default function MeditationTimer({
             }
           } else {
             if ('Notification' in window && Notification.permission === 'granted') {
-              new Notification('⚡ Thời Gian Thần Tức Kết Thúc!', {
-                body: 'Tinh thần đạo hữu đã sảng khoái, hãy chuẩn bị quay lại bế quan tu luyện!',
+              new Notification('⚡ Short Break Ended!', {
+                body: 'Your mind is refreshed! Prepare to return to deep focus seclusion.',
                 icon: '/icon.png'
               });
             }
@@ -967,7 +967,7 @@ export default function MeditationTimer({
 
   const resetTimer = () => {
     if (isRunning && mode === 'FOCUS') {
-      if (confirm(`☠️ ĐẠO TÂM LUNG LAY?\n\nNếu tự ý phá trận pháp bế quan lúc này, Linh Thảo [${selectedSeed.name}] đang gieo trồng sẽ bị héo úa (chết).\nĐạo hữu có chắc chắn muốn hủy bỏ?`)) {
+      if (confirm(`☠️ WAVERED DAO HEART?\n\nIf you break the seclusion array now, the growing [${selectedSeed.name}] will wither and die.\nAre you sure you want to cancel?`)) {
         clearInterval(timerRef.current!);
         if (passiveTimerRef.current) clearInterval(passiveTimerRef.current);
         setIsRunning(false);
@@ -1031,7 +1031,7 @@ export default function MeditationTimer({
                 : 'text-slate-500 hover:text-slate-300'
             }`}
           >
-            Bế Quan
+            Deep Focus
           </button>
           <button
             onClick={() => handleModeChange('SHORT_BREAK')}
@@ -1041,7 +1041,7 @@ export default function MeditationTimer({
                 : 'text-slate-500 hover:text-slate-300'
             }`}
           >
-            Tiểu Đốn
+            Short Break
           </button>
           <button
             onClick={() => handleModeChange('FREE')}
@@ -1051,7 +1051,7 @@ export default function MeditationTimer({
                 : 'text-slate-500 hover:text-slate-300'
             }`}
           >
-            Tự Do
+            Free Mode
           </button>
         </div>
 
@@ -1060,7 +1060,7 @@ export default function MeditationTimer({
           <button
             onClick={() => setSoundEnabled(!soundEnabled)}
             className="p-1.5 rounded-lg bg-slate-950 border-2 border-slate-950 text-slate-400 hover:text-slate-200 cursor-pointer shadow-[1px_1px_0px_#000]"
-            title={soundEnabled ? 'Tắt tiếng' : 'Bật tiếng'}
+            title={soundEnabled ? 'Mute' : 'Unmute'}
           >
             {soundEnabled ? <Volume2 className="w-3 h-3" /> : <VolumeX className="w-3 h-3" />}
           </button>
@@ -1071,7 +1071,7 @@ export default function MeditationTimer({
                 ? 'bg-amber-400 text-slate-950 border-slate-950 shadow-[1px_1px_0px_#000]'
                 : 'bg-slate-950 text-slate-400 border-slate-950 hover:text-amber-400 shadow-[1px_1px_0px_#000]'
             }`}
-            title="Cảnh giới Focus"
+            title="Zen Mode / Fullscreen"
           >
             <Eye className="w-3 h-3" />
           </button>
@@ -1140,7 +1140,7 @@ export default function MeditationTimer({
             >
               {mode === 'FOCUS' && (
                 <div className="absolute top-4 text-[9px] font-bold px-2.5 py-0.5 rounded-lg bg-emerald-400 text-slate-950 border-2 border-slate-950 z-10 select-none shadow-[1px_1px_0px_#000] pixel-label">
-                  Chu kỳ: {completedCycles}/{getRequiredCycles(selectedSeed.rarity)}
+                  Cycle: {completedCycles}/{getRequiredCycles(selectedSeed.rarity)}
                 </div>
               )}
               {/* Dirt mound half-circle at bottom */}
@@ -1186,17 +1186,17 @@ export default function MeditationTimer({
               className={`w-7 h-7 rounded-full bg-slate-950 border-2 border-slate-950 text-slate-400 hover:text-emerald-400 hover:border-emerald-800 transition-all cursor-pointer flex items-center justify-center text-xs font-black shadow-[1px_1px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none ${
                 isRunning ? 'opacity-0 pointer-events-none' : ''
               }`}
-              title="Linh thảo trước"
+              title="Previous herb"
             >
               ‹
             </button>
             <div className="text-center min-w-[120px]">
               <p className="text-xs font-bold text-slate-200">{selectedSeed.icon} {selectedSeed.name}</p>
               <p className="text-[9px] text-slate-500 font-mono">
-                {selectedSeed.rarity === 'SO_CAP' ? 'Sơ Cấp' :
-                 selectedSeed.rarity === 'TRUNG_CAP' ? 'Trung Cấp' :
-                 selectedSeed.rarity === 'CAO_CAP' ? 'Cao Cấp' : 'Thần Cấp'} •
-                +{seedRewards.xp} Tu Vi
+                {selectedSeed.rarity === 'SO_CAP' ? 'Novice' :
+                 selectedSeed.rarity === 'TRUNG_CAP' ? 'Adept' :
+                 selectedSeed.rarity === 'CAO_CAP' ? 'Earth' : 'Heaven'} •
+                +{seedRewards.xp} Exp
               </p>
             </div>
             <button
@@ -1205,7 +1205,7 @@ export default function MeditationTimer({
               className={`w-7 h-7 rounded-full bg-slate-950 border-2 border-slate-950 text-slate-400 hover:text-emerald-400 hover:border-emerald-800 transition-all cursor-pointer flex items-center justify-center text-xs font-black shadow-[1px_1px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none ${
                 isRunning ? 'opacity-0 pointer-events-none' : ''
               }`}
-              title="Linh thảo tiếp theo"
+              title="Next herb"
             >
               ›
             </button>
@@ -1215,18 +1215,18 @@ export default function MeditationTimer({
         {mode === 'FREE' && (
           <div className="text-center min-w-[200px] mb-3 flex flex-col items-center">
             <p className="text-[10px] font-bold text-purple-400 flex items-center gap-1">
-              ✨ Trận Pháp Tự Do Tu Luyện ✨
+              ✨ Free Meditation Array ✨
             </p>
             <p className="text-[8.5px] text-slate-500 font-mono mt-0.5 max-w-[210px] leading-relaxed">
-              Thiền định đếm giờ tự do. Đủ mỗi 25 phút sẽ ngẫu nhiên nhận được 1 linh thảo Sơ Cấp.
+              Count-up meditation. Every 25 minutes rewards 1 random spiritual herb.
             </p>
           </div>
         )}
 
         {mode === 'SHORT_BREAK' && (
           <div className="text-center min-w-[200px] mb-3 flex flex-col items-center opacity-0 pointer-events-none select-none">
-            <p className="text-[10px] font-bold text-blue-400">✨ Nghỉ ngơi dưỡng thần ✨</p>
-            <p className="text-[8.5px] text-slate-500 font-mono mt-0.5">Tạm dừng bế quan, xả hơi định thần.</p>
+            <p className="text-[10px] font-bold text-blue-400">✨ Rest & Recuperation ✨</p>
+            <p className="text-[8.5px] text-slate-500 font-mono mt-0.5">Pause seclusion, relax and refresh your spirit.</p>
           </div>
         )}
 
@@ -1255,15 +1255,15 @@ export default function MeditationTimer({
             }}
             className="w-full bg-slate-950 border-2 border-slate-950 rounded-xl px-3 py-1.5 text-[10px] text-slate-300 focus:outline-none focus:border-amber-400 cursor-pointer font-bold shadow-[2px_2px_0px_#000] text-center"
           >
-            <option value="NONE">🔇 Tắt nhạc nền</option>
-            <option value="LOFI_YT">🔴 Nhạc Lofi YouTube (Tùy Chỉnh Stream)</option>
-            <option value="LOFI">🎧 Nhạc Lofi Synthesizer (Châm Trà Thưởng Nguyệt)</option>
-            <option value="ZEN">🧘 Hợp Âm Thiền (Zen)</option>
-            <option value="RAIN">🌧️ Mưa Rơi Trúc Lâm</option>
-            <option value="STREAM">🌊 Linh Tuyền Thủy Lưu</option>
-            <option value="CHIMES">🎐 Đạo Quán Linh Chuông</option>
-            <option value="THUNDER">⚡ Lôi Kiếp Sấm Sét</option>
-            <option value="CAMPFIRE">🔥 Lửa Trại Dưỡng Thần</option>
+            <option value="NONE">🔇 Mute background sound</option>
+            <option value="LOFI_YT">🔴 Lofi YouTube (Custom Stream)</option>
+            <option value="LOFI">🎧 Lofi Synthesizer (Moonlit Tea)</option>
+            <option value="ZEN">🧘 Zen Meditation Harmonics</option>
+            <option value="RAIN">🌧️ Bamboo Forest Rain</option>
+            <option value="STREAM">🌊 Spiritual Spring Stream</option>
+            <option value="CHIMES">🎐 Temple Wind Chimes</option>
+            <option value="THUNDER">⚡ Thunderstorm</option>
+            <option value="CAMPFIRE">🔥 Bonfire</option>
           </select>
         </div>
 
@@ -1272,7 +1272,7 @@ export default function MeditationTimer({
           <button
             onClick={resetTimer}
             className="p-2.5 rounded-full bg-slate-950 border-2 border-slate-950 text-slate-400 hover:text-slate-200 transition-colors shadow-[2px_2px_0px_#000] active:translate-y-[2px] active:translate-x-[2px] active:shadow-none cursor-pointer"
-            title="Thiết lập lại"
+            title="Reset timer"
           >
             <RotateCcw className="w-4 h-4" />
           </button>
@@ -1284,7 +1284,7 @@ export default function MeditationTimer({
                 ? 'bg-amber-400 text-slate-950 hover:bg-amber-300'
                 : 'bg-slate-950 text-slate-400 hover:text-slate-250'
             }`}
-            title="Thiết lập Trận Pháp Chặn Tâm Ma"
+            title="Inner Demon Shield / Website Blocker"
           >
             <ShieldAlert className="w-4 h-4" />
           </button>
@@ -1305,22 +1305,22 @@ export default function MeditationTimer({
             {isRunning ? (
               <>
                 <Pause className="w-4 h-4 fill-current" />
-                TẠM DỪNG
+                PAUSE
               </>
             ) : mode === 'FOCUS' ? (
               <>
                 <Play className="w-4 h-4 fill-current" />
-                GIEO TRỒNG
+                START FOCUS
               </>
             ) : mode === 'FREE' ? (
               <>
                 <Play className="w-4 h-4 fill-current" />
-                TỰ DO TU LUYỆN
+                START MEDITATION
               </>
             ) : (
               <>
                 <Play className="w-4 h-4 fill-current" />
-                NGHỈ NGƠI
+                TAKE BREAK
               </>
             )}
           </button>
@@ -1329,9 +1329,9 @@ export default function MeditationTimer({
         {/* Rewards footer */}
         {mode === 'FOCUS' && (
           <div className="mt-4 pt-3 border-t-2 border-slate-950 w-full flex justify-around text-[9px] text-slate-500 font-mono">
-            <span>Tu Vi: <strong className="text-emerald-400">+{actualExpGained}</strong></span>
-            <span>Linh Thạch: <strong className="text-amber-400">+{actualCoinsGained}</strong></span>
-            {gatheringPill && <span className="text-emerald-500">Tụ Khí Đan +25%</span>}
+            <span>Exp: <strong className="text-emerald-400">+{actualExpGained}</strong></span>
+            <span>Spirit Stones: <strong className="text-amber-400">+{actualCoinsGained}</strong></span>
+            {gatheringPill && <span className="text-emerald-500">Qi Gathering Pill +25%</span>}
           </div>
         )}
 
@@ -1355,9 +1355,9 @@ export default function MeditationTimer({
                 <div className="space-y-1">
                   <h3 className="text-sm font-black text-slate-100 uppercase tracking-wide pixel-label flex items-center justify-center gap-1.5">
                     <ShieldAlert className="w-4.5 h-4.5 text-amber-400" />
-                    Trận Pháp Chặn Tâm Ma
+                    Distraction Shield (Pomodoro Blocker)
                   </h3>
-                  <p className="text-[10px] text-slate-550">Chặn trang web gây xao nhãng trong thời gian Bế Quan.</p>
+                  <p className="text-[10px] text-slate-550">Block distracting websites during deep focus sessions.</p>
                 </div>
 
                 {/* Extension status indicator */}
@@ -1368,18 +1368,18 @@ export default function MeditationTimer({
                 }`}>
                   <span className="text-xs">{isExtensionInstalled ? '🛡️' : '⚠️'}</span>
                   <div>
-                    <p className="font-extrabold m-0">Trạng thái Tiện ích mở rộng:</p>
+                    <p className="font-extrabold m-0">Extension Status:</p>
                     <p className="font-mono text-[9px] mt-0.5 text-slate-500 m-0">
                       {isExtensionInstalled 
-                        ? 'Đã kết nối thành công với Trận Pháp Hộ Thể.' 
-                        : 'Chưa phát hiện Tiện ích mở rộng Chrome.'}
+                        ? 'Successfully connected to Distraction Shield extension.' 
+                        : 'Chrome extension not detected.'}
                     </p>
                   </div>
                 </div>
 
                 {/* Toggle Switch */}
                 <div className="flex items-center justify-between bg-slate-950 p-3 rounded-xl border-2 border-slate-950">
-                  <span className="text-[11px] font-bold text-slate-300">Kích hoạt chặn web:</span>
+                  <span className="text-[11px] font-bold text-slate-300">Enable Website Blocker:</span>
                   <button
                      onClick={() => setIsBlockerEnabled(!isBlockerEnabled)}
                      className={`px-3 py-1 text-[9px] font-extrabold border-2 border-slate-950 rounded-lg shadow-[1.5px_1.5px_0px_#000] active:translate-y-[1px] active:shadow-none transition-all ${
@@ -1388,7 +1388,7 @@ export default function MeditationTimer({
                          : 'bg-slate-900 text-slate-500'
                      }`}
                   >
-                    {isBlockerEnabled ? 'ĐANG MỞ' : 'ĐANG TẮT'}
+                    {isBlockerEnabled ? 'ENABLED' : 'DISABLED'}
                   </button>
                 </div>
 
@@ -1397,7 +1397,7 @@ export default function MeditationTimer({
                   <div className="flex gap-2">
                     <input
                       type="text"
-                      placeholder="Ví dụ: facebook.com"
+                      placeholder="e.g. facebook.com"
                       value={newDomainInput}
                       onChange={(e) => setNewDomainInput(e.target.value)}
                       onKeyDown={(e) => {
@@ -1422,7 +1422,7 @@ export default function MeditationTimer({
                       }}
                       className="px-3 py-1.5 neo-btn neo-btn-success text-[10px] font-bold shrink-0"
                     >
-                      THÊM
+                      ADD
                     </button>
                   </div>
 
@@ -1434,14 +1434,14 @@ export default function MeditationTimer({
                           <span>🚫 {domain}</span>
                            <button
                              onClick={() => setBlockedDomains(prev => prev.filter(d => d !== domain))}
-                             className="text-rose-400 hover:text-rose-350 text-[9px] font-bold"
+                             className="text-rose-400 hover:text-rose-350 text-[9px] font-bold cursor-pointer"
                            >
-                             XÓA
+                             DELETE
                            </button>
                         </div>
                       ))
                     ) : (
-                      <div className="text-center py-4 text-slate-500 text-[9px] font-sans text-slate-550">Chưa chặn trang web nào.</div>
+                      <div className="text-center py-4 text-slate-500 text-[9px] font-sans text-slate-550">No domains blocked yet.</div>
                     )}
                   </div>
                 </div>
@@ -1449,13 +1449,13 @@ export default function MeditationTimer({
                 {/* Help instructions with Google Drive Link & Note for Tàng Kinh Các */}
                 {!isExtensionInstalled && (
                   <div className="bg-[#1e2638] p-3.5 rounded-xl border border-indigo-500/40 text-[10px] leading-relaxed text-slate-300 text-left space-y-2 font-sans">
-                    <p className="font-black text-amber-400 m-0 font-mono">🛠️ HƯỚNG DẪN CÀI ĐẶT EXTENSION CẦU NỐI (BẮT BUỘC):</p>
+                    <p className="font-black text-amber-400 m-0 font-mono">🛠️ EXTENSION INSTALLATION GUIDE (RECOMMENDED):</p>
                     <div className="p-2 bg-indigo-950/60 border border-indigo-500/30 rounded-lg text-indigo-200 text-[9.5px]">
-                      💡 <strong>Lưu ý quan trọng:</strong> Extension này vừa đóng vai trò <strong>Trận Pháp Chặn Tâm Ma (Pomodoro Blocker)</strong>, vừa là <strong>Cầu Nối gỡ mờ & tải PDF Studocu</strong> tại tab <strong>Tàng Kinh Các</strong>!
+                      💡 <strong>Important Note:</strong> This extension serves as both the <strong>Distraction Blocker</strong> and the <strong>Studocu Downloader bridge</strong> in the <strong>Studocu Library</strong> tab!
                     </div>
                     <ol className="list-decimal pl-4 space-y-1 m-0 font-sans text-slate-300">
                       <li>
-                        Tải thư mục Extension tại đây:{' '}
+                        Download extension folder here:{' '}
                         <a
                           href="https://drive.google.com/drive/folders/1WBc5Pu_-CT2JUFIFMmfkbK7YvN13bkmA?usp=sharing"
                           target="_blank"
@@ -1465,18 +1465,18 @@ export default function MeditationTimer({
                           🔗 Google Drive Folder Extension
                         </a>
                       </li>
-                      <li>Mở tab mới trong Chrome và truy cập: <code className="bg-slate-950 px-1.5 py-0.5 rounded text-amber-400 select-all font-mono">chrome://extensions</code></li>
-                      <li>Bật nút <strong>Chế độ cho nhà phát triển (Developer mode)</strong> ở góc trên bên phải.</li>
-                      <li>Chọn <strong>Tải tiện ích đã giải nén (Load unpacked)</strong> và trỏ tới thư mục Extension vừa tải về!</li>
+                      <li>Open a new tab in Chrome and visit: <code className="bg-slate-950 px-1.5 py-0.5 rounded text-amber-400 select-all font-mono">chrome://extensions</code></li>
+                      <li>Enable <strong>Developer mode</strong> in the top right corner.</li>
+                      <li>Click <strong>Load unpacked</strong> and select the downloaded extension folder!</li>
                     </ol>
                   </div>
                 )}
 
                 <button
                   onClick={() => setShowBlockerSettings(false)}
-                  className="w-full py-2 neo-btn neo-btn-primary text-[10px] font-bold"
+                  className="w-full py-2 neo-btn neo-btn-primary text-[10px] font-bold cursor-pointer"
                 >
-                  XÁC NHẬN PHÁP TRẬN
+                  APPLY SETTINGS
                 </button>
               </motion.div>
             </div>

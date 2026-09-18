@@ -56,59 +56,59 @@ const GUIDE_SECTIONS: GuideSectionConfig[] = [
   {
     id: 'AI_PLANNER',
     icon: '🔮',
-    title: 'Thiên Cơ Các (Chatbot AI Smart)',
-    desc: 'Phân tích tiến độ Công Pháp, lên lịch bế quan & quản lý tác vụ',
+    title: 'Heavenly Secrets (Smart AI)',
+    desc: 'Manual progress analysis, retreat scheduling & task management',
     badge: 'AI Smart'
   },
   {
     id: 'TODO',
     icon: '⚔️',
-    title: 'Nhiệm Vụ (Todo List) & Ma Trận Eisenhower',
-    desc: 'Phân loại công việc Theo Ngày / Tuần / Tháng & tích điểm',
-    badge: 'Cốt lõi'
+    title: 'Tasks (Todo List) & Eisenhower Matrix',
+    desc: 'Categorize by Day / Week / Month & earn cultivation points',
+    badge: 'Core'
   },
   {
     id: 'CULTIVATION',
     icon: '🧘',
-    title: 'Hệ Thống Cảnh Giới Tu Vi & Côn Lôn Huyễn Cảnh',
-    desc: 'Chi tiết 15 Cảnh giới tu tiên, Đột phá & Tàng Bảo Các',
+    title: 'Cultivation Realms & Kunlun Mirage',
+    desc: '15 cultivation realms, breakthroughs & Treasure Store',
     badge: 'Gamify'
   },
   {
     id: 'POMODORO',
     icon: '⏳',
-    title: 'Pomodoro & Soundscape Tập Trung',
-    desc: 'Đồng hồ đếm ngược tu luyện & âm thanh tập trung',
+    title: 'Pomodoro & Focus Soundscape',
+    desc: 'Cultivation countdown timer & focus ambient audio',
   },
   {
     id: 'CALENDAR',
     icon: '📅',
-    title: 'Lịch Trình & Thời Khóa Biểu',
-    desc: 'Lịch tự động, kéo thả & nhóm màu sắc',
+    title: 'Schedules & Timetable',
+    desc: 'Automated calendar, drag & drop, and color groups',
   },
   {
     id: 'GRADES',
     icon: '📊',
-    title: 'Bảng Điểm & Google Sheet Sync',
-    desc: 'Tính CPA/GPA & đồng bộ 2 chiều với Google Drive',
+    title: 'Gradebook & Google Sheets Sync',
+    desc: 'Calculate CPA/GPA & 2-way sync with Google Drive',
   },
   {
     id: 'LOFI_PLAYER',
     icon: '🔴',
-    title: 'Mini Lofi Player Nổi',
-    desc: 'Trình phát nhạc Lofi YouTube kéo thả góc dưới',
+    title: 'Floating Mini Lofi Player',
+    desc: 'Draggable YouTube Lofi player at bottom corner',
   },
   {
     id: 'IELTS',
     icon: '🇬🇧',
-    title: 'Sổ Tay Luyện Thi IELTS',
-    desc: 'Nhật ký luyện đề Reading/Listening & biểu đồ tiến độ',
+    title: 'IELTS Practice Logbook',
+    desc: 'Reading/Listening test log & progress charts',
   },
   {
     id: 'NOTES_SHORTCUTS',
     icon: '📝',
-    title: 'Ghi Chú & Bàn Phím Tắt',
-    desc: 'Tàng Kinh Các ghi chú & phím tắt tiện lợi',
+    title: 'Notes & Keyboard Shortcuts',
+    desc: 'Scripture Vault notes & convenient shortcuts',
   }
 ];
 
@@ -139,13 +139,13 @@ export default function UserGuideModal({ isOpen, onClose }: UserGuideModalProps)
               </div>
               <div>
                 <h2 className="text-sm font-black text-slate-100 uppercase tracking-widest font-mono flex items-center gap-2">
-                  📜 HƯỚNG DẪN SỬ DỤNG HUSTFLOW
+                  📜 HUSTFLOW USER GUIDE
                   <span className="text-[9px] bg-amber-400 text-slate-950 px-2 py-0.5 rounded font-bold font-mono">
                     User Guide
                   </span>
                 </h2>
                 <p className="text-[10px] text-slate-400 font-mono">
-                  Cẩm nang hướng dẫn chi tiết toàn bộ các tính năng ứng dụng HUSTFlow
+                  Comprehensive guide to all features and systems in HUSTFlow
                 </p>
               </div>
             </div>
@@ -153,7 +153,7 @@ export default function UserGuideModal({ isOpen, onClose }: UserGuideModalProps)
             <button
               onClick={onClose}
               className="p-2 text-slate-400 hover:text-slate-100 hover:bg-slate-900 rounded-xl transition-colors cursor-pointer border border-transparent hover:border-slate-800"
-              title="Đóng hướng dẫn"
+              title="Close guide"
             >
               <X className="w-5 h-5" />
             </button>
@@ -164,7 +164,7 @@ export default function UserGuideModal({ isOpen, onClose }: UserGuideModalProps)
             {/* Left Column: Navigation Sidebar */}
             <div className="w-full md:w-80 border-b-2 md:border-b-0 md:border-r-2 border-slate-950 bg-[#0c1018] p-3 space-y-1.5 overflow-y-auto shrink-0">
               <span className="px-2 font-mono text-[9px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
-                Danh Mục Chức Năng:
+                Features Directory:
               </span>
               {GUIDE_SECTIONS.map((sec) => {
                 const isSelected = activeSection === sec.id;
@@ -209,17 +209,17 @@ export default function UserGuideModal({ isOpen, onClose }: UserGuideModalProps)
                     <span className="text-4xl">🔮</span>
                     <div>
                       <h3 className="text-base font-extrabold text-purple-400 font-mono uppercase tracking-wide">
-                        Thiên Cơ Các (Cán Bộ Quản Lý & Chatbot AI Smart)
+                        Heavenly Secrets Pavilion (AI Mentor & Smart Planner)
                       </h3>
                       <p className="text-[11px] text-slate-400 font-mono">
-                        Hệ thống AI tự động phân tích 100% dữ liệu toàn web để hỗ trợ quản lý mọi tác vụ
+                        AI system that analyzes application data to assist in managing all tasks and schedules
                       </p>
                     </div>
                   </div>
 
                   <div className="space-y-3">
                     <h4 className="font-extrabold text-slate-100 text-xs uppercase font-mono text-amber-400 flex items-center gap-2">
-                      ⚡ BỘ TÍNH NĂNG CHÍNH CỦA CHATBOT AI (DANH SÁCH DỌC):
+                      ⚡ KEY AI CHATBOT CAPABILITIES:
                     </h4>
 
                     {/* Single Column Vertical List */}
@@ -227,60 +227,60 @@ export default function UserGuideModal({ isOpen, onClose }: UserGuideModalProps)
                       {/* Feature 1 */}
                       <div className="bg-[#0f141c] border-2 border-slate-950 p-4 rounded-xl space-y-1.5 shadow-[2px_2px_0px_#000]">
                         <div className="font-bold text-emerald-300 font-mono text-xs flex items-center gap-2">
-                          <span>📌 1. Tạo / Sửa / Xóa Nhiệm Vụ (Task Management)</span>
+                          <span>📌 1. Create / Edit / Delete Tasks (Task Management)</span>
                         </div>
                         <p className="text-[11px] text-slate-300 leading-relaxed font-sans pl-5">
-                          AI có khả năng tự động tạo nhiệm vụ mới, sửa đổi mức độ ưu tiên/hạn chót của công việc đã có, hoặc xóa bỏ các nhiệm vụ trễ hạn trùng lặp khi được yêu cầu.
+                          AI can automatically generate new tasks, modify priority/deadlines of existing items, or purge overdue duplicate tasks on demand.
                         </p>
                       </div>
 
                       {/* Feature 2 */}
                       <div className="bg-[#0f141c] border-2 border-slate-950 p-4 rounded-xl space-y-1.5 shadow-[2px_2px_0px_#000]">
                         <div className="font-bold text-sky-300 font-mono text-xs flex items-center gap-2">
-                          <span>📅 2. Lập & Điều Chỉnh Thời Khóa Biểu (Calendar & Timetable)</span>
+                          <span>📅 2. Timetable & Schedule Management (Calendar & Timetable)</span>
                         </div>
                         <p className="text-[11px] text-slate-300 leading-relaxed font-sans pl-5">
-                          AI đọc toàn bộ lịch 30 ngày tới, tự động tìm khoảng thời gian rảnh, chèn khoảng nghỉ buffer 15–30 phút giữa các tiết học Bách Khoa và lên thời khóa biểu tối ưu.
+                          AI reads upcoming 30-day schedules, identifies free slots, inserts 15–30 minute buffer breaks between university lectures, and formulates an optimal timetable.
                         </p>
                       </div>
 
                       {/* Feature 3 */}
                       <div className="bg-[#0f141c] border-2 border-slate-950 p-4 rounded-xl space-y-1.5 shadow-[2px_2px_0px_#000]">
                         <div className="font-bold text-purple-300 font-mono text-xs flex items-center gap-2">
-                          <span>🧘 3. Phân Tích Tiến Độ Công Pháp & Lên Kế Hoạch Bế Quan</span>
+                          <span>🧘 3. Manual Progress Analysis & Seclusion Planning</span>
                         </div>
                         <p className="text-[11px] text-slate-300 leading-relaxed font-sans pl-5">
-                          AI tự động theo dõi các bộ Công Pháp môn học (Giải Tích, Đại Số, Triết Học...), phân tích các Tầng tu luyện chưa hoàn thành và lập kế hoạch số phiên bế quan thiền định Pomodoro cần thiết để vượt qua các kỳ thi giữa kỳ / cuối kỳ.
+                          AI monitors course manuals (Calculus, Linear Algebra, Philosophy...), analyzes uncompleted cultivation stages, and schedules required Pomodoro focus sessions to conquer midterm and final examinations.
                         </p>
                       </div>
 
                       {/* Feature 4 */}
                       <div className="bg-[#0f141c] border-2 border-slate-950 p-4 rounded-xl space-y-1.5 shadow-[2px_2px_0px_#000]">
                         <div className="font-bold text-amber-300 font-mono text-xs flex items-center gap-2">
-                          <span>📊 4. Phân Tích Bảng Điểm CPA/GPA (Grade Analytics)</span>
+                          <span>📊 4. CPA/GPA Grade Analytics</span>
                         </div>
                         <p className="text-[11px] text-slate-300 leading-relaxed font-sans pl-5">
-                          Phân tích xu hướng điểm số từ Google Sheet, đưa ra cảnh báo các môn học nguy cơ và tư vấn mục tiêu GPA cần đạt để cải thiện bằng CPA.
+                          Analyzes grade trends from Google Sheets, issues alerts for at-risk courses, and advises on target semester GPAs needed to elevate cumulative CPA.
                         </p>
                       </div>
 
                       {/* Feature 5 */}
                       <div className="bg-[#0f141c] border-2 border-slate-950 p-4 rounded-xl space-y-1.5 shadow-[2px_2px_0px_#000]">
                         <div className="font-bold text-rose-300 font-mono text-xs flex items-center gap-2">
-                          <span>🔮 5. Dò Tìm Thiên Cơ (Auto Daily Plan)</span>
+                          <span>🔮 5. Heavenly Divination (Auto Daily Plan)</span>
                         </div>
                         <p className="text-[11px] text-slate-300 leading-relaxed font-sans pl-5">
-                          Tự động tổng hợp danh sách công việc trễ hạn + thời khóa biểu ngày mai để tạo bản kế hoạch thiền định & học tập hoàn chỉnh nhất cho ngày mới.
+                          Aggregates overdue tasks with tomorrow's class schedule to forge a comprehensive daily study and meditation plan.
                         </p>
                       </div>
 
                       {/* Feature 6 */}
                       <div className="bg-[#0f141c] border-2 border-slate-950 p-4 rounded-xl space-y-1.5 shadow-[2px_2px_0px_#000]">
                         <div className="font-bold text-teal-300 font-mono text-xs flex items-center gap-2">
-                          <span>⚡ 6. Điều Hướng Lệnh Fast Targeting (/task, /calendar)</span>
+                          <span>⚡ 6. Fast Command Targeting (/task, /calendar)</span>
                         </div>
                         <p className="text-[11px] text-slate-300 leading-relaxed font-sans pl-5">
-                          Sử dụng cú pháp <code className="text-amber-400 font-mono bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800">/task [nội dung]</code> để AI chỉ làm việc với Nhiệm Vụ, hoặc <code className="text-amber-400 font-mono bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800">/calendar [nội dung]</code> để tập trung vào Thời Khóa Biểu.
+                          Use prefix <code className="text-amber-400 font-mono bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800">/task [content]</code> to scope AI exclusively to Tasks, or <code className="text-amber-400 font-mono bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800">/calendar [content]</code> to focus strictly on Timetable scheduling.
                         </p>
                       </div>
                     </div>
@@ -295,10 +295,10 @@ export default function UserGuideModal({ isOpen, onClose }: UserGuideModalProps)
                     <span className="text-4xl">⚔️</span>
                     <div>
                       <h3 className="text-base font-extrabold text-amber-400 font-mono uppercase tracking-wide">
-                        Nhiệm Vụ (Todo List) & Ma Trận Eisenhower
+                        Tasks (Todo List) & Eisenhower Matrix
                       </h3>
                       <p className="text-[11px] text-slate-400 font-mono">
-                        Quản lý toàn bộ công việc học tập, phân loại theo chu kỳ Ngày / Tuần / Tháng & đồng bộ Cloud
+                        Manage academic assignments, categorize into Day / Week / Month cycles, and synchronize with Cloud
                       </p>
                     </div>
                   </div>
@@ -307,20 +307,20 @@ export default function UserGuideModal({ isOpen, onClose }: UserGuideModalProps)
                     {/* 3 Categories / Types */}
                     <div className="bg-[#0f141c] border-2 border-slate-950 p-4 rounded-xl space-y-2 shadow-[2px_2px_0px_#000]">
                       <h4 className="font-bold text-slate-100 text-xs uppercase font-mono text-amber-300">
-                        🗓️ 3 Loại Nhiệm Vụ Theo Chu Kỳ:
+                        🗓️ 3 Task Categories by Timeframe:
                       </h4>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 font-mono text-[11px]">
                         <div className="bg-[#141a27] p-3 rounded-lg border border-sky-500/30">
-                          <span className="text-sky-300 font-bold block mb-1">📅 Nhiệm Vụ Theo Ngày (DAY)</span>
-                          <span className="text-[10px] text-slate-300">Các công việc cần hoàn thành trong ngày hiện tại.</span>
+                          <span className="text-sky-300 font-bold block mb-1">📅 Daily Tasks (DAY)</span>
+                          <span className="text-[10px] text-slate-300">Tasks requiring completion within the current day.</span>
                         </div>
                         <div className="bg-[#141a27] p-3 rounded-lg border border-amber-500/30">
-                          <span className="text-amber-300 font-bold block mb-1">📆 Nhiệm Vụ Theo Tuần (WEEK)</span>
-                          <span className="text-[10px] text-slate-300">Các mục tiêu cần hoàn tất trong tuần học.</span>
+                          <span className="text-amber-300 font-bold block mb-1">📆 Weekly Tasks (WEEK)</span>
+                          <span className="text-[10px] text-slate-300">Milestones to accomplish throughout the academic week.</span>
                         </div>
                         <div className="bg-[#141a27] p-3 rounded-lg border border-purple-500/30">
-                          <span className="text-purple-300 font-bold block mb-1">🗓️ Nhiệm Vụ Theo Tháng (MONTH)</span>
-                          <span className="text-[10px] text-slate-300">Dự án lớn & mốc thi cử quan trọng trong tháng.</span>
+                          <span className="text-purple-300 font-bold block mb-1">🗓️ Monthly Tasks (MONTH)</span>
+                          <span className="text-[10px] text-slate-300">Major projects & exam deadlines across the month.</span>
                         </div>
                       </div>
                     </div>
@@ -328,24 +328,24 @@ export default function UserGuideModal({ isOpen, onClose }: UserGuideModalProps)
                     {/* Priority Levels */}
                     <div className="bg-[#0f141c] border-2 border-slate-950 p-4 rounded-xl space-y-2 shadow-[2px_2px_0px_#000]">
                       <h4 className="font-bold text-slate-100 text-xs uppercase font-mono text-sky-400">
-                        🎯 Các Cấp Độ Ưu Tiên Tu Luyện & Thưởng Tu Vi / Linh Thạch:
+                        🎯 Cultivation Priority Levels & Rewards (EXP / Spirit Stones):
                       </h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] font-mono">
                         <div className="bg-[#141a27] p-2.5 rounded-lg border border-amber-500/30">
-                          <span className="text-amber-400 font-bold">🟡 THIÊN CẤP / ĐẠI NGUYỆN</span>
-                          <div className="text-[10px] text-slate-300 mt-0.5">Khẩn cấp & quan trọng nhất. Thưởng <strong>+50 Tu Vi & +50 Linh Thạch</strong>.</div>
+                          <span className="text-amber-400 font-bold">🟡 HEAVEN TIER / HIGH VOW</span>
+                          <div className="text-[10px] text-slate-300 mt-0.5">Critical & urgent. Rewards <strong>+50 EXP & +50 Spirit Stones</strong>.</div>
                         </div>
                         <div className="bg-[#141a27] p-2.5 rounded-lg border border-orange-500/30">
-                          <span className="text-orange-400 font-bold">🟠 ĐỊA CẤP / TRỌNG YẾU</span>
-                          <div className="text-[10px] text-slate-300 mt-0.5">Quan trọng. Thưởng <strong>+35 Tu Vi & +35 Linh Thạch</strong>.</div>
+                          <span className="text-orange-400 font-bold">🟠 EARTH TIER / ESSENTIAL</span>
+                          <div className="text-[10px] text-slate-300 mt-0.5">High importance. Rewards <strong>+35 EXP & +35 Spirit Stones</strong>.</div>
                         </div>
                         <div className="bg-[#141a27] p-2.5 rounded-lg border border-sky-500/30">
-                          <span className="text-sky-400 font-bold">🔷 TRUNG CẤP / THƯỜNG NHẬT</span>
-                          <div className="text-[10px] text-slate-300 mt-0.5">Công việc thường ngày. Thưởng <strong>+25 Tu Vi & +25 Linh Thạch</strong>.</div>
+                          <span className="text-sky-400 font-bold">🔷 ADEPT TIER / ROUTINE</span>
+                          <div className="text-[10px] text-slate-300 mt-0.5">Daily routine task. Rewards <strong>+25 EXP & +25 Spirit Stones</strong>.</div>
                         </div>
                         <div className="bg-[#141a27] p-2.5 rounded-lg border border-emerald-500/30">
-                          <span className="text-emerald-400 font-bold">🌱 SƠ CẤP</span>
-                          <div className="text-[10px] text-slate-300 mt-0.5">Việc nhỏ tùy nghi. Thưởng <strong>+15 Tu Vi & +15 Linh Thạch</strong>.</div>
+                          <span className="text-emerald-400 font-bold">🌱 NOVICE TIER</span>
+                          <div className="text-[10px] text-slate-300 mt-0.5">Minor casual task. Rewards <strong>+15 EXP & +15 Spirit Stones</strong>.</div>
                         </div>
                       </div>
                     </div>
@@ -353,20 +353,20 @@ export default function UserGuideModal({ isOpen, onClose }: UserGuideModalProps)
                     {/* Anti-procrastination Tam Ma */}
                     <div className="bg-purple-950/20 border border-purple-500/40 p-4 rounded-xl space-y-2">
                       <h4 className="font-bold text-purple-300 text-xs uppercase font-mono flex items-center gap-1.5">
-                        💀 Cơ Chế Chống Trì Hoãn (Cảnh Báo Tâm Ma Xâm Nhập):
+                        💀 Anti-Procrastination Mechanism (Inner Demon Warning):
                       </h4>
                       <p className="text-[11px] text-slate-300 leading-relaxed">
-                        Khi có bất kỳ nhiệm vụ nào bị quá hạn chưa hoàn thành, đan điền sẽ bị tà khí xâm nhập làm <strong>giảm -30% hiệu suất tích lũy Tu Vi</strong>. Đạo hữu cần hoàn thành ngay các việc trễ hạn, hoặc dùng <strong>Thanh Tâm Phù</strong> trong Tàng Bảo Các để giải trừ tà khí!
+                        Whenever any task becomes overdue, inner demon miasma infiltrates your dantian, inflicting a <strong>-30% penalty to Cultivation EXP accumulation</strong>. Resolve overdue tasks immediately, or use a <strong>Mind-Purifying Talisman</strong> from the Treasure Store to dispel the demonic miasma!
                       </p>
                     </div>
 
                     {/* Google Tasks Sync */}
                     <div className="bg-[#0f141c] border-2 border-slate-950 p-4 rounded-xl space-y-2 shadow-[2px_2px_0px_#000]">
                       <h4 className="font-bold text-slate-100 text-xs uppercase font-mono text-emerald-400">
-                        🔄 Đồng Bộ Google Tasks 2 Chiều:
+                        🔄 Two-Way Google Tasks Synchronization:
                       </h4>
                       <p className="text-[11px] text-slate-300 leading-relaxed">
-                        Tự động đồng bộ các nhiệm vụ với tài khoản Google Tasks của bạn sau khi đăng nhập Google. Mọi thao tác tích chọn hoàn thành hay xóa task sẽ được cập nhật đồng thời lên Đám mây.
+                        Seamlessly syncs all tasks with your Google Tasks account upon signing in with Google. Marking tasks complete or deleting them updates simultaneously on Google Cloud.
                       </p>
                     </div>
                   </div>
@@ -380,17 +380,17 @@ export default function UserGuideModal({ isOpen, onClose }: UserGuideModalProps)
                     <span className="text-4xl">🧘</span>
                     <div>
                       <h3 className="text-base font-extrabold text-amber-400 font-mono uppercase tracking-wide">
-                        Hệ Thống 15 Cảnh Giới Tu Vi & Côn Lôn Huyễn Cảnh
+                        15 Cultivation Realms & Kunlun Mirage System
                       </h3>
                       <p className="text-[11px] text-slate-400 font-mono">
-                        Biến hành trình học tập thành quá trình tu tiên đột phá cảnh giới (Chuẩn tác phẩm Tiên Nghịch)
+                        Transform your academic journey into a cultivation breakthrough progression (Standard Er Gen style)
                       </p>
                     </div>
                   </div>
 
                   <div className="space-y-3.5">
                     <h4 className="font-extrabold text-slate-100 text-xs uppercase font-mono text-amber-400">
-                      🏆 DANH SÁCH 15 CẢNH GIỚI TU VI TỪ THẤP ĐẾN CAO:
+                      🏆 15 CULTIVATION REALMS (ASCENDING):
                     </h4>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[10.5px] font-mono">
@@ -443,10 +443,10 @@ export default function UserGuideModal({ isOpen, onClose }: UserGuideModalProps)
 
                     <div className="bg-[#0f141c] border-2 border-slate-950 p-4 rounded-xl space-y-2 shadow-[2px_2px_0px_#000]">
                       <h4 className="font-bold text-slate-100 text-xs uppercase font-mono text-emerald-400">
-                        ⚡ Thần Dược Đột Phá Bình Cảnh (Tàng Bảo Các Shop):
+                        ⚡ Bottleneck Breakthrough Elixirs (Treasure Store Shop):
                       </h4>
                       <p className="text-[11px] text-slate-300 leading-relaxed">
-                        Tại các mốc bình cảnh quan trọng (Trúc Cơ, Kết Đan, Nguyên Anh, Huyền Kiếp...), Đạo hữu bắt buộc phải tích lũy đủ Linh Thạch để mua thần dược tương ứng trong Tàng Bảo Các (Trúc Cơ Đan, Kết Đan Hoàn, Nguyên Anh Đan, Độ Kiếp Phù) để đảm bảo 100% đột phá thành công!
+                        At critical realm bottlenecks (Trúc Cơ, Kết Đan, Nguyên Anh, Huyền Kiếp...), Daoists must gather enough Spirit Stones to acquire the corresponding pills from the Treasure Store (Foundation Pill, Core Formation Pill, Nascent Soul Pill, Tribulation Crossing Talisman) to ensure a 100% breakthrough success rate!
                       </p>
                     </div>
                   </div>
@@ -460,10 +460,10 @@ export default function UserGuideModal({ isOpen, onClose }: UserGuideModalProps)
                     <span className="text-4xl">⏳</span>
                     <div>
                       <h3 className="text-base font-extrabold text-amber-400 font-mono uppercase tracking-wide">
-                        Đồng Hồ Pomodoro & Soundscape Tập Trung
+                        Pomodoro Timer & Focus Soundscapes
                       </h3>
                       <p className="text-[11px] text-slate-400 font-mono">
-                        Thiền định tập trung 25 phút tu luyện + 5 phút nghỉ ngơi
+                        Focused 25-minute cultivation meditation + 5-minute restorative breaks
                       </p>
                     </div>
                   </div>
@@ -471,22 +471,22 @@ export default function UserGuideModal({ isOpen, onClose }: UserGuideModalProps)
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div className="bg-[#0f141c] border-2 border-slate-950 p-4 rounded-xl space-y-2 shadow-[2px_2px_0px_#000]">
                       <h4 className="font-bold text-slate-100 flex items-center gap-1.5 text-xs uppercase font-mono text-amber-300">
-                        ⚡ Quy Trình Tu Luyện Pomodoro:
+                        ⚡ Pomodoro Cultivation Workflow:
                       </h4>
                       <ul className="list-disc list-inside space-y-1.5 text-[11px] text-slate-300">
-                        <li><strong>Chế độ Tu Luyện (Focus)</strong>: Mặc định 25 phút. Nhấn <strong>Bắt đầu</strong> để kích hoạt.</li>
-                        <li><strong>Chế độ Nghỉ Ngơi (Break)</strong>: Mặc định 5 phút nghỉ xả hơi sau mỗi phiên.</li>
-                        <li><strong>Nhận Tu Vi & Linh Thạch</strong>: Mỗi phút thiền định đem lại <strong>+1 Tu Vi</strong> & <strong>+1 Linh Thạch</strong>.</li>
+                        <li><strong>Focus Mode (Cultivation)</strong>: 25 minutes default. Click <strong>Start</strong> to activate.</li>
+                        <li><strong>Break Mode (Rest)</strong>: 5 minutes default relaxation after each focus cycle.</li>
+                        <li><strong>Earn EXP & Spirit Stones</strong>: Each minute of meditation yields <strong>+1 Cultivation EXP</strong> & <strong>+1 Spirit Stone</strong>.</li>
                       </ul>
                     </div>
 
                     <div className="bg-[#0f141c] border-2 border-slate-950 p-4 rounded-xl space-y-2 shadow-[2px_2px_0px_#000]">
                       <h4 className="font-bold text-slate-100 flex items-center gap-1.5 text-xs uppercase font-mono text-emerald-300">
-                        🎵 Âm Thanh Nhập Định (Soundscape):
+                        🎵 Meditation Soundscapes:
                       </h4>
                       <ul className="list-disc list-inside space-y-1.5 text-[11px] text-slate-300">
-                        <li>Hỗ trợ tiếng <strong>Mưa Rào 🌧️</strong>, <strong>Sóng Biển 🌊</strong>, <strong>Tiếng Rừng 🌲</strong>, <strong>Tiếng Ồn Trắng ⚪</strong>.</li>
-                        <li>Tùy chọn <strong>🔴 Nhạc Lofi YouTube</strong> phát tự động hòa tấu âm thanh khi đồng hồ chạy.</li>
+                        <li>Supports <strong>Gentle Rain 🌧️</strong>, <strong>Ocean Waves 🌊</strong>, <strong>Forest Breeze 🌲</strong>, and <strong>White Noise ⚪</strong>.</li>
+                        <li>Optional <strong>🔴 YouTube Lofi Stream</strong> automatically plays harmonized background beats when timer runs.</li>
                       </ul>
                     </div>
                   </div>
@@ -500,10 +500,10 @@ export default function UserGuideModal({ isOpen, onClose }: UserGuideModalProps)
                     <span className="text-4xl">📅</span>
                     <div>
                       <h3 className="text-base font-extrabold text-amber-400 font-mono uppercase tracking-wide">
-                        Lịch Trình Tự Động & Thời Khóa Biểu
+                        Automated Schedules & Timetable
                       </h3>
                       <p className="text-[11px] text-slate-400 font-mono">
-                        Quản lý toàn bộ lịch học, thi cử và nhiệm vụ theo dạng Tháng / Tuần / Ngày
+                        Manage all classes, exams, and milestones in Month / Week / Agenda views
                       </p>
                     </div>
                   </div>
@@ -511,19 +511,19 @@ export default function UserGuideModal({ isOpen, onClose }: UserGuideModalProps)
                   <div className="space-y-3.5">
                     <div className="bg-[#0f141c] border-2 border-slate-950 p-4 rounded-xl space-y-2 shadow-[2px_2px_0px_#000]">
                       <h4 className="font-bold text-slate-100 text-xs uppercase font-mono text-sky-300">
-                        🗓️ 3 Chế Độ Xem Lịch Trực Quan:
+                        🗓️ 3 Intuitive Calendar Views:
                       </h4>
                       <p className="text-[11px] text-slate-300 leading-relaxed">
-                        Chuyển đổi giữa chế độ <strong>Xem Theo Tháng (Month)</strong>, <strong>Xem Theo Tuần (Week)</strong>, và <strong>Xem Dạng Danh Sách (Agenda)</strong> ở thanh công cụ góc trên bên phải.
+                        Toggle between <strong>Month View</strong>, <strong>Week View</strong>, and <strong>Agenda List View</strong> in the top-right toolbar.
                       </p>
                     </div>
 
                     <div className="bg-[#0f141c] border-2 border-slate-950 p-4 rounded-xl space-y-2 shadow-[2px_2px_0px_#000]">
                       <h4 className="font-bold text-slate-100 text-xs uppercase font-mono text-purple-300">
-                        📁 Nhóm Màu Lịch (Calendar Groups):
+                        📁 Calendar Color Groups:
                       </h4>
                       <p className="text-[11px] text-slate-300 leading-relaxed">
-                        Phân loại lịch theo màu sắc: <strong>Lịch Học Bách Khoa (Xanh Dương)</strong>, <strong>Thi Cử (Đỏ)</strong>, <strong>Luyện Thi IELTS (Vàng)</strong>...
+                        Categorize events by color: <strong>University Classes (Blue)</strong>, <strong>Exams (Red)</strong>, <strong>IELTS Prep (Yellow)</strong>...
                       </p>
                     </div>
                   </div>
@@ -537,10 +537,10 @@ export default function UserGuideModal({ isOpen, onClose }: UserGuideModalProps)
                     <span className="text-4xl">📊</span>
                     <div>
                       <h3 className="text-base font-extrabold text-amber-400 font-mono uppercase tracking-wide">
-                        Bảng Điểm Số & Đồng Bộ Google Sheet 2 Chiều
+                        Gradebook & Two-Way Google Sheets Sync
                       </h3>
                       <p className="text-[11px] text-slate-400 font-mono">
-                        Theo dõi CPA, GPA từng học kỳ & tự động đồng bộ trực tiếp với Google Drive
+                        Track cumulative CPA, semester GPA & automatically synchronize with Google Drive
                       </p>
                     </div>
                   </div>
@@ -548,11 +548,11 @@ export default function UserGuideModal({ isOpen, onClose }: UserGuideModalProps)
                   <div className="space-y-3.5">
                     <div className="bg-[#0f141c] border-2 border-slate-950 p-4 rounded-xl space-y-2 shadow-[2px_2px_0px_#000]">
                       <h4 className="font-bold text-slate-100 text-xs uppercase font-mono text-emerald-400">
-                        🔄 Đồng Bộ 2 Chiều Trực Tiếp Với Google Sheet:
+                        🔄 Direct Two-Way Sync With Google Sheets:
                       </h4>
                       <ol className="list-decimal list-inside space-y-1.5 text-[11px] text-slate-300 leading-relaxed">
-                        <li>Dán liên kết trang tính (Spreadsheet Link) vào ô Cấu Hình và bấm <strong>Lưu & Kết Nối</strong>.</li>
-                        <li>Bấm <strong>Đồng Bộ 2 Chiều</strong>: Mọi thay đổi điểm số trên web sẽ được lưu lên Google Sheet, và ngược lại!</li>
+                        <li>Paste your spreadsheet link into the Configuration field and click <strong>Save & Connect</strong>.</li>
+                        <li>Click <strong>Two-Way Sync</strong>: Grade modifications on the web save to Google Sheets, and spreadsheet edits sync back!</li>
                       </ol>
                     </div>
                   </div>
@@ -566,10 +566,10 @@ export default function UserGuideModal({ isOpen, onClose }: UserGuideModalProps)
                     <span className="text-4xl">🔴</span>
                     <div>
                       <h3 className="text-base font-extrabold text-rose-400 font-mono uppercase tracking-wide">
-                        Trình Phát Nhạc Mini Lofi Player YouTube Nổi
+                        Floating YouTube Mini Lofi Player
                       </h3>
                       <p className="text-[11px] text-slate-400 font-mono">
-                        Khung phát nhạc YouTube kéo thả tự do đặt ở góc dưới màn hình
+                        Freely draggable YouTube music player widget positioned at the bottom corner
                       </p>
                     </div>
                   </div>
@@ -577,10 +577,10 @@ export default function UserGuideModal({ isOpen, onClose }: UserGuideModalProps)
                   <div className="space-y-3.5">
                     <div className="bg-[#0f141c] border-2 border-slate-950 p-4 rounded-xl space-y-2 shadow-[2px_2px_0px_#000]">
                       <h4 className="font-bold text-slate-100 text-xs uppercase font-mono text-rose-400">
-                        🔴 Nút Lối Tắt Nổi `🔴 LOFI STREAM`:
+                        🔴 Floating `🔴 LOFI STREAM` Button:
                       </h4>
                       <p className="text-[11px] text-slate-300 leading-relaxed">
-                        Nhấn nút lối tắt <strong>`🔴 LOFI STREAM`</strong> ở góc dưới bên trái để mở Player Lofi ngay lập tức.
+                        Click the floating <strong>`🔴 LOFI STREAM`</strong> button at the bottom-left corner to launch the Lofi player instantly.
                       </p>
                     </div>
                   </div>
@@ -594,20 +594,20 @@ export default function UserGuideModal({ isOpen, onClose }: UserGuideModalProps)
                     <span className="text-4xl">🇬🇧</span>
                     <div>
                       <h3 className="text-base font-extrabold text-amber-400 font-mono uppercase tracking-wide">
-                        Sổ Tay Luyện Thi IELTS Test Log
+                        IELTS Mock Test Preparation Log
                       </h3>
                       <p className="text-[11px] text-slate-400 font-mono">
-                        Theo dõi Band Score Reading/Listening & biểu đồ tiến độ chuẩn bị du học / tốt nghiệp
+                        Track Reading/Listening band scores and study progress for graduation and study abroad
                       </p>
                     </div>
                   </div>
 
                   <div className="bg-[#0f141c] border-2 border-slate-950 p-4 rounded-xl space-y-2 shadow-[2px_2px_0px_#000]">
                     <h4 className="font-bold text-slate-100 text-xs uppercase font-mono text-amber-300">
-                      📖 Quy Đổi Band Score Tự Động:
+                      📖 Automatic Band Score Conversion:
                     </h4>
                     <p className="text-[11px] text-slate-300 leading-relaxed">
-                      Nhập số câu đúng (ví dụ: 35/40 câu Reading), hệ thống sẽ tự động quy đổi thành điểm Band chuẩn (Band 8.0) và lưu vào biểu đồ tiến độ.
+                      Enter raw correct answers (e.g. 35/40 Reading questions), and the system automatically converts it to standard Band Score (Band 8.0) and updates your trajectory charts.
                     </p>
                   </div>
                 </div>
@@ -620,10 +620,10 @@ export default function UserGuideModal({ isOpen, onClose }: UserGuideModalProps)
                     <span className="text-4xl">📝</span>
                     <div>
                       <h3 className="text-base font-extrabold text-amber-400 font-mono uppercase tracking-wide">
-                        Ghi Chú Tu Luyện & Phím Tắt Hệ Thống
+                        Cultivation Notes & System Hotkeys
                       </h3>
                       <p className="text-[11px] text-slate-400 font-mono">
-                        Lưu trữ kiến thức môn học & thao tác nhanh không cần chuột
+                        Preserve academic knowledge and operate swiftly without mouse dependence
                       </p>
                     </div>
                   </div>
@@ -631,15 +631,15 @@ export default function UserGuideModal({ isOpen, onClose }: UserGuideModalProps)
                   <div className="space-y-3.5">
                     <div className="bg-[#0f141c] border-2 border-slate-950 p-4 rounded-xl space-y-2 shadow-[2px_2px_0px_#000]">
                       <h4 className="font-bold text-slate-100 text-xs uppercase font-mono text-amber-400">
-                        ⌨️ Bàn Phím Tắt Tiện Lợi:
+                        ⌨️ Convenient Keyboard Shortcuts:
                       </h4>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] font-mono">
                         <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-900 flex items-center justify-between">
-                          <span className="text-slate-300">Bắt đầu / Tạm dừng Pomodoro:</span>
+                          <span className="text-slate-300">Start / Pause Pomodoro:</span>
                           <span className="text-amber-400 font-bold bg-slate-900 px-2 py-0.5 rounded border border-slate-800">Spacebar</span>
                         </div>
                         <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-900 flex items-center justify-between">
-                          <span className="text-slate-300">Đóng các Pop-up Modal:</span>
+                          <span className="text-slate-300">Close Pop-up Modals:</span>
                           <span className="text-amber-400 font-bold bg-slate-900 px-2 py-0.5 rounded border border-slate-800">Esc</span>
                         </div>
                       </div>

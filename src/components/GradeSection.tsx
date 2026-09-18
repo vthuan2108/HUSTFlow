@@ -193,7 +193,7 @@ export default function GradeSection({
   const handleSaveConfig = () => {
     const input = sheetInput.trim();
     if (!input) {
-      setErrorMsg('Vui lòng nhập Link hoặc ID Google Sheet');
+      setErrorMsg('Please enter Google Sheet Link or ID');
       return;
     }
     const match = input.match(/\/d\/([a-zA-Z0-9-_]+)/);
@@ -337,10 +337,10 @@ export default function GradeSection({
         <div className="space-y-1">
           <h2 className="text-sm font-bold text-slate-100 flex items-center gap-2 uppercase tracking-wider font-sans">
             <GraduationCap className="w-4 h-4 text-amber-400 animate-pulse" />
-            Đồng Bộ Điểm Số Học Tập
+            Academic Gradebook Sync
           </h2>
           <p className="text-[10px] text-slate-500">
-            Dữ liệu tự động đồng bộ 2 chiều với Google Sheets (Số tín chỉ từ Cột K4, GPA từ Cột L4).
+            Two-way data sync with Google Sheets (Credits from Col K4, GPA from Col L4).
           </p>
         </div>
 
@@ -351,7 +351,7 @@ export default function GradeSection({
                 type="text"
                 value={sheetInput}
                 onChange={e => setSheetInput(e.target.value)}
-                placeholder="Dán Link hoặc ID Google Sheet..."
+                placeholder="Paste Google Sheet Link or ID..."
                 className="bg-slate-950 border-2 border-slate-950 rounded-xl px-3 py-1.5 text-xs text-slate-200 w-full sm:w-80 focus:outline-none focus:border-amber-400 font-mono"
               />
               <div className="flex gap-2">
@@ -359,14 +359,14 @@ export default function GradeSection({
                   onClick={handleSaveConfig}
                   className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-[10px] px-3.5 py-2 rounded-xl transition-colors cursor-pointer flex items-center gap-1 shadow-[2px_2px_0px_#000] active:translate-y-[2px] active:translate-x-[2px] active:shadow-none uppercase"
                 >
-                  Xác Nhận
+                  Confirm
                 </button>
                 {spreadsheetId && (
                   <button
                     onClick={() => { setSheetInput(spreadsheetId); setEditingConfig(false); }}
                     className="bg-slate-950 border-2 border-slate-950 text-slate-400 hover:text-slate-300 font-bold text-[10px] px-3.5 py-2 rounded-xl transition-colors cursor-pointer shadow-[2px_2px_0px_#000] active:translate-y-[2px] active:translate-x-[2px] active:shadow-none uppercase"
                   >
-                    Hủy
+                    Cancel
                   </button>
                 )}
               </div>
@@ -380,7 +380,7 @@ export default function GradeSection({
                 onClick={() => setEditingConfig(true)}
                 className="text-[9px] text-[#fbbf24] hover:text-[#f59e0b] font-bold ml-2 underline cursor-pointer"
               >
-                Thay Đổi
+                Change
               </button>
             </div>
           )}
@@ -396,10 +396,10 @@ export default function GradeSection({
                 target="_blank"
                 rel="noreferrer"
                 className="bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-[10px] px-4 py-2.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shadow-[2px_2px_0px_#000] active:translate-y-[2px] active:translate-x-[2px] active:shadow-none uppercase no-underline font-mono"
-                title="Mở Google Sheet riêng của bạn trong thẻ trình duyệt mới"
+                title="Open your Google Sheet in a new browser tab"
               >
                 <FileSpreadsheet className="w-3.5 h-3.5" />
-                <span>Mở Google Sheet</span>
+                <span>Open Google Sheet</span>
                 <ExternalLink className="w-3 h-3 opacity-70" />
               </a>
 
@@ -407,10 +407,10 @@ export default function GradeSection({
                 onClick={onSync}
                 disabled={isSyncing}
                 className={`bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-[10px] px-4 py-2.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shadow-[2px_2px_0px_#000] active:translate-y-[2px] active:translate-x-[2px] active:shadow-none uppercase font-mono ${isSyncing ? 'opacity-50 cursor-not-allowed' : ''}`}
-                title="Đồng bộ 2 chiều thông minh giữa Web và Google Sheets"
+                title="Smart two-way sync between Web and Google Sheets"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-                {isSyncing ? 'Đang đồng bộ...' : 'Đồng Bộ 2 Chiều'}
+                {isSyncing ? 'Syncing...' : 'Two-Way Sync'}
               </button>
             </div>
           )}
@@ -422,12 +422,12 @@ export default function GradeSection({
         <div className="bg-amber-950/10 border border-amber-900/30 p-4 rounded-2xl flex gap-3 text-xs text-amber-300/80 leading-relaxed font-sans">
           <HelpCircle className="w-5 h-5 text-amber-400 shrink-0" />
           <div className="space-y-1">
-            <p className="font-bold text-amber-200">Đạo hữu chưa liên kết Google Sheet để quản lý điểm!</p>
+            <p className="font-bold text-amber-200">You haven't linked a Google Sheet to manage grades!</p>
             <p>
-              1. Bấm vào đây để tạo bản sao từ mẫu: <a href="https://docs.google.com/spreadsheets/d/1In58O2CMig4yO6PpufTrDrbKIjyPXQDgVEV7XcAGk7U/copy" target="_blank" rel="noreferrer" className="underline text-amber-400 font-bold hover:text-amber-300">Nhân bản Google Sheet Bảng Điểm Mẫu ➔</a>
+              1. Click here to make a copy of the template: <a href="https://docs.google.com/spreadsheets/d/1In58O2CMig4yO6PpufTrDrbKIjyPXQDgVEV7XcAGk7U/copy" target="_blank" rel="noreferrer" className="underline text-amber-400 font-bold hover:text-amber-300">Copy Gradebook Google Sheet Template ➔</a>
             </p>
             <p>
-              2. Sau khi sao chép tệp mẫu về tài khoản Google Drive cá nhân, hãy dán liên kết của trang tính đó vào ô cấu hình phía trên và bấm <strong>Xác Nhận</strong>.
+              2. After copying the template to your Google Drive, paste the spreadsheet link into the configuration box above and click <strong>Confirm</strong>.
             </p>
           </div>
         </div>
@@ -438,16 +438,16 @@ export default function GradeSection({
         
         {/* CPA Large Dashboard Box */}
         <div className="lg:col-span-1 bg-[#0f141c] border-2 border-slate-950 p-6 flex flex-col justify-center items-center text-center shadow-[2px_2px_0px_#000] rounded-2xl select-none">
-          <span className="text-[9px] uppercase tracking-widest font-bold text-slate-500 font-mono mb-1">CPA Tích Lũy</span>
+          <span className="text-[9px] uppercase tracking-widest font-bold text-slate-500 font-mono mb-1">CUMULATIVE CPA</span>
           <span className="text-5xl font-black font-mono text-red-500 leading-none tracking-tight">
             {safeCpaOverall.toFixed(2)}
           </span>
           <div className="flex items-center gap-1.5 mt-3">
             <span className="text-[8px] bg-slate-950 text-slate-400 px-2 py-0.5 rounded border border-slate-900 font-semibold font-mono">
-              Thang 4
+              Scale 4.0
             </span>
             <span className="text-[9px] bg-amber-400/10 text-amber-400 border border-amber-400/20 px-2 py-0.5 rounded-md font-bold font-mono">
-              {computedPassedCredits}/{computedTotalCredits} tín chỉ
+              {computedPassedCredits}/{computedTotalCredits} credits
             </span>
           </div>
         </div>
@@ -456,14 +456,14 @@ export default function GradeSection({
         <div className="lg:col-span-3 neo-card p-5 flex flex-col justify-between">
           <div className="border-b-2 border-slate-950 pb-2.5 mb-4">
             <h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-1.5">
-              GPA Học Kỳ (Winding Timeline)
+              Semester GPA (Winding Timeline)
             </h3>
-            <p className="text-[10px] text-slate-500">Tiến trình thay đổi điểm trung bình học kỳ (Dữ liệu từ Cột L4 Sheet)</p>
+            <p className="text-[10px] text-slate-500">Semester GPA progression (Data from Sheet Column L4)</p>
           </div>
 
           {safeSemesterGpaList.filter(item => item && item.gpa > 0).length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center py-6 text-slate-500 text-xs italic">
-              <span>Chưa có dữ liệu học kỳ. Nhấp "Đồng Bộ 2 Chiều" để nạp dữ liệu từ Google Sheet.</span>
+              <span>No semester data yet. Click "Two-Way Sync" to load data from Google Sheets.</span>
             </div>
           ) : (
             <div className="flex flex-col gap-10 p-2 relative">
@@ -536,7 +536,7 @@ export default function GradeSection({
               <div className="border-b-2 border-slate-950 pb-2 mb-4">
                 <h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-1.5 font-sans">
                   <TrendingUp className="w-4 h-4 text-sky-400 stroke-[2]" />
-                  GPA Theo Kì (Cột L4)
+                  GPA by Semester (Col L4)
                 </h3>
               </div>
               
@@ -555,7 +555,7 @@ export default function GradeSection({
                       }}
                     />
                     <Line 
-                      name="GPA Học Kỳ" 
+                      name="Semester GPA" 
                       type="monotone" 
                       dataKey="gpa" 
                       stroke="#38bdf8" 
@@ -573,13 +573,13 @@ export default function GradeSection({
               <div className="border-b-2 border-slate-950 pb-2 mb-4">
                 <h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-1.5 font-sans">
                   <PieIcon className="w-4 h-4 text-amber-400 stroke-[2]" />
-                  Thống Kê Điểm Chữ (Phân Bố Môn)
+                  Letter Grade Distribution
                 </h3>
               </div>
 
               <div className="h-64 flex flex-col sm:flex-row items-center justify-center gap-4">
                 {letterGradeChartData.length === 0 ? (
-                  <div className="text-slate-500 text-xs font-bold font-sans italic">Chưa có dữ liệu điểm chữ</div>
+                  <div className="text-slate-500 text-xs font-bold font-sans italic">No letter grade data yet</div>
                 ) : (
                   <>
                     <div className="w-full sm:w-1/2 h-full">
@@ -640,7 +640,7 @@ export default function GradeSection({
             <div className="border-b-2 border-slate-950 pb-2 mb-4">
               <h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-1.5 font-sans">
                 <BarChart3 className="w-4 h-4 text-emerald-400 stroke-[2]" />
-                Số Tín Chỉ Học Theo Kỳ (Cột J4 & K4)
+                Credits Completed by Semester (Col J4 & K4)
               </h3>
             </div>
             
@@ -659,7 +659,7 @@ export default function GradeSection({
                     }}
                   />
                   <Bar 
-                    name="Số Tín Chỉ" 
+                    name="Credits" 
                     dataKey="credits" 
                     fill="#10b981" 
                     barSize={32}
@@ -687,29 +687,29 @@ export default function GradeSection({
         <div className="flex items-center justify-between border-b-2 border-slate-950 pb-3 mb-4">
           <div className="space-y-0.5">
             <h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider">
-              Sổ Điểm Chi Tiết (Gradebook)
+              Detailed Gradebook
             </h3>
-            <p className="text-[10px] text-slate-500 font-semibold">Chọn kì học và điền điểm. Sử dụng dấu phẩy cho phần thập phân (Ví dụ: 8,5).</p>
+            <p className="text-[10px] text-slate-500 font-semibold">Select semester and enter grades. Decimals can use dots or commas (e.g., 8.5).</p>
           </div>
         </div>
 
         {safeSubjects.length === 0 ? (
           <div className="py-10 text-center text-xs text-slate-500 border border-dashed border-slate-800 rounded-xl bg-slate-950">
-            Sổ điểm hiện đang trống. Nhấp "Thêm Môn Học Mới" ở dưới hoặc dán link Google Sheet để đồng bộ.
+            Gradebook is currently empty. Click "Add New Course" below or paste your Google Sheet link to sync.
           </div>
         ) : (
           <div className="overflow-x-auto border border-slate-950 rounded-xl bg-slate-950 shadow-[1px_1px_0px_#000]">
             <table className="w-full text-left text-xs min-w-[760px]">
               <thead className="bg-[#0f141c] text-slate-400 font-mono text-[9px] uppercase border-b border-slate-950 select-none">
                 <tr>
-                  <th className="py-2.5 px-3 w-36">Kì học</th>
-                  <th className="py-2.5 px-3">Tên môn học</th>
-                  <th className="py-2.5 px-3 w-20 text-center">Tín chỉ</th>
-                  <th className="py-2.5 px-3 w-24 text-center">Trọng số QTr</th>
-                  <th className="py-2.5 px-3 w-20 text-center">Điểm QTr</th>
-                  <th className="py-2.5 px-3 w-20 text-center">Điểm cuối kì</th>
-                  <th className="py-2.5 px-3 w-20 text-center">Điểm chữ</th>
-                  <th className="py-2.5 px-3 w-20 text-center">Điểm quy đổi</th>
+                  <th className="py-2.5 px-3 w-36">Semester</th>
+                  <th className="py-2.5 px-3">Course Name</th>
+                  <th className="py-2.5 px-3 w-20 text-center">Credits</th>
+                  <th className="py-2.5 px-3 w-24 text-center">Weight (Midterm)</th>
+                  <th className="py-2.5 px-3 w-20 text-center">Midterm</th>
+                  <th className="py-2.5 px-3 w-20 text-center">Final</th>
+                  <th className="py-2.5 px-3 w-20 text-center">Letter</th>
+                  <th className="py-2.5 px-3 w-20 text-center">Scale 4.0</th>
                   <th className="py-2.5 px-2 w-10 text-center"></th>
                 </tr>
               </thead>
@@ -752,7 +752,7 @@ export default function GradeSection({
                           value={s.name}
                           onChange={e => onUpdateSubject(s.id, { name: e.target.value })}
                           className="bg-slate-950 border border-white/30 focus:border-white rounded-xl px-3 py-1 text-xs text-slate-200 w-full focus:outline-none transition-colors"
-                          placeholder="Tên môn học..."
+                          placeholder="Course name..."
                         />
                       </td>
                       
@@ -823,7 +823,7 @@ export default function GradeSection({
                         <button
                           onClick={() => onDeleteSubject(s.id)}
                           className="p-1 text-slate-500 hover:text-[#ef4444] rounded transition-colors cursor-pointer"
-                          title="Xóa môn học"
+                          title="Delete course"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -843,7 +843,7 @@ export default function GradeSection({
             className="bg-slate-950 border-2 border-slate-950 text-[#fbbf24] hover:text-[#f59e0b] font-bold text-[10px] px-4 py-2 rounded-xl transition-colors cursor-pointer flex items-center gap-1 shadow-[2px_2px_0px_#000] active:translate-y-[2px] active:translate-x-[2px] active:shadow-none uppercase"
           >
             <Plus className="w-4 h-4 stroke-[3]" />
-            Thêm Môn Học Mới
+            Add New Course
           </button>
         </div>
       </div>

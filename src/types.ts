@@ -121,6 +121,7 @@ export interface DailyLog {
   tuViGained: number;
   meditationMinutes: number;
   tasksCompleted: number;
+  isStreakProtected?: boolean;
 }
 
 export interface StudocuDocument {

@@ -22,12 +22,12 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 
 const COLOR_THEMES = [
-  { id: 'slate', name: 'Phổ Thông', bg: 'bg-slate-900/40 border-slate-800 text-slate-300 hover:border-slate-700', activeBg: 'bg-slate-950', iconColor: 'text-slate-400' },
-  { id: 'amber', name: 'Thần Thông', bg: 'bg-amber-950/20 border-amber-900/40 text-amber-200/90 hover:border-amber-800/60', activeBg: 'bg-amber-950/60', iconColor: 'text-amber-400' },
-  { id: 'emerald', name: 'Pháp Trận', bg: 'bg-emerald-950/20 border-emerald-900/40 text-emerald-200/90 hover:border-emerald-800/60', activeBg: 'bg-emerald-950/60', iconColor: 'text-emerald-400' },
-  { id: 'rose', name: 'Cấm Thuật', bg: 'bg-rose-950/20 border-rose-900/40 text-rose-200/90 hover:border-rose-800/60', activeBg: 'bg-rose-950/60', iconColor: 'text-rose-400' },
-  { id: 'indigo', name: 'Cổ Thư', bg: 'bg-indigo-950/20 border-indigo-900/40 text-indigo-200/90 hover:border-indigo-800/60', activeBg: 'bg-indigo-950/60', iconColor: 'text-indigo-400' },
-  { id: 'purple', name: 'Tiên Bản', bg: 'bg-purple-950/20 border-purple-900/40 text-purple-200/90 hover:border-purple-800/60', activeBg: 'bg-purple-950/60', iconColor: 'text-purple-400' },
+  { id: 'slate', name: 'Standard', bg: 'bg-slate-900/40 border-slate-800 text-slate-300 hover:border-slate-700', activeBg: 'bg-slate-950', iconColor: 'text-slate-400' },
+  { id: 'amber', name: 'Divine Art', bg: 'bg-amber-950/20 border-amber-900/40 text-amber-200/90 hover:border-amber-800/60', activeBg: 'bg-amber-950/60', iconColor: 'text-amber-400' },
+  { id: 'emerald', name: 'Formations', bg: 'bg-emerald-950/20 border-emerald-900/40 text-emerald-200/90 hover:border-emerald-800/60', activeBg: 'bg-emerald-950/60', iconColor: 'text-emerald-400' },
+  { id: 'rose', name: 'Forbidden Art', bg: 'bg-rose-950/20 border-rose-900/40 text-rose-200/90 hover:border-rose-800/60', activeBg: 'bg-rose-950/60', iconColor: 'text-rose-400' },
+  { id: 'indigo', name: 'Ancient Script', bg: 'bg-indigo-950/20 border-indigo-900/40 text-indigo-200/90 hover:border-indigo-800/60', activeBg: 'bg-indigo-950/60', iconColor: 'text-indigo-400' },
+  { id: 'purple', name: 'Immortal Scroll', bg: 'bg-purple-950/20 border-purple-900/40 text-purple-200/90 hover:border-purple-800/60', activeBg: 'bg-purple-950/60', iconColor: 'text-purple-400' },
 ] as const;
 
 interface ForbiddenNotesProps {
@@ -89,7 +89,7 @@ export default function ForbiddenNotes({ notes, onUpdateNotes }: ForbiddenNotesP
 
     const newNote: CultivationNote = {
       id: `note_${Date.now()}`,
-      title: newTitle.trim() || 'Mật Bản Chưa Đặt Tên',
+      title: newTitle.trim() || 'Untitled Secret Scroll',
       content: newContent,
       color: newColor,
       isPinned: newIsPinned,
@@ -123,7 +123,7 @@ export default function ForbiddenNotes({ notes, onUpdateNotes }: ForbiddenNotesP
       if (note.id === editingNote.id) {
         return {
           ...note,
-          title: editTitle.trim() || 'Mật Bản Chưa Đặt Tên',
+          title: editTitle.trim() || 'Untitled Secret Scroll',
           content: editContent,
           color: editColor,
           isPinned: editIsPinned,
@@ -141,7 +141,7 @@ export default function ForbiddenNotes({ notes, onUpdateNotes }: ForbiddenNotesP
     if (e) e.stopPropagation();
     
     // Quick confirmation in cultivation style
-    if (confirm('Đạo hữu chắc chắn muốn tiêu hủy bí văn mật tịch này?')) {
+    if (confirm('Fellow Daoist, are you sure you want to destroy this secret scripture?')) {
       setNotes(prev => prev.filter(note => note.id !== id));
       if (editingNote?.id === id) {
         setEditingNote(null);
@@ -198,13 +198,13 @@ export default function ForbiddenNotes({ notes, onUpdateNotes }: ForbiddenNotesP
           </div>
           <div>
             <h3 className="text-sm font-black text-slate-100 uppercase tracking-wider flex items-center gap-2">
-              Cấm Địa Tông Môn 
+              Sect Forbidden Grounds 
               <span className="text-[10px] bg-rose-500/10 text-rose-400 border border-rose-500/20 px-2 py-0.5 rounded-full lowercase font-normal tracking-normal">
-                bí bản mật truyền
+                secret scriptures
               </span>
             </h3>
             <p className="text-[10px] text-slate-500 font-sans mt-0.5">
-              Nơi ký thác và ngưng luyện các đạo pháp ý niệm, công pháp tâm đắc
+              Sanctuary to record cultivation methods, realizations, and sacred techniques
             </p>
           </div>
         </div>
@@ -214,7 +214,7 @@ export default function ForbiddenNotes({ notes, onUpdateNotes }: ForbiddenNotesP
           <Search className="absolute left-3 top-2.5 w-3.5 h-3.5 text-slate-500" />
           <input
             type="text"
-            placeholder="Dùng Thần Thức Tìm Kiếm mật thư..."
+            placeholder="Search secret scrolls with divine sense..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-slate-950 border border-slate-900 rounded-xl py-2 pl-9 pr-4 text-[11px] text-slate-300 focus:outline-none focus:border-rose-500 placeholder-slate-600 transition-colors font-sans"
@@ -243,7 +243,7 @@ export default function ForbiddenNotes({ notes, onUpdateNotes }: ForbiddenNotesP
             <div className="flex items-center justify-between">
               <input
                 type="text"
-                placeholder="Tiêu Đề Bí Pháp..."
+                placeholder="Scripture Title..."
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
                 className="w-full bg-transparent text-slate-200 font-bold text-xs focus:outline-none placeholder-slate-600 font-sans"
@@ -254,7 +254,7 @@ export default function ForbiddenNotes({ notes, onUpdateNotes }: ForbiddenNotesP
                 className={`p-1.5 rounded-lg hover:bg-slate-900 transition-all cursor-pointer ${
                   newIsPinned ? 'text-amber-400' : 'text-slate-500 hover:text-slate-300'
                 }`}
-                title={newIsPinned ? "Hạ điện (Bỏ ghim)" : "Trấn điện (Ghim mật bản)"}
+                title={newIsPinned ? "Unpin scroll" : "Pin scroll"}
               >
                 <Pin className={`w-4 h-4 ${newIsPinned ? 'fill-amber-400/20' : ''}`} />
               </button>
@@ -262,7 +262,7 @@ export default function ForbiddenNotes({ notes, onUpdateNotes }: ForbiddenNotesP
           ) : null}
 
           <textarea
-            placeholder="Tạo mật tịch mới hoặc ký thác tâm pháp..."
+            placeholder="Inscribe a new scripture or record cultivation insights..."
             value={newContent}
             onClick={() => setIsCreating(true)}
             onChange={(e) => setNewContent(e.target.value)}
@@ -278,7 +278,7 @@ export default function ForbiddenNotes({ notes, onUpdateNotes }: ForbiddenNotesP
                   type="button"
                   onClick={() => setShowColorPicker(!showColorPicker)}
                   className="p-1.5 bg-slate-950/40 hover:bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-900 rounded-lg flex items-center gap-1 cursor-pointer transition-all"
-                  title="Chọn Linh Khí Phẩm Cấp"
+                  title="Select Aura Tier"
                 >
                   <Palette className="w-3.5 h-3.5" />
                   <span className="text-[9px] font-bold uppercase">{getTheme(newColor).name}</span>
@@ -318,14 +318,14 @@ export default function ForbiddenNotes({ notes, onUpdateNotes }: ForbiddenNotesP
                   }}
                   className="px-3 py-1.5 text-slate-500 hover:text-slate-300 font-bold transition-all cursor-pointer"
                 >
-                  HỦY BỎ
+                  CANCEL
                 </button>
                 <button
                   type="submit"
                   className="px-4 py-1.5 bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/30 rounded-xl font-bold transition-all flex items-center gap-1 shadow-lg shadow-rose-950/20 cursor-pointer"
                 >
                   <Plus className="w-3 h-3" />
-                  KHẮC BẢN
+                  INSCRIBE
                 </button>
               </div>
             </div>
@@ -337,9 +337,9 @@ export default function ForbiddenNotes({ notes, onUpdateNotes }: ForbiddenNotesP
       {notes.length === 0 ? (
         <div className="text-center py-20 bg-[#0f141c]/40 border border-slate-900 rounded-2xl space-y-3">
           <BookOpen className="w-8 h-8 text-slate-700 mx-auto" />
-          <h4 className="text-xs font-bold text-slate-400">Trấn Phái Cấm Địa Trống Trơn</h4>
+          <h4 className="text-xs font-bold text-slate-400">Forbidden Grounds Are Empty</h4>
           <p className="text-[10px] text-slate-600 font-sans max-w-xs mx-auto leading-relaxed">
-            Nơi đây chưa có mật văn nào được phong ấn. Hãy phác thảo một công pháp hoặc ghi chú tu tiên bằng trình tạo bên trên!
+            No secret scriptures are sealed here yet. Inscribe a new manual or cultivation note above!
           </p>
         </div>
       ) : (
@@ -348,7 +348,7 @@ export default function ForbiddenNotes({ notes, onUpdateNotes }: ForbiddenNotesP
           {pinnedNotes.length > 0 && (
             <div className="space-y-3" id="pinned-notes-section">
               <h4 className="text-[10px] font-black text-amber-500 uppercase tracking-widest flex items-center gap-1 px-1">
-                <Pin className="w-3 h-3 fill-amber-500/20 rotate-45" /> Trấn Điện Phong Ấn ({pinnedNotes.length})
+                <Pin className="w-3 h-3 fill-amber-500/20 rotate-45" /> Pinned Scriptures ({pinnedNotes.length})
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 <AnimatePresence mode="popLayout">
@@ -373,7 +373,7 @@ export default function ForbiddenNotes({ notes, onUpdateNotes }: ForbiddenNotesP
             <div className="space-y-3" id="other-notes-section">
               {pinnedNotes.length > 0 && (
                 <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1 px-1">
-                  Đạo Pháp Khác ({otherNotes.length})
+                  Other Scriptures ({otherNotes.length})
                 </h4>
               )}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -396,7 +396,7 @@ export default function ForbiddenNotes({ notes, onUpdateNotes }: ForbiddenNotesP
 
           {filteredNotes.length === 0 && searchQuery && (
             <div className="text-center py-16 text-slate-500 text-xs font-sans">
-              Không tìm thấy mật bản nào khớp với thần thức: "{searchQuery}"
+              No secret scrolls found matching divine sense: "{searchQuery}"
             </div>
           )}
         </div>
@@ -418,7 +418,7 @@ export default function ForbiddenNotes({ notes, onUpdateNotes }: ForbiddenNotesP
               <div className="flex items-center justify-between">
                 <span className="text-[9px] bg-slate-950/50 text-slate-400 border border-slate-800/80 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider flex items-center gap-1">
                   <Sparkles className="w-2.5 h-2.5 text-amber-400" />
-                  Mật Bản: {getTheme(editColor).name}
+                  Scroll: {getTheme(editColor).name}
                 </span>
 
                 <div className="flex items-center gap-1.5">
@@ -427,7 +427,7 @@ export default function ForbiddenNotes({ notes, onUpdateNotes }: ForbiddenNotesP
                     className={`p-1.5 rounded-lg hover:bg-slate-950/40 transition-all cursor-pointer ${
                       editIsPinned ? 'text-amber-400' : 'text-slate-500 hover:text-slate-300'
                     }`}
-                    title={editIsPinned ? "Bỏ ghim mật thư" : "Ghim trấn điện"}
+                    title={editIsPinned ? "Unpin scroll" : "Pin scroll"}
                   >
                     <Pin className={`w-4 h-4 ${editIsPinned ? 'fill-amber-400/20' : ''}`} />
                   </button>
@@ -444,14 +444,14 @@ export default function ForbiddenNotes({ notes, onUpdateNotes }: ForbiddenNotesP
               <div className="space-y-3 font-sans">
                 <input
                   type="text"
-                  placeholder="Vô danh thư tịch..."
+                  placeholder="Untitled scripture..."
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
                   className="w-full bg-transparent text-slate-100 font-extrabold text-sm focus:outline-none placeholder-slate-600"
                 />
                 
                 <textarea
-                  placeholder="Ký lục ý niệm tu luyện..."
+                  placeholder="Record cultivation insights..."
                   value={editContent}
                   onChange={(e) => setEditContent(e.target.value)}
                   rows={8}
@@ -462,9 +462,9 @@ export default function ForbiddenNotes({ notes, onUpdateNotes }: ForbiddenNotesP
               {/* Note Metadata */}
               <div className="flex items-center gap-1.5 text-[8px] text-slate-500 border-t border-slate-900 pt-3">
                 <Calendar className="w-3 h-3 text-slate-600" />
-                <span>Khai mở bản: {new Date(editingNote.createdAt).toLocaleString('vi-VN')}</span>
+                <span>Created: {new Date(editingNote.createdAt).toLocaleString('en-US')}</span>
                 {editingNote.updatedAt !== editingNote.createdAt && (
-                  <span className="italic text-slate-600">(Đã trùng tu: {new Date(editingNote.updatedAt).toLocaleTimeString('vi-VN')})</span>
+                  <span className="italic text-slate-600">(Revised: {new Date(editingNote.updatedAt).toLocaleTimeString('en-US')})</span>
                 )}
               </div>
 
@@ -506,7 +506,7 @@ export default function ForbiddenNotes({ notes, onUpdateNotes }: ForbiddenNotesP
                     type="button"
                     onClick={(e) => { handleDeleteNote(editingNote.id, e); }}
                     className="p-1.5 bg-slate-950/40 hover:bg-rose-950/30 hover:text-rose-400 text-slate-500 border border-slate-900 hover:border-rose-900/40 rounded-lg cursor-pointer transition-all"
-                    title="Tiêu hủy mật thư"
+                    title="Destroy scripture"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -517,14 +517,14 @@ export default function ForbiddenNotes({ notes, onUpdateNotes }: ForbiddenNotesP
                     onClick={() => { setEditingNote(null); setShowEditColorPicker(false); }}
                     className="px-3 py-1.5 text-slate-500 hover:text-slate-300 font-bold transition-all cursor-pointer"
                   >
-                    HỦY BỎ
+                    CANCEL
                   </button>
                   <button
                     onClick={handleSaveEdit}
                     className="px-4 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-slate-950 font-black rounded-xl transition-all shadow-lg flex items-center gap-1 cursor-pointer"
                   >
                     <Check className="w-3.5 h-3.5 text-slate-950" />
-                    TRÙNG TU XONG
+                    SAVE CHANGES
                   </button>
                 </div>
               </div>
@@ -574,7 +574,7 @@ function NoteCard({ note, onEdit, onDelete, onTogglePin, onColorChange, getTheme
             className={`opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-slate-950/40 cursor-pointer ${
               note.isPinned ? 'opacity-100 text-amber-400' : 'text-slate-500 hover:text-slate-300'
             }`}
-            title={note.isPinned ? "Bỏ ghim" : "Ghim lên đầu"}
+            title={note.isPinned ? "Unpin" : "Pin to top"}
           >
             <Pin className={`w-3.5 h-3.5 ${note.isPinned ? 'fill-amber-400/20 text-amber-400' : ''}`} />
           </button>
@@ -590,7 +590,7 @@ function NoteCard({ note, onEdit, onDelete, onTogglePin, onColorChange, getTheme
       <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-900/40 shrink-0">
         <span className="text-[8px] text-slate-500 font-mono flex items-center gap-0.5">
           <Calendar className="w-2.5 h-2.5" />
-          {new Date(note.updatedAt).toLocaleDateString('vi-VN', { month: 'numeric', day: 'numeric' })}
+          {new Date(note.updatedAt).toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' })}
         </span>
 
         <div className={`flex items-center gap-1 transition-all duration-300 ${
@@ -601,7 +601,7 @@ function NoteCard({ note, onEdit, onDelete, onTogglePin, onColorChange, getTheme
             <button
               onClick={(e) => { e.stopPropagation(); setShowPalette(!showPalette); }}
               className="p-1 rounded text-slate-500 hover:text-slate-300 hover:bg-slate-950/40 cursor-pointer"
-              title="Phẩm cấp"
+              title="Tier"
             >
               <Palette className="w-3 h-3" />
             </button>
@@ -628,7 +628,7 @@ function NoteCard({ note, onEdit, onDelete, onTogglePin, onColorChange, getTheme
           <button
             onClick={() => onEdit(note)}
             className="p-1 rounded text-slate-500 hover:text-slate-300 hover:bg-slate-950/40 cursor-pointer"
-            title="Sửa công pháp"
+            title="Edit scripture"
           >
             <Edit2 className="w-3 h-3" />
           </button>
@@ -636,7 +636,7 @@ function NoteCard({ note, onEdit, onDelete, onTogglePin, onColorChange, getTheme
           <button
             onClick={(e) => onDelete(note.id, e)}
             className="p-1 rounded text-slate-500 hover:text-rose-400 hover:bg-slate-950/40 cursor-pointer"
-            title="Tiêu hủy"
+            title="Destroy"
           >
             <Trash2 className="w-3 h-3" />
           </button>

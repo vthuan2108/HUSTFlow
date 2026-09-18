@@ -73,13 +73,13 @@ export default function TaskSection({
   const getPriorityInfo = (p: Priority) => {
     switch (p) {
       case 'SO_CAP':
-        return { label: 'Sơ Cấp', color: 'text-slate-300 border-slate-950 bg-slate-900', xp: 15, stones: 10 };
+        return { label: 'Novice', color: 'text-slate-300 border-slate-950 bg-slate-900', xp: 15, stones: 10 };
       case 'TRUNG_CAP':
-        return { label: 'Trung Cấp', color: 'text-slate-950 border-slate-950 bg-blue-400', xp: 30, stones: 20 };
+        return { label: 'Adept', color: 'text-slate-950 border-slate-950 bg-blue-400', xp: 30, stones: 20 };
       case 'CAO_CAP':
-        return { label: 'Địa Cấp', color: 'text-slate-950 border-slate-950 bg-orange-400', xp: 60, stones: 40 };
+        return { label: 'Earth', color: 'text-slate-950 border-slate-950 bg-orange-400', xp: 60, stones: 40 };
       case 'THAN_CAP':
-        return { label: 'Thiên Cấp', color: 'text-slate-950 border-slate-950 bg-amber-400', xp: 120, stones: 80 };
+        return { label: 'Heaven', color: 'text-slate-950 border-slate-950 bg-amber-400', xp: 120, stones: 80 };
     }
   };
 
@@ -109,9 +109,9 @@ export default function TaskSection({
         <div className="flex items-center gap-3">
           <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
             <CalendarCheck2 className="w-4 h-4 text-amber-400 animate-pulse" />
-            Nhiệm Vụ Trong Ngày (Tasks)
+            Daily Tasks
           </h3>
-          <p className="text-[10px] text-slate-500">Mục tiêu rèn luyện trong ngày để bứt phá cảnh giới</p>
+          <p className="text-[10px] text-slate-500">Daily discipline to break through cultivation realms</p>
         </div>
         
         <button
@@ -120,7 +120,7 @@ export default function TaskSection({
           id="toggle-add-task-btn"
         >
           <Plus className="w-3 h-3" />
-          {isAdding ? 'Hủy' : 'Thêm Nhiệm Vụ'}
+          {isAdding ? 'Cancel' : 'Add Task'}
         </button>
       </div>
 
@@ -136,34 +136,34 @@ export default function TaskSection({
           >
             <div className="grid grid-cols-3 gap-2">
               <div className="col-span-2">
-                <label className="text-[9px] text-slate-500 uppercase tracking-wider font-semibold block mb-0.5">Tên Nhiệm Vụ</label>
+                <label className="text-[9px] text-slate-500 uppercase tracking-wider font-semibold block mb-0.5">Task Name</label>
                 <input
                   type="text"
                   required
-                  placeholder="VD: Viết Essay Task 2..."
+                  placeholder="e.g. Write Essay Task 2..."
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   className="w-full bg-slate-900 border-2 border-slate-950 rounded-lg px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-amber-400"
                 />
               </div>
               <div>
-                <label className="text-[9px] text-slate-500 uppercase tracking-wider font-semibold block mb-0.5">Mức Độ</label>
+                <label className="text-[9px] text-slate-500 uppercase tracking-wider font-semibold block mb-0.5">Tier / Priority</label>
                 <select
                   value={priority}
                   onChange={(e) => setPriority(e.target.value as Priority)}
                   className="w-full bg-slate-900 border-2 border-slate-950 rounded-lg px-1.5 py-1 text-xs text-slate-300 focus:outline-none cursor-pointer"
                 >
-                  <option value="SO_CAP">Sơ Cấp (Trắng)</option>
-                  <option value="TRUNG_CAP">Trung Cấp (Lam)</option>
-                  <option value="CAO_CAP">Địa Cấp (Cam)</option>
-                  <option value="THAN_CAP">Thiên Cấp (Vàng)</option>
+                  <option value="SO_CAP">Novice (White)</option>
+                  <option value="TRUNG_CAP">Adept (Blue)</option>
+                  <option value="CAO_CAP">Earth (Orange)</option>
+                  <option value="THAN_CAP">Heaven (Gold)</option>
                 </select>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-[9px] text-slate-500 uppercase tracking-wider font-semibold block mb-0.5">Hạn Hoàn Thành</label>
+                <label className="text-[9px] text-slate-500 uppercase tracking-wider font-semibold block mb-0.5">Due Date</label>
                 <input
                   type="date"
                   value={dueDate}
@@ -172,10 +172,10 @@ export default function TaskSection({
                 />
               </div>
               <div>
-                <label className="text-[9px] text-slate-500 uppercase tracking-wider font-semibold block mb-0.5">Mô tả thêm</label>
+                <label className="text-[9px] text-slate-500 uppercase tracking-wider font-semibold block mb-0.5">Description</label>
                 <input
                   type="text"
-                  placeholder="Ghi chú chi tiết..."
+                  placeholder="Detailed notes..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   className="w-full bg-slate-900 border-2 border-slate-950 rounded-lg px-2 py-1 text-xs text-slate-300 focus:outline-none"
@@ -187,7 +187,7 @@ export default function TaskSection({
               type="submit"
               className="w-full py-2 neo-btn neo-btn-primary text-[10px] tracking-wider"
             >
-              XUẤT SƯ ĐẠI ĐIỂN (+ THÊM NHIỆM VỤ)
+              CREATE TASK (+ ADD TASK)
             </button>
           </motion.form>
         )}
@@ -233,10 +233,10 @@ export default function TaskSection({
                   <div className="flex items-center justify-between mt-2 text-[9px] font-mono text-slate-500">
                     <span className="flex items-center gap-1">
                       <Calendar className="w-3 h-3 text-slate-600" />
-                      Hạn: {task.dueDate}
+                      Due: {task.dueDate}
                     </span>
                     <span className="text-amber-500/80 font-bold">
-                      +{info?.xp} EXP / +{info?.stones} Đá
+                      +{info?.xp} EXP / +{info?.stones} Stones
                     </span>
                   </div>
                 </div>
@@ -253,7 +253,7 @@ export default function TaskSection({
         ) : (
           <div className="text-center py-24 text-slate-600 text-xs flex flex-col items-center gap-2">
             <AlertCircle className="w-5 h-5 text-slate-700" />
-            Động phủ nhàn hạ. Chưa có nhiệm vụ nào trong ngày hôm nay!
+            Domain at peace. No tasks scheduled for today!
           </div>
         )}
       </div>
@@ -273,10 +273,10 @@ export default function TaskSection({
                   <Trash2 className="w-5 h-5" />
                 </div>
                 <h3 className="text-sm font-black text-slate-100 uppercase tracking-wide pixel-label">
-                  Xóa Nhiệm Vụ
+                  Delete Task
                 </h3>
                 <p className="text-[11px] text-slate-400 leading-relaxed font-sans">
-                  Đạo hữu có chắc chắn muốn xóa Nhiệm Vụ: <span className="text-amber-400 font-bold">"{deletingTask.title}"</span>? Hành động này không thể hoàn tác.
+                  Are you sure you want to delete Task: <span className="text-amber-400 font-bold">"{deletingTask.title}"</span>? This action cannot be undone.
                 </p>
               </div>
 
@@ -285,13 +285,13 @@ export default function TaskSection({
                   onClick={() => setDeletingTask(null)}
                   className="flex-1 py-2 neo-btn neo-btn-secondary text-[10px] font-bold"
                 >
-                  HỦY BỎ
+                  CANCEL
                 </button>
                 <button
                   onClick={confirmDeleteTask}
                   className="flex-1 py-2 neo-btn neo-btn-danger text-[10px] font-bold text-white"
                 >
-                  XÁC NHẬN XÓA
+                  CONFIRM DELETE
                 </button>
               </div>
             </motion.div>

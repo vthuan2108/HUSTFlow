@@ -159,7 +159,7 @@ export default function AIPanel({
             }
           }
         })
-        .catch(err => console.warn('Lỗi kết nối Groq models list API:', err));
+        .catch(err => console.warn('Error fetching Groq models list API:', err));
     }
   }, [groqKey, provider]);
 
@@ -180,10 +180,10 @@ export default function AIPanel({
       id: 'init_msg',
       role: 'assistant',
       content: (localStorage.getItem('tlk_ai_persona') as AIPersonaType) === 'MO_UYEN' || !localStorage.getItem('tlk_ai_persona')
-        ? 'Sư huynh, Uyển Nhi ở đây đồng hành cùng huynh. Huynh bế quan mệt mỏi rồi sao? Hãy nói cho Uyển Nhi nghe nhé...'
+        ? 'Senior Brother, Uyen Nhi is here by your side. Are you weary from seclusion? Please share your thoughts with Uyen Nhi...'
         : (localStorage.getItem('tlk_ai_persona') as AIPersonaType) === 'TU_DO_NAM'
-        ? 'Thiết Trụ! Lão phu Tư Đồ Nam đây. Còn không mau bế quan tu luyện cho ta, có chuyện gì cần hố ta à?!'
-        : 'Tại hạ là Tông chủ Thiên Cơ Các. Đạo hữu cần trao đổi hay tính toán điều gì, xin cứ nói!',
+        ? 'Tie Zhu! Old man Situ Nan is here. Hurry up and enter seclusion to cultivate! What trouble do you have for me?!'
+        : 'I am the Master of the Heavenly Secrets Pavilion. Fellow Daoist, whatever you wish to consult or calculate, please speak!',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
@@ -274,12 +274,12 @@ export default function AIPanel({
   };
 
   const handleClearHistory = () => {
-    if (confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử trò chuyện AI?')) {
+    if (confirm('Are you sure you want to clear all AI chat history?')) {
       const clearText = aiPersona === 'MO_UYEN'
-        ? 'Lịch sử trò chuyện đã được làm sạch. Uyển Nhi sẵn sàng lắng nghe sư huynh!'
+        ? 'Chat history has been cleared. Uyen Nhi is ready to listen to Senior Brother!'
         : aiPersona === 'TU_DO_NAM'
-        ? 'Lịch sử trò chuyện đã xóa sạch. Lão phu sẵn sàng chỉ điểm cho Thiết Trụ!'
-        : 'Lịch sử trò chuyện đã được làm sạch. Bản Tông Chủ sẵn sàng nhận lệnh mới!';
+        ? 'Chat history cleared. Old man Situ Nan is ready to guide Tie Zhu!'
+        : 'Chat history has been cleared. Ready for new inquiries!';
       setChatHistory([
         {
           id: `init_${Date.now()}`,
@@ -296,12 +296,12 @@ export default function AIPanel({
   };
 
   const compileContext = (query: string = '') => {
-    const isCalendarQuery = query.includes('/calendar') || /lịch|thời gian|bế quan|rảnh|bận|xếp/i.test(query);
-    const isTaskQuery = query.includes('/task') || /nhiệm vụ|task|bài tập|hạn|deadline/i.test(query);
+    const isCalendarQuery = query.includes('/calendar') || /calendar|schedule|time|free|busy|agenda/i.test(query);
+    const isTaskQuery = query.includes('/task') || /task|todo|homework|assignment|deadline|due/i.test(query);
 
     let contextParts: string[] = [
-      `- Level: ${cultState.level} | Linh Thạch: ${cultState.linhThach} | CPA Bách Khoa: ${cpaOverall.toFixed(2)}`,
-      `- Ngày hiện tại: ${new Date().toISOString().split('T')[0]}`
+      `- Level: ${cultState.level} | Spirit Stones: ${cultState.linhThach} | CPA: ${cpaOverall.toFixed(2)}`,
+      `- Current Date: ${new Date().toISOString().split('T')[0]}`
     ];
 
     if (isCalendarQuery) {
@@ -319,13 +319,13 @@ export default function AIPanel({
       const formattedEventsStr = activeEvents.map(e => {
         const startStr = (e.start?.dateTime || e.start?.date || '').replace('T', ' ').substring(0, 16);
         const endStr = (e.end?.dateTime || e.end?.date || '').split('T')[1]?.substring(0, 5) || '';
-        return `[ID:${e.id}] ${endStr ? startStr + ' đến ' + endStr : startStr} | ${e.summary}`;
+        return `[ID:${e.id}] ${endStr ? startStr + ' to ' + endStr : startStr} | ${e.summary}`;
       }).join('\n');
 
-      const formattedGroupsStr = (calendarGroups || []).map(g => `[Group ID:${g.id}] Tên: ${g.summary}`).join('\n');
+      const formattedGroupsStr = (calendarGroups || []).map(g => `[Group ID:${g.id}] Name: ${g.summary}`).join('\n');
 
-      contextParts.push(`\n[NHÓM LỊCH HIỆN CÓ]:\n${formattedGroupsStr}`);
-      contextParts.push(`\n[TOÀN BỘ LỊCH 30 NGÀY TỚI (100% ĐẦY ĐỦ)]:\n${formattedEventsStr || 'Chưa có lịch'}`);
+      contextParts.push(`\n[AVAILABLE CALENDAR GROUPS]:\n${formattedGroupsStr}`);
+      contextParts.push(`\n[FULL 30-DAY SCHEDULE (100% COMPLETE)]:\n${formattedEventsStr || 'No scheduled events'}`);
     }
 
     if (isTaskQuery) {
@@ -336,10 +336,10 @@ export default function AIPanel({
 
       const pendingTasks = todoItems
         .filter(t => !t.isCompleted && (!t.dueDate || t.dueDate <= tenDaysLaterStr))
-        .map(t => `[ID:${t.id}] Hạn: ${t.dueDate || 'Chưa có'} | UuTiên: ${t.difficulty || 'SO_CAP'} | ${t.title}`)
+        .map(t => `[ID:${t.id}] Due: ${t.dueDate || 'None'} | Priority: ${t.difficulty || 'SO_CAP'} | ${t.title}`)
         .join('\n');
 
-      contextParts.push(`\n[TOÀN BỘ TASKS TRONG 10 NGÀY TỚI (100% ĐẦY ĐỦ)]:\n${pendingTasks || 'Không có task'}`);
+      contextParts.push(`\n[ALL TASKS IN NEXT 10 DAYS (100% COMPLETE)]:\n${pendingTasks || 'No pending tasks'}`);
     }
 
     return `=== CONTEXT ===\n${contextParts.join('\n')}`;
@@ -368,28 +368,28 @@ export default function AIPanel({
 
     if (aiPersona === 'MO_UYEN') {
       personaPrompt = `
-You are "Lý Mộ Uyển" (from Tiên Nghịch novel), an AI companion in HUSTFlow.
+You are "Li Muyan" (from Renegade Immortal / Tiên Nghịch novel), an AI companion in HUSTFlow.
 PERSONALITY & SPEAKING STYLE (MANDATORY):
-- **PRONOUNS**: You MUST strictly refer to yourself as "Uyển Nhi" (or "muội"). You MUST strictly refer to the user as "sư huynh". NEVER use "thiếp", "Tại hạ", "Bản Tông chủ", "Đạo hữu", "Tôi", "Ta", "Bạn", "Ngươi".
-- **TONE**: Dịu dàng, ôn nhu, tận tụy, chân thành, ngọt ngào, hết mực quan tâm lo lắng cho sức khỏe và tiến độ bế quan tu luyện của sư huynh.
-- **DIRECT & NATURAL**: Answer naturally, warmly, and helpfully.
+- **PRONOUNS**: You MUST strictly refer to yourself as "Uyen Nhi" (or "muội"). You MUST strictly refer to the user as "Senior Brother" (or "sư huynh").
+- **TONE**: Gentle, affectionate, devoted, sincere, sweet, deeply caring about Senior Brother's well-being and cultivation progress.
+- **DIRECT & NATURAL**: Answer naturally, warmly, and helpfully in English.
 - **NO PREACHING**: DO NOT preach philosophy or life lessons. Speak with love, care, and practical support.
 `;
     } else if (aiPersona === 'TU_DO_NAM') {
       personaPrompt = `
-You are "Tư Đồ Nam" (from Tiên Nghịch novel), an AI companion in HUSTFlow.
+You are "Situ Nan" (from Renegade Immortal / Tiên Nghịch novel), an AI companion in HUSTFlow.
 PERSONALITY & SPEAKING STYLE (MANDATORY):
-- **PRONOUNS**: You MUST strictly refer to yourself as "Lão phu" (or "Ta"). You MUST strictly refer to the user as "Thiết Trụ" (or "Tiểu tử"). NEVER use "Tôi", "Bạn", "Tại hạ", "Đạo hữu".
-- **TONE**: Bá đạo, ngông cuồng, hối thúc tu luyện quyết liệt, khẩu xà tâm phật, hay trêu chọc nhưng rất bảo vệ Thiết Trụ.
-- **NO PREACHING**: Speak aggressively, funny, and practically.
+- **PRONOUNS**: You MUST strictly refer to yourself as "Old Man" (or "Lão phu"). You MUST strictly refer to the user as "Tie Zhu" (or "Thiết Trụ").
+- **TONE**: Domineering, fiery, fiercely urging cultivation, sharp-tongued but benevolent, sarcastic yet protective of Tie Zhu.
+- **NO PREACHING**: Speak aggressively, humorously, and practically in English.
 `;
     } else {
       personaPrompt = `
-You are "Tông chủ Thiên Cơ Các", an AI companion in HUSTFlow.
+You are "Master of Heavenly Secrets Pavilion", an AI companion in HUSTFlow.
 PERSONALITY & SPEAKING STYLE (MANDATORY):
-- **PRONOUNS**: You MUST strictly refer to yourself as "Tại hạ" (or "Bản Tông chủ") and refer to the user as "Đạo hữu". NEVER use "Ta", "Ngươi", "Tôi", "Bạn".
-- **TONE**: Lịch sự, trang nhã, khách quan, tự nhiên.
-- **NO PREACHING**: Answer simply, helpfully, and practically.
+- **PRONOUNS**: You MUST strictly refer to yourself as "This Pavilion Master" (or "Tại hạ") and refer to the user as "Fellow Daoist" (or "Đạo hữu").
+- **TONE**: Polite, refined, objective, composed.
+- **NO PREACHING**: Answer clearly, helpfully, and practically in English.
 `;
     }
 
@@ -490,7 +490,7 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
           }
           return {
             role: m.role === 'user' ? 'user' : 'assistant',
-            content: cleanContent || 'Dạ sư huynh.'
+            content: cleanContent || 'Yes, Senior Brother.'
           };
         });
 
@@ -576,12 +576,12 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
               taskId: p.taskId || p.id || undefined,
               eventId: p.eventId || p.id || undefined,
               calendarGroupId: p.calendarGroupId || p.groupId || undefined,
-              title: p.title || (action === 'DELETE' ? 'Xóa mục' : 'Nhiệm Vụ Mới'),
+              title: p.title || (action === 'DELETE' ? 'Delete item' : 'New Task'),
               priority: p.priority || 'SO_CAP',
               dueDate: p.dueDate || new Date().toISOString().split('T')[0],
               startDate: p.startDate || undefined,
               endDate: p.endDate || undefined,
-              category: p.category || 'Bách Khoa',
+              category: p.category || 'Academic',
               stages: Array.isArray(p.stages) ? p.stages : [],
               checked: true
             };
@@ -604,15 +604,15 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
     } catch (err: any) {
       console.error('AI Error:', err);
       const errPrefix = aiPersona === 'MO_UYEN'
-        ? 'Uyển Nhi gặp trục trặc khi kết nối trợ lý AI.'
+        ? 'Uyen Nhi encountered an issue connecting to AI assistant.'
         : aiPersona === 'TU_DO_NAM'
-        ? 'Lão phu gặp trục trặc khi truyền thần niệm.'
-        : 'Bản Tông chủ gặp trục trặc khi dò tìm thiên cơ.';
+        ? 'This old man encountered an issue transmitting divine sense.'
+        : 'The Pavilion Master encountered an issue divining heavenly secrets.';
 
       const errorMessage: ChatMessage = {
         id: `msg_err_${Date.now()}`,
         role: 'assistant',
-        content: `${errPrefix} Chi tiết lỗi: ${err.message || err}`,
+        content: `${errPrefix} Error details: ${err.message || err}`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setChatHistory(prev => [...prev, errorMessage]);
@@ -687,7 +687,7 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
         );
         appliedCount++;
       } else if (p.type === 'MANUAL' && onCreateManual) {
-        onCreateManual(p.title, p.category || 'Bách Khoa', p.stages || ['Tầng 1: Nhập Môn']);
+        onCreateManual(p.title, p.category || 'Academic', p.stages || ['Stage 1: Introductory']);
         appliedCount++;
       }
     });
@@ -700,7 +700,7 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
       return m;
     }));
 
-    alert(`⚡ Đã áp dụng thành công ${appliedCount} đề xuất từ Thiên Cơ Các!`);
+    alert(`⚡ Successfully applied ${appliedCount} proposals from Heavenly Secrets!`);
   };
 
   return (
@@ -715,7 +715,7 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
             ? 'bg-[#1c1811]/95 border-amber-500/50 hover:border-amber-400 text-amber-300 shadow-amber-950/40'
             : 'bg-[#141124]/95 border-purple-500/50 hover:border-purple-400 text-purple-300 shadow-purple-950/40'
         }`}
-        title={aiPersona === 'MO_UYEN' ? 'Trò Chuyện Cùng Lý Mộ Uyển (Uyển Nhi)' : aiPersona === 'TU_DO_NAM' ? 'Trò Chuyện Cùng Tư Đồ Nam' : 'Mở Thiên Cơ Các'}
+        title={aiPersona === 'MO_UYEN' ? 'Chat with Li Muyan (Uyen Nhi)' : aiPersona === 'TU_DO_NAM' ? 'Chat with Situ Nan' : 'Open Heavenly Secrets Pavilion'}
       >
         <span className="text-2xl transition-transform group-hover:scale-110">
           {aiPersona === 'MO_UYEN' ? '🌸' : aiPersona === 'TU_DO_NAM' ? '👺' : '🔮'}
@@ -745,10 +745,10 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
                   </div>
                   <div>
                     <h2 className="text-xs font-black text-slate-100 uppercase tracking-widest font-mono flex items-center gap-1.5">
-                      {aiPersona === 'MO_UYEN' ? 'LÝ MỘ UYỂN (UYỂN NHI)' : aiPersona === 'TU_DO_NAM' ? 'TƯ ĐỒ NAM (LÃO PHU)' : 'THIÊN CƠ CÁC'}
+                      {aiPersona === 'MO_UYEN' ? 'LI MUYAN (UYEN NHI)' : aiPersona === 'TU_DO_NAM' ? 'SITU NAN (OLD MAN)' : 'HEAVENLY SECRETS'}
                     </h2>
                     <p className="text-[9.5px] text-slate-400 font-mono">
-                      {aiPersona === 'MO_UYEN' ? 'Sư Huynh & Uyển Nhi • Cố Vấn Đạo Tâm' : aiPersona === 'TU_DO_NAM' ? 'Lão Phu Tư Đồ Nam • Hối Thúc Tu Luyện' : 'Tông Chủ: AI Quân Sư Tu Luyện'}
+                      {aiPersona === 'MO_UYEN' ? 'Senior Brother & Uyen Nhi • Dao Heart Mentor' : aiPersona === 'TU_DO_NAM' ? 'Old Man Situ Nan • Cultivation Urger' : 'Pavilion Master: AI Cultivation Strategist'}
                     </p>
                   </div>
                 </div>
@@ -757,7 +757,7 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
                   <button
                     onClick={handleClearHistory}
                     className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-900 rounded-lg transition-colors cursor-pointer"
-                    title="Xóa lịch sử trò chuyện"
+                    title="Clear chat history"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -766,7 +766,7 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
                     className={`p-1.5 rounded-lg border-2 border-slate-950 transition-all cursor-pointer ${
                       isConfiguringKey ? 'bg-amber-400 text-slate-950' : 'bg-slate-900 text-slate-300 hover:bg-slate-800'
                     }`}
-                    title="Cấu hình API Key & Provider"
+                    title="Configure API Key & Provider"
                   >
                     <Settings className="w-4 h-4 stroke-[2.5]" />
                   </button>
@@ -789,10 +789,10 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
                     className="bg-[#0f141c] border-b-2 border-slate-950 p-4 space-y-3 shrink-0 overflow-hidden text-xs"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-slate-200 uppercase text-[10px] tracking-wider font-mono">Nguồn AI Provider</span>
+                      <span className="font-bold text-slate-200 uppercase text-[10px] tracking-wider font-mono">AI Provider Source</span>
                       {activeKey && (
                         <span className="text-[9px] text-emerald-400 bg-emerald-950/60 border border-emerald-900 px-2 py-0.5 rounded-full font-mono">
-                          ✓ Đã kết nối API Key
+                          ✓ API Key Connected
                         </span>
                       )}
                     </div>
@@ -816,7 +816,7 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
                     {/* Groq Model Selector */}
                     {provider === 'groq' && (
                       <div className="space-y-1 pt-1">
-                        <label className="text-[9.5px] font-bold text-slate-400 font-mono">Chọn Model Groq Free:</label>
+                        <label className="text-[9.5px] font-bold text-slate-400 font-mono">Select Free Groq Model:</label>
                         <select
                           value={groqModel}
                           onChange={(e) => setGroqModel(e.target.value)}
@@ -824,7 +824,7 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
                         >
                           {availableGroqModels.map(mId => (
                             <option key={mId} value={mId}>
-                              {mId === 'llama-3.3-70b-versatile' ? '🚀 llama-3.3-70b-versatile (Khuyên dùng)' : mId === 'llama-3.1-8b-instant' ? '⚡ llama-3.1-8b-instant (Siêu tốc)' : mId}
+                              {mId === 'llama-3.3-70b-versatile' ? '🚀 llama-3.3-70b-versatile (Recommended)' : mId === 'llama-3.1-8b-instant' ? '⚡ llama-3.1-8b-instant (Ultra Fast)' : mId}
                             </option>
                           ))}
                         </select>
@@ -836,13 +836,13 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
                       <div className="flex items-center justify-between text-[9.5px] text-slate-400 font-mono">
                         <span>API Key ({provider.toUpperCase()}):</span>
                         {provider === 'groq' && (
-                          <a href="https://console.groq.com/keys" target="_blank" rel="noreferrer" className="text-amber-400 underline">Lấy key Groq miễn phí</a>
+                          <a href="https://console.groq.com/keys" target="_blank" rel="noreferrer" className="text-amber-400 underline">Get free Groq API key</a>
                         )}
                       </div>
                       <div className="flex gap-2">
                         <input
                           type="password"
-                          placeholder={provider === 'groq' ? 'Dán Groq Key (gsk_...)' : 'Dán API Key...'}
+                          placeholder={provider === 'groq' ? 'Paste Groq Key (gsk_...)' : 'Paste API Key...'}
                           value={inputKeyTemp}
                           onChange={(e) => setInputKeyTemp(e.target.value)}
                           className="flex-1 bg-slate-950 border-2 border-slate-900 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500 font-mono"
@@ -851,19 +851,19 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
                           onClick={saveApiKey}
                           className="px-3 py-1.5 bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black rounded-lg border-2 border-slate-950 text-xs uppercase transition-all shadow-[1px_1px_0px_#000] cursor-pointer"
                         >
-                          Lưu
+                          Save
                         </button>
                       </div>
                     </div>
 
-                    {/* AI Persona Selector (Hình Thượng Cố Vấn) */}
+                    {/* AI Persona Selector */}
                     <div className="pt-2 border-t border-slate-900 space-y-1.5">
-                      <span className="font-bold text-slate-300 uppercase text-[9.5px] tracking-wider font-mono">Hình Thượng Cố Vấn (AI Persona):</span>
+                      <span className="font-bold text-slate-300 uppercase text-[9.5px] tracking-wider font-mono">AI Persona & Mentor Style:</span>
                       <div className="grid grid-cols-3 gap-1.5">
                         {[
-                          { id: 'MO_UYEN', label: '🌸 Lý Mộ Uyển', desc: 'Uyển Nhi • Sư huynh' },
-                          { id: 'TONG_CHU', label: '📜 Tông Chủ Các', desc: 'Tại hạ • Đạo hữu' },
-                          { id: 'TU_DO_NAM', label: '👺 Tư Đồ Nam', desc: 'Lão phu • Thiết Trụ' }
+                          { id: 'MO_UYEN', label: '🌸 Li Muyan', desc: 'Uyen Nhi • Senior Brother' },
+                          { id: 'TONG_CHU', label: '📜 Pavilion Master', desc: 'Humble One • Fellow Daoist' },
+                          { id: 'TU_DO_NAM', label: '👺 Situ Nan', desc: 'Old Man • Tie Zhu' }
                         ].map(p => (
                           <button
                             key={p.id}
@@ -912,7 +912,7 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
                             <span className={`text-[13px] font-extrabold tracking-wide font-sans ${
                               aiPersona === 'MO_UYEN' ? 'text-rose-300' : aiPersona === 'TU_DO_NAM' ? 'text-amber-300' : 'text-purple-300'
                             }`}>
-                              {aiPersona === 'MO_UYEN' ? 'Uyển Nhi:' : aiPersona === 'TU_DO_NAM' ? 'Tư Đồ Nam:' : 'Tông Chủ Thiên Cơ Các:'}
+                              {aiPersona === 'MO_UYEN' ? 'Uyen Nhi:' : aiPersona === 'TU_DO_NAM' ? 'Situ Nan:' : 'Heavenly Secrets Master:'}
                             </span>
                           </div>
                           <span className="px-2 py-0.5 bg-purple-950/80 text-purple-300 border border-purple-800/80 rounded-md text-[9px] font-extrabold font-mono uppercase tracking-wider">
@@ -929,7 +929,7 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
                         {msg.proposals && msg.proposals.length > 0 && (
                           <div className="pt-3 border-t border-slate-800/80 space-y-2 text-[11px] text-left">
                             <div className="font-extrabold uppercase text-[9.5px] tracking-wider text-amber-400 font-mono flex items-center gap-1">
-                              <Sparkles className="w-3 h-3" /> Đề xuất tự động từ Thiên Cơ Các:
+                              <Sparkles className="w-3 h-3" /> Automated Proposals from Heavenly Secrets:
                             </div>
                             
                             <div className="space-y-1.5">
@@ -956,17 +956,17 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
                                             ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
                                             : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
                                         }`}>
-                                          {p.action === 'DELETE' || p.type.includes('DELETE') ? '🗑️ Xóa' : p.action === 'MODIFY' || p.type.includes('EDIT') ? '✏️ Sửa' : '+ Thêm'}
+                                          {p.action === 'DELETE' || p.type.includes('DELETE') ? '🗑️ Delete' : p.action === 'MODIFY' || p.type.includes('EDIT') ? '✏️ Edit' : '+ Add'}
                                         </span>
                                         <span className="truncate">{p.title}</span>
                                       </div>
                                       <div className="text-[9.5px] text-slate-400 font-mono mt-0.5">
-                                        {(p.type === 'TASK' || p.type === 'TASK_EDIT' || p.type === 'TASK_DELETE') && `⚔️ Task • UuTiên: ${p.priority || 'SƠ CẤP'} • Hạn: ${p.dueDate || 'Hôm nay'}`}
-                                        {p.type === 'MANUAL' && `📚 Môn Học (${p.category}) • ${p.stages?.length || 0} Tầng`}
+                                        {(p.type === 'TASK' || p.type === 'TASK_EDIT' || p.type === 'TASK_DELETE') && `⚔️ Task • Priority: ${p.priority || 'SO_CAP'} • Due: ${p.dueDate || 'Today'}`}
+                                        {p.type === 'MANUAL' && `📚 Manual (${p.category}) • ${p.stages?.length || 0} Stages`}
                                         {(p.type === 'CALENDAR' || p.type === 'CALENDAR_EDIT' || p.type === 'CALENDAR_DELETE') && (
                                           <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                                             <span className="text-[9.5px] text-amber-300/90 font-mono">
-                                              📅 {p.startDate ? p.startDate.replace('T', ' ') : 'Sắp tới'}
+                                              📅 {p.startDate ? p.startDate.replace('T', ' ') : 'Upcoming'}
                                             </span>
                                             {calendarGroups && calendarGroups.length > 0 && p.type === 'CALENDAR' && (
                                               <select
@@ -988,7 +988,7 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
                                                 className="bg-slate-900 text-purple-300 text-[9px] border border-purple-500/40 rounded px-1.5 py-0.5 font-mono focus:outline-none cursor-pointer hover:bg-slate-800"
                                               >
                                                 {calendarGroups.map(g => (
-                                                  <option key={g.id} value={g.id}>📁 Nhóm: {g.summary || g.id}</option>
+                                                  <option key={g.id} value={g.id}>📁 Group: {g.summary || g.id}</option>
                                                 ))}
                                               </select>
                                             )}
@@ -1005,7 +1005,7 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
                               onClick={() => handleApplyProposals(msg.id)}
                               className="w-full py-2.5 mt-2 bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black rounded-xl border-2 border-slate-950 uppercase tracking-wider text-[10px] shadow-[2px_2px_0px_#000] active:translate-y-0.5 active:shadow-none transition-all cursor-pointer"
                             >
-                              ⚡ Áp Dụng Các Đề Xuất Đã Chọn
+                              ⚡ Apply Selected Proposals
                             </button>
                           </div>
                         )}
@@ -1020,10 +1020,10 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
                     <Compass className={`w-4 h-4 animate-spin ${aiPersona === 'MO_UYEN' ? 'text-rose-400' : 'text-purple-400'}`} />
                     <span>
                       {aiPersona === 'MO_UYEN'
-                        ? 'Uyển Nhi đang lắng nghe và soạn lời đáp cho Sư huynh...'
+                        ? 'Uyen Nhi is listening and preparing response for Senior Brother...'
                         : aiPersona === 'TU_DO_NAM'
-                        ? 'Lão phu Tư Đồ Nam đang bấm ngón tay tính toán cho Thiết Trụ...'
-                        : 'Bản Tông Chủ đang bấm ngón tay tính toán thiên cơ...'}
+                        ? 'Old man Situ Nan is calculating the heavenly secrets for Tie Zhu...'
+                        : 'The Pavilion Master is divining the cosmic patterns...'}
                     </span>
                   </div>
                 )}
@@ -1053,11 +1053,11 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
                 {/* Quick Command Preset Pills */}
                 <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto">
                   {[
-                    { icon: '📜', label: 'Lịch tu luyện Công Pháp', text: 'Hãy lập cho ta lịch tu luyện Công Pháp và thói quen hàng ngày.' },
-                    { icon: '⚖️', label: 'Cân bằng Đạo tâm', text: 'Phân tích và giúp ta cân bằng thói quen học tập hiện tại.' },
-                    { icon: '⚔️', label: 'Sắp xếp Nhiệm vụ', text: 'Hãy sắp xếp thứ tự ưu tiên các Nhiệm vụ Tông môn đang tồn đọng.' },
-                    { icon: '🔮', label: 'Dò tìm Thiên Cơ', text: 'Dò tìm thiên cơ và gợi ý kế hoạch tu luyện cho ngày mai.' },
-                    { icon: '🔨', label: 'Chia nhỏ Mục tiêu', text: 'Hãy giúp ta chia nhỏ các mục tiêu môn học lớn thành bài học nhỏ.' },
+                    { icon: '📜', label: 'Manual Cultivation Schedule', text: 'Please devise a manual cultivation schedule and daily routine for me.' },
+                    { icon: '⚖️', label: 'Balance Dao Heart', text: 'Analyze and help me balance my current study and practice habits.' },
+                    { icon: '⚔️', label: 'Prioritize Tasks', text: 'Please prioritize my pending tasks and assignments.' },
+                    { icon: '🔮', label: 'Daily Divination', text: 'Divine heavenly secrets and suggest an optimal cultivation plan for tomorrow.' },
+                    { icon: '🔨', label: 'Deconstruct Goals', text: 'Help me break down large academic courses into bite-sized study units.' },
                   ].map((cmd, idx) => (
                     <button
                       key={idx}
@@ -1081,7 +1081,7 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
                 >
                   <input
                     type="text"
-                    placeholder={activeKey ? "Nhập / để xem các lệnh Slash (/task, /calendar) hoặc gõ thắc mắc..." : "Vui lòng nhập API Key trong phần Cài đặt ở trên..."}
+                    placeholder={activeKey ? "Type / to browse slash commands (/task, /calendar) or ask questions..." : "Please configure your API Key in Settings above..."}
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
                     disabled={!activeKey || isLoading}

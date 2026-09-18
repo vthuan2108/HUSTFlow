@@ -136,14 +136,14 @@ export default function ScheduleSection({
     return dates;
   }, [anchorDate]);
 
-  // Get formatted start-end month text (e.g. "Tháng 7 - Tháng 8, 2026")
+  // Get formatted start-end month text (e.g. "Jul - Aug, 2026")
   const headerDateText = useMemo(() => {
     if (weekDates.length === 0) return '';
     const first = weekDates[0];
     const last = weekDates[6];
-    const formatMonth = (d: Date) => `Tháng ${d.getMonth() + 1}`;
+    const formatMonth = (d: Date) => d.toLocaleDateString('en-US', { month: 'short' });
     if (first.getFullYear() !== last.getFullYear()) {
-      return `${formatMonth(first)}, ${first.getFullYear()} - ${formatMonth(last)}, ${last.getFullYear()}`;
+      return `${formatMonth(first)} ${first.getFullYear()} - ${formatMonth(last)} ${last.getFullYear()}`;
     }
     if (first.getMonth() !== last.getMonth()) {
       return `${formatMonth(first)} - ${formatMonth(last)}, ${first.getFullYear()}`;
@@ -202,8 +202,8 @@ export default function ScheduleSection({
         events.push({
           id: `exam_midterm_${manual.id}`,
           calendarId: schoolGroupId,
-          summary: `📝 GIỮA KỲ: ${manual.name}`,
-          description: `Kỳ thi giữa kỳ môn ${manual.name}. Giới hạn: ${limitStage ? `Học đến hết ${limitStage.title}` : 'Toàn bộ công pháp'}`,
+          summary: `📝 MIDTERM: ${manual.name}`,
+          description: `Midterm exam for ${manual.name}. Scope: ${limitStage ? `Up to ${limitStage.title}` : 'Full curriculum'}`,
           start: { date: manual.midtermExamDate }, // all-day event
           end: { date: manual.midtermExamDate }
         });
@@ -213,8 +213,8 @@ export default function ScheduleSection({
         events.push({
           id: `exam_final_${manual.id}`,
           calendarId: schoolGroupId,
-          summary: `⚔️ CUỐI KỲ: ${manual.name}`,
-          description: `Kỳ thi cuối kỳ môn ${manual.name}. Giới hạn: Toàn bộ công pháp`,
+          summary: `⚔️ FINAL: ${manual.name}`,
+          description: `Final exam for ${manual.name}. Scope: Full curriculum`,
           start: { date: manual.finalExamDate }, // all-day event
           end: { date: manual.finalExamDate }
         });
@@ -224,8 +224,8 @@ export default function ScheduleSection({
         events.push({
           id: `exam_${manual.id}`,
           calendarId: schoolGroupId,
-          summary: `⚔️ THI: ${manual.name}`,
-          description: `Kỳ thi công pháp môn ${manual.name}`,
+          summary: `⚔️ EXAM: ${manual.name}`,
+          description: `Exam for ${manual.name}`,
           start: { date: manual.examDate }, // all-day event
           end: { date: manual.examDate }
         });
@@ -246,12 +246,12 @@ export default function ScheduleSection({
         }
       } catch (err) {
         console.error('Failed to authenticate Google account:', err);
-        alert('⚠️ Kết nối tài khoản Google thất bại!');
+        alert('⚠️ Failed to connect Google account!');
         return;
       }
     }
     if (!token) {
-      alert('Đạo hữu vui lòng kết nối tài khoản Google để đồng bộ lịch trình!');
+      alert('Please connect your Google account to sync schedule!');
       return;
     }
 
@@ -272,22 +272,22 @@ export default function ScheduleSection({
       
       // Save locally
       localStorage.setItem('tlk_calendar_groups', JSON.stringify(result.syncedGroups));
-      alert('⚡ Đồng bộ hóa dữ liệu Google Calendar thành công!');
+      alert('⚡ Google Calendar sync completed successfully!');
     } catch (err: any) {
       console.error(err);
       if (err?.message === 'GOOGLE_AUTH_401' || err?.message?.includes('401')) {
-        if (confirm('⚠️ Phiên làm việc Google của đạo hữu đã hết hạn (Token 60 phút).\n\nĐạo hữu có muốn đăng nhập lại để cấp Token mới cho cả 3 dịch vụ (Tasks, Sheets, Calendar) và đồng bộ lại ngay không?')) {
+        if (confirm('⚠️ Your Google session has expired (60-minute token).\n\nWould you like to sign in again to re-authenticate and sync now?')) {
           try {
             const res = await googleSignIn();
             if (res?.accessToken) {
               handleSyncGoogleCalendar();
             }
           } catch (loginErr) {
-            alert('❌ Đăng nhập cấp lại Token thất bại!');
+            alert('❌ Token renewal failed!');
           }
         }
       } else {
-        alert(`⚠️ Gặp lỗi trong quá trình đồng bộ hóa Google Calendar: ${err?.message || err}`);
+        alert(`⚠️ Google Calendar sync error: ${err?.message || err}`);
       }
     } finally {
       setIsSyncing(false);
@@ -354,7 +354,7 @@ export default function ScheduleSection({
     const eventId = e.dataTransfer.getData('text/plain');
 
     if (eventId.startsWith('exam_')) {
-      alert('Đạo hữu không thể kéo thả lịch thi. Vui lòng cập nhật lịch thi thông qua bảng Lịch Thi!');
+      alert('Cannot drag & drop exam events. Please update exams via the Exam Schedule panel!');
       return;
     }
 
@@ -507,7 +507,7 @@ export default function ScheduleSection({
   };
 
   const handleDeleteGroup = async (groupId: string) => {
-    if (confirm('Đạo hữu có chắc muốn xóa nhóm lịch này? Tất cả sự kiện thuộc nhóm sẽ biến mất.')) {
+    if (confirm('Are you sure you want to delete this calendar group? All events in this group will be deleted.')) {
       const updatedGroups = calendarGroups.filter(g => g.id !== groupId);
       onUpdateCalendarGroups(updatedGroups);
       localStorage.setItem('tlk_calendar_groups', JSON.stringify(updatedGroups));
@@ -563,7 +563,7 @@ export default function ScheduleSection({
     }
 
     if (!titleToUse) {
-      alert('Đạo hữu vui lòng nhập tiêu đề!');
+      alert('Please enter a title!');
       return;
     }
 
@@ -636,7 +636,7 @@ export default function ScheduleSection({
   };
 
   const handleDeleteEvent = async (eventId: string, calendarId: string) => {
-    if (confirm('Đạo hữu có thực sự muốn xóa sự kiện này?')) {
+    if (confirm('Are you sure you want to delete this event?')) {
       const updated = calendarEvents.filter(ev => ev.id !== eventId);
       onUpdateCalendarEvents(updated);
       localStorage.setItem('tlk_calendar_events', JSON.stringify(updated));
@@ -719,7 +719,7 @@ export default function ScheduleSection({
         <div className="bg-slate-950/40 p-3 rounded-xl border border-slate-900/60">
           <div className="flex items-center justify-between mb-2">
             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-mono select-none">
-              {miniCalendarDate.toLocaleString('vi-VN', { month: 'long', year: 'numeric' })}
+              {miniCalendarDate.toLocaleString('en-US', { month: 'short', year: 'numeric' })}
             </h4>
             <div className="flex gap-1">
               <button
@@ -738,8 +738,8 @@ export default function ScheduleSection({
           </div>
           
           <div className="grid grid-cols-7 gap-1 text-center font-mono text-[9px]">
-            {['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map(h => (
-              <span key={h} className="text-slate-650 font-bold py-0.5 select-none">{h}</span>
+            {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((h, i) => (
+              <span key={i} className="text-slate-650 font-bold py-0.5 select-none">{h}</span>
             ))}
             {miniCalendarDays.map((c, idx) => {
               const isActive = getLocalDateString(c.date) === getLocalDateString(anchorDate);
@@ -765,7 +765,7 @@ export default function ScheduleSection({
                       ? 'text-slate-350 hover:bg-slate-900' 
                       : 'text-slate-650 opacity-40 hover:bg-slate-900'
                   }`}
-                  title={hasExam ? 'Có lịch thi môn công pháp' : undefined}
+                  title={hasExam ? 'Exam scheduled' : undefined}
                 >
                   {c.day}
                 </button>
@@ -774,16 +774,16 @@ export default function ScheduleSection({
           </div>
         </div>
 
-        {/* Center Col: Lịch Của Tôi (Calendar Groups horizontal chips) */}
+        {/* Center Col: My Calendars (Calendar Groups horizontal chips) */}
         <div className="flex flex-col justify-between space-y-3">
           <div>
             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-mono mb-2 border-b border-slate-900 pb-1 flex justify-between items-center select-none">
-              <span>Lịch của tôi</span>
+              <span>My Calendars</span>
               <span 
                 className="cursor-pointer text-rose-400 hover:text-rose-300 font-bold tracking-wide" 
                 onClick={() => setShowExamModal(true)}
               >
-                + Đăng Ký Lịch Thi
+                + Exam Schedule
               </span>
             </h4>
 
@@ -825,7 +825,7 @@ export default function ScheduleSection({
             <input
               type="text"
               required
-              placeholder="Tạo nhóm lịch mới..."
+              placeholder="New calendar group..."
               value={newGroupTitle}
               onChange={(e) => setNewGroupTitle(e.target.value)}
               className="flex-1 bg-slate-950 border border-slate-900 rounded-lg px-2.5 py-1 text-[10px] text-slate-200 focus:outline-none focus:border-amber-400"
@@ -845,20 +845,20 @@ export default function ScheduleSection({
             <div className="flex items-center justify-between bg-slate-950 border border-slate-900 px-3 py-1.5 rounded-xl text-[10px] text-slate-350 shadow-[1px_1px_0px_#000]">
               <div className="flex items-center gap-1.5 truncate">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
-                <span className="font-mono font-bold truncate max-w-[110px]">{userProfile?.displayName || 'Đã liên kết'}</span>
+                <span className="font-mono font-bold truncate max-w-[110px]">{userProfile?.displayName || 'Connected'}</span>
               </div>
               <button
                 type="button"
                 onClick={logout}
                 className="text-[9px] text-slate-550 hover:text-rose-450 font-bold cursor-pointer uppercase font-mono shrink-0 ml-1.5"
-                title="Đăng xuất khỏi Google"
+                title="Disconnect Google"
               >
-                Hủy kết nối
+                Disconnect
               </button>
             </div>
           ) : (
             <div className="text-center text-[9px] text-slate-500 italic bg-slate-950/40 py-1.5 rounded border border-dashed border-slate-900 select-none">
-              Chưa liên kết Tiên Đài Google
+              Not connected to Google Calendar
             </div>
           )}
 
@@ -867,7 +867,7 @@ export default function ScheduleSection({
             className="w-full py-2 bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-xs rounded-xl border-2 border-slate-950 uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-[2.5px_2.5px_0px_#000] active:translate-y-[1.5px] active:shadow-none cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            Tạo sự kiện
+            Create Event
           </button>
           
           <button
@@ -878,7 +878,7 @@ export default function ScheduleSection({
             }`}
           >
             <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
-            {isSyncing ? 'Đang đồng bộ...' : 'Đồng bộ Google'}
+            {isSyncing ? 'Syncing...' : 'Sync Google Calendar'}
           </button>
         </div>
 
@@ -894,7 +894,7 @@ export default function ScheduleSection({
               onClick={setToday}
               className="px-3.5 py-1.5 bg-slate-900 border-2 border-slate-950 rounded-xl text-[10px] font-black text-slate-200 uppercase tracking-wider hover:bg-slate-800 transition-all cursor-pointer font-mono"
             >
-              Hôm nay
+              Today
             </button>
             <div className="flex items-center gap-1">
               <button
@@ -921,14 +921,14 @@ export default function ScheduleSection({
               className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-500 hover:bg-rose-400 text-slate-950 font-black text-[10px] rounded-xl border-2 border-slate-950 uppercase tracking-wider transition-all shadow-[2px_2px_0px_#000] cursor-pointer"
             >
               <GraduationCap className="w-3.5 h-3.5" />
-              Lịch Thi
+              Exam Schedule
             </button>
             <select
               disabled
               value="week"
               className="bg-slate-900 border-2 border-slate-950 rounded-xl text-[10px] font-black text-slate-200 px-3 py-1.5 focus:outline-none cursor-not-allowed uppercase tracking-wider"
             >
-              <option value="week">Tuần</option>
+              <option value="week">Week</option>
             </select>
           </div>
         </div>
@@ -947,7 +947,7 @@ export default function ScheduleSection({
                 const dateStr = getLocalDateString(date);
                 const isToday = dateStr === getLocalDateString();
                 const dayNum = date.getDate();
-                const dayLabel = date.toLocaleDateString('vi-VN', { weekday: 'short' });
+                const dayLabel = date.toLocaleDateString('en-US', { weekday: 'short' });
                 
                 return (
                   <div key={idx} className={`py-2 text-center flex flex-col items-center justify-center ${isToday ? 'bg-amber-400/5' : ''}`}>
@@ -1051,7 +1051,7 @@ export default function ScheduleSection({
                         const topPx = ((startMin - gridStartMin) / 60) * HOUR_HEIGHT;
                         const heightPx = ((endMin - startMin) / 60) * HOUR_HEIGHT;
 
-                        const startTimeStr = startD.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+                        const startTimeStr = startD.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
                         return (
                           <div
@@ -1071,7 +1071,7 @@ export default function ScheduleSection({
                               backgroundColor: bg
                             }}
                             className="absolute rounded-lg border border-slate-950 p-1.5 shadow-[1.5px_1.5px_0px_#000] text-slate-950 text-left select-none cursor-grab active:cursor-grabbing hover:shadow-[2.5px_2.5px_0px_#000] hover:-translate-y-[0.5px] transition-all overflow-hidden flex flex-col z-10 hover:z-20 event-card"
-                            title={`${event.summary}\n${startTimeStr} (${endMin - startMin} phút)`}
+                            title={`${event.summary}\n${startTimeStr} (${endMin - startMin}m)`}
                           >
                             <span className="text-[11px] font-black leading-tight truncate">
                               {event.summary}
@@ -1108,16 +1108,16 @@ export default function ScheduleSection({
 
             <h3 className="text-xs font-black text-slate-100 uppercase tracking-widest font-mono mb-4 flex items-center gap-2">
               <Clock className="w-4.5 h-4.5 text-amber-400" />
-              {selectedEvent ? 'Chi tiết / Chỉnh sửa lịch trình' : 'Tạo lịch trình tu tập mới'}
+              {selectedEvent ? 'Event Details / Edit Schedule' : 'Create New Event'}
             </h3>
 
             <form onSubmit={handleSaveEvent} className="space-y-4 text-xs">
               <div>
-                <label className="text-[10px] text-slate-500 font-bold uppercase font-mono block mb-1">Tiêu đề công việc:</label>
+                <label className="text-[10px] text-slate-500 font-bold uppercase font-mono block mb-1">Event Title:</label>
                 <input
                   type="text"
                   required
-                  placeholder="VD: Học Kubernetes, Bế quan code..."
+                  placeholder="e.g. Study Kubernetes, Focus coding..."
                   value={formTitle}
                   onChange={(e) => setFormTitle(e.target.value)}
                   disabled={!!associatedTaskId}
@@ -1126,9 +1126,9 @@ export default function ScheduleSection({
               </div>
 
               <div>
-                <label className="text-[10px] text-slate-500 font-bold uppercase font-mono block mb-1">Chi tiết / Mô tả (tùy chọn):</label>
+                <label className="text-[10px] text-slate-500 font-bold uppercase font-mono block mb-1">Description (optional):</label>
                 <textarea
-                  placeholder="Thêm mô tả công việc..."
+                  placeholder="Add event description..."
                   value={formDescription}
                   onChange={(e) => setFormDescription(e.target.value)}
                   className="w-full bg-slate-950 border-2 border-slate-900 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-400 h-16 resize-none"
@@ -1137,7 +1137,7 @@ export default function ScheduleSection({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] text-slate-500 font-bold uppercase font-mono block mb-1">Nhóm lịch:</label>
+                  <label className="text-[10px] text-slate-500 font-bold uppercase font-mono block mb-1">Calendar Group:</label>
                   <select
                     value={formCalendarId}
                     onChange={(e) => setFormCalendarId(e.target.value)}
@@ -1150,7 +1150,7 @@ export default function ScheduleSection({
                 </div>
 
                 <div>
-                  <label className="text-[10px] text-slate-500 font-bold uppercase font-mono block mb-1">Ngày lập lịch:</label>
+                  <label className="text-[10px] text-slate-500 font-bold uppercase font-mono block mb-1">Date:</label>
                   <input
                     type="date"
                     required
@@ -1171,7 +1171,7 @@ export default function ScheduleSection({
                   className="w-4 h-4 accent-amber-400 rounded cursor-pointer"
                 />
                 <label htmlFor="allDayCheck" className="font-bold text-slate-350 cursor-pointer select-none">
-                  Sự kiện cả ngày
+                  All-day event
                 </label>
               </div>
 
@@ -1179,7 +1179,7 @@ export default function ScheduleSection({
               {!formIsAllDay && (
                 <div className="grid grid-cols-2 gap-3 bg-slate-950/20 p-2.5 border border-slate-900 rounded-xl">
                   <div>
-                    <label className="text-[9px] text-slate-500 font-bold uppercase font-mono block mb-1">Giờ bắt đầu:</label>
+                    <label className="text-[9px] text-slate-500 font-bold uppercase font-mono block mb-1">Start Time:</label>
                     <div className="flex gap-1.5">
                       <input
                         type="number"
@@ -1205,7 +1205,7 @@ export default function ScheduleSection({
                   </div>
 
                   <div>
-                    <label className="text-[9px] text-slate-500 font-bold uppercase font-mono block mb-1">Giờ kết thúc:</label>
+                    <label className="text-[9px] text-slate-500 font-bold uppercase font-mono block mb-1">End Time:</label>
                     <div className="flex gap-1.5">
                       <input
                         type="number"
@@ -1235,7 +1235,7 @@ export default function ScheduleSection({
               {/* Task Association */}
               {!selectedEvent && (
                 <div>
-                  <label className="text-[10px] text-slate-500 font-bold uppercase font-mono block mb-1">Liên kết Nhiệm Vụ Tông Môn:</label>
+                  <label className="text-[10px] text-slate-500 font-bold uppercase font-mono block mb-1">Link to Quest / Task:</label>
                   <select
                     value={associatedTaskId}
                     onChange={(e) => {
@@ -1247,7 +1247,7 @@ export default function ScheduleSection({
                     }}
                     className="w-full bg-slate-950 border-2 border-slate-900 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-400 cursor-pointer"
                   >
-                    <option value="">-- Tạo lịch tự do (Không liên kết) --</option>
+                    <option value="">-- Free event (No linked task) --</option>
                     {todoItems.filter(t => !t.isCompleted).map(t => (
                       <option key={t.id} value={t.id}>{t.title}</option>
                     ))}
@@ -1262,14 +1262,14 @@ export default function ScheduleSection({
                     onClick={() => handleDeleteEvent(selectedEvent.id, selectedEvent.calendarId)}
                     className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-500 text-slate-950 font-black rounded-xl border-2 border-slate-950 uppercase tracking-wider transition-all shadow-[2px_2px_0px_#000] active:translate-y-[1px] active:shadow-none cursor-pointer flex items-center justify-center gap-1"
                   >
-                    <Trash2 className="w-3.5 h-3.5" /> Xóa sự kiện
+                    <Trash2 className="w-3.5 h-3.5" /> Delete Event
                   </button>
                 )}
                 <button
                   type="submit"
                   className="flex-2 py-2.5 bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black rounded-xl border-2 border-slate-950 uppercase tracking-wider transition-all shadow-[2px_2px_0px_#000] active:translate-y-[1px] active:shadow-none cursor-pointer flex items-center justify-center gap-1"
                 >
-                  <Save className="w-3.5 h-3.5" /> Ghi nhớ lịch trình
+                  <Save className="w-3.5 h-3.5" /> Save Event
                 </button>
               </div>
             </form>
@@ -1291,16 +1291,16 @@ export default function ScheduleSection({
             <div className="mb-4">
               <h3 className="text-xs font-black text-slate-100 uppercase tracking-widest font-mono flex items-center gap-2 select-none">
                 <GraduationCap className="w-5 h-5 text-rose-500 animate-pulse" />
-                Đăng ký Lịch Thi Môn Công Pháp
+                Course Exam Schedule Registration
               </h3>
-              <p className="text-[10px] text-slate-500 mt-1">Đăng ký ngày tỷ thí/thi cử cho các môn học chuyên ngành tông môn (hiển thị tất cả công pháp đã & đang luyện)</p>
+              <p className="text-[10px] text-slate-500 mt-1">Register exam dates for courses (displays all active & completed courses)</p>
             </div>
 
             <div className="flex-1 overflow-y-auto pr-1 space-y-3 min-h-0">
               {manuals.length > 0 ? (
                 manuals.map(manual => (
                   <div 
-                    key={manual.id}
+                    key={manual.id} 
                     className="bg-slate-950/60 border-2 border-slate-950 p-3.5 rounded-xl flex flex-col gap-3 text-xs"
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-900/60 pb-2">
@@ -1308,28 +1308,28 @@ export default function ScheduleSection({
                         <div className="flex items-center gap-2 flex-wrap">
                           <h4 className="font-bold text-slate-200 truncate">{manual.name}</h4>
                           {manual.status === 'DAI_VIEN_MAN' ? (
-                            <span className="text-[8px] bg-emerald-950 text-emerald-400 border border-emerald-900 px-1.5 py-0.2 rounded font-bold uppercase shrink-0">Đại Viên Mãn</span>
+                            <span className="text-[8px] bg-emerald-950 text-emerald-400 border border-emerald-900 px-1.5 py-0.2 rounded font-bold uppercase shrink-0">Mastered</span>
                           ) : manual.status === 'DANG_TU_LUYEN' ? (
-                            <span className="text-[8px] bg-purple-950 text-purple-400 border border-purple-900 px-1.5 py-0.2 rounded font-bold uppercase shrink-0">Đang luyện</span>
+                            <span className="text-[8px] bg-purple-950 text-purple-400 border border-purple-900 px-1.5 py-0.2 rounded font-bold uppercase shrink-0">Studying</span>
                           ) : (
-                            <span className="text-[8px] bg-slate-900 text-slate-500 border border-slate-800 px-1.5 py-0.2 rounded font-bold uppercase shrink-0">Chưa nhập môn</span>
+                            <span className="text-[8px] bg-slate-900 text-slate-500 border border-slate-800 px-1.5 py-0.2 rounded font-bold uppercase shrink-0">Not Started</span>
                           )}
                         </div>
-                        <p className="text-[9px] text-slate-500 mt-0.5 uppercase tracking-wide">{manual.category || 'Chưa phân hệ'}</p>
+                        <p className="text-[9px] text-slate-500 mt-0.5 uppercase tracking-wide">{manual.category || 'Uncategorized'}</p>
                       </div>
 
                       {/* Display midterm limit details */}
                       <div className="text-[9px] text-slate-400 font-bold bg-slate-950/80 px-2 py-1 rounded border border-slate-900 shrink-0">
-                        📌 GK: {(() => {
+                        📌 Midterm: {(() => {
                           const limitStage = manual.midtermLimitStageId ? manual.stages.find(s => s.id === manual.midtermLimitStageId) : null;
-                          return limitStage ? `Hết ${limitStage.title}` : 'Toàn bộ';
+                          return limitStage ? `Up to ${limitStage.title}` : 'Full curriculum';
                         })()}
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-[9px] text-rose-400/80 font-bold uppercase shrink-0">Thi Giữa Kỳ:</span>
+                        <span className="text-[9px] text-rose-400/80 font-bold uppercase shrink-0">Midterm Exam:</span>
                         <input
                           type="date"
                           value={manual.midtermExamDate || ''}
@@ -1339,7 +1339,7 @@ export default function ScheduleSection({
                       </div>
 
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-[9px] text-rose-450 font-bold uppercase shrink-0">Thi Cuối Kỳ:</span>
+                        <span className="text-[9px] text-rose-450 font-bold uppercase shrink-0">Final Exam:</span>
                         <input
                           type="date"
                           value={manual.finalExamDate || ''}
@@ -1353,9 +1353,9 @@ export default function ScheduleSection({
               ) : (
                 <div className="text-center py-16 text-slate-650 text-xs flex flex-col items-center gap-2">
                   <AlertCircle className="w-6 h-6 text-slate-700" />
-                  Chưa tìm thấy môn công pháp nào phù hợp. 
+                  No suitable courses found. 
                   <br />
-                  <span className="text-[10px] text-slate-550 italic">Đạo hữu vui lòng thêm môn học tại tab "Tiên Lộ" trước!</span>
+                  <span className="text-[10px] text-slate-550 italic">Please add courses in the "Immortal Roadmap" tab first!</span>
                 </div>
               )}
             </div>
@@ -1365,7 +1365,7 @@ export default function ScheduleSection({
                 onClick={() => setShowExamModal(false)}
                 className="w-full py-2 bg-rose-500 hover:bg-rose-400 text-slate-950 font-black rounded-xl border-2 border-slate-950 uppercase tracking-wider text-[11px] transition-all shadow-[2px_2px_0px_#000] active:translate-y-[1px] active:shadow-none cursor-pointer"
               >
-                Hoàn Tất & Đồng bộ lên Lịch
+                Done & Sync to Calendar
               </button>
             </div>
           </div>

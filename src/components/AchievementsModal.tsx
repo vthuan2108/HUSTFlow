@@ -101,7 +101,7 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({
             onClick={onClose}
             className="absolute top-4 right-4 text-xs text-slate-500 hover:text-slate-300 font-bold cursor-pointer"
           >
-            Đóng
+            Close
           </button>
 
           {/* Modal Header */}
@@ -111,10 +111,10 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({
             </div>
             <div>
               <h3 className="text-md font-extrabold text-slate-100 uppercase tracking-widest pixel-label">
-                HUY HIỆU ĐẠO TÂM (80 DANH HIỆU)
+                CULTIVATION BADGES (80 TITLES)
               </h3>
               <p className="text-xs text-slate-400 mt-0.5 font-mono">
-                Đã mở khóa <span className="text-amber-400 font-bold">{totalUnlocked} / {ACHIEVEMENTS.length}</span> Thử thách Tu Hành
+                Unlocked <span className="text-amber-400 font-bold">{totalUnlocked} / {ACHIEVEMENTS.length}</span> Cultivation Trials
               </p>
             </div>
           </div>
@@ -122,7 +122,7 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({
           {/* Currently Equipped Title Display */}
           <div className="bg-slate-950 p-3 rounded-xl border-2 border-slate-950 flex items-center justify-between font-mono text-[10px] shadow-[2px_2px_0px_#000]">
             <span className="text-slate-400 uppercase tracking-wider flex items-center gap-1 font-bold">
-              <Award className="w-3.5 h-3.5 text-amber-400" /> Danh Hiệu Đang Đeo:
+              <Award className="w-3.5 h-3.5 text-amber-400" /> Equipped Title:
             </span>
             {equippedTitle ? (
               <div className="flex items-center gap-2">
@@ -133,26 +133,26 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({
                   onClick={() => onEquipTitle('')}
                   className="text-slate-500 hover:text-rose-400 text-[9px] underline cursor-pointer"
                 >
-                  Tháo
+                  Unequip
                 </button>
               </div>
             ) : (
-              <span className="text-slate-600 italic">Chưa đeo danh hiệu</span>
+              <span className="text-slate-600 italic">No title equipped</span>
             )}
           </div>
 
           {/* Category Tabs */}
           <div className="flex flex-wrap gap-1.5 pt-1 text-[10px] font-bold font-mono">
             {[
-              { id: 'ALL', label: `TẤT CẢ (${ACHIEVEMENTS.length})` },
-              { id: 'MEDITATION', label: '🧘 THIỀN ĐỊNH' },
-              { id: 'TASKS', label: '⚔️ NHIỆM VỤ' },
-              { id: 'STREAK', label: '⚡ CHUỖI' },
-              { id: 'ACADEMICS', label: '🎓 HỌC TRỤ' },
-              { id: 'GARDEN', label: '🍄 TIÊN DƯỢC' },
-              { id: 'WEALTH', label: '💎 TÀI PHÚ' },
-              { id: 'REALM', label: '🔥 CẢNH GIỚI' },
-              { id: 'SPECIAL', label: '✨ ĐẶC BIỆT' },
+              { id: 'ALL', label: `ALL (${ACHIEVEMENTS.length})` },
+              { id: 'MEDITATION', label: '🧘 MEDITATION' },
+              { id: 'TASKS', label: '⚔️ TASKS' },
+              { id: 'STREAK', label: '⚡ STREAK' },
+              { id: 'ACADEMICS', label: '🎓 ACADEMICS' },
+              { id: 'GARDEN', label: '🍄 HERB GARDEN' },
+              { id: 'WEALTH', label: '💎 WEALTH' },
+              { id: 'REALM', label: '🔥 REALMS' },
+              { id: 'SPECIAL', label: '✨ SPECIAL' },
             ].map(tab => (
               <button
                 key={tab.id}
@@ -196,7 +196,7 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({
                             {ach.title}
                           </h4>
                           <span className="text-[9px] text-amber-400/70 font-mono font-semibold">
-                            Huy Hiệu Tu Tiên
+                            Cultivation Badge
                           </span>
                         </div>
                       </div>
@@ -216,7 +216,7 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({
                   {/* Progress bar & Action button */}
                   <div className="space-y-2 pt-1 border-t border-slate-900">
                     <div className="flex justify-between text-[9px] font-mono">
-                      <span className="text-slate-500 uppercase font-semibold">Tiến độ tu hành:</span>
+                      <span className="text-slate-500 uppercase font-semibold">Cultivation progress:</span>
                       <span className={isCompleted ? 'text-emerald-400 font-bold' : 'text-slate-400'}>
                         {currentVal} / {ach.targetValue} ({percent}%)
                       </span>
@@ -239,7 +239,7 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({
                           disabled
                           className="w-full py-1.5 rounded-lg bg-slate-900 text-slate-600 border border-slate-800 text-[10px] font-bold cursor-not-allowed uppercase tracking-wider"
                         >
-                          CHƯA HOÀN THÀNH
+                          INCOMPLETE
                         </button>
                       )}
 
@@ -248,7 +248,7 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({
                           onClick={() => onClaimAchievement(ach.id, 0)}
                           className="w-full py-1.5 rounded-lg neo-btn neo-btn-primary text-[10px] font-black uppercase tracking-widest animate-pulse cursor-pointer"
                         >
-                          🎖️ NHẬN HUY HIỆU
+                          🎖️ CLAIM BADGE
                         </button>
                       )}
 
@@ -261,7 +261,7 @@ export const AchievementsModal: React.FC<AchievementsModalProps> = ({
                               : 'bg-slate-900 hover:bg-slate-800 text-amber-300 border-2 border-slate-800'
                           }`}
                         >
-                          {isEquipped ? '✓ ĐANG ĐEO DANH HIỆU' : `⚡ ĐEO DANH HIỆU "${ach.titleToEquip}"`}
+                          {isEquipped ? '✓ EQUIPPED' : `⚡ EQUIP TITLE "${ach.titleToEquip}"`}
                         </button>
                       )}
                     </div>

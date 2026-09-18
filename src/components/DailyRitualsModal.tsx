@@ -113,15 +113,15 @@ export default function DailyRitualsModal({
   const getDifficultyInfo = (diff?: Priority) => {
     switch (diff) {
       case 'SO_CAP':
-        return { label: 'Sơ Cấp', color: 'text-slate-300 border-slate-800 bg-slate-900/40' };
+        return { label: 'Novice', color: 'text-slate-300 border-slate-800 bg-slate-900/40' };
       case 'TRUNG_CAP':
-        return { label: 'Trung Cấp', color: 'text-blue-400 border-blue-900/50 bg-blue-950/20' };
+        return { label: 'Adept', color: 'text-blue-400 border-blue-900/50 bg-blue-950/20' };
       case 'CAO_CAP':
-        return { label: 'Địa Cấp', color: 'text-rose-400 border-rose-900/50 bg-rose-950/20' };
+        return { label: 'Earth', color: 'text-rose-400 border-rose-900/50 bg-rose-950/20' };
       case 'THAN_CAP':
-        return { label: 'Thiên Cấp', color: 'text-purple-400 border-purple-500/30 bg-purple-950/10' };
+        return { label: 'Heaven', color: 'text-purple-400 border-purple-500/30 bg-purple-950/10' };
       default:
-        return { label: 'Sơ Cấp', color: 'text-slate-300 border-slate-800 bg-slate-900/40' };
+        return { label: 'Novice', color: 'text-slate-300 border-slate-800 bg-slate-900/40' };
     }
   };
 
@@ -161,7 +161,7 @@ export default function DailyRitualsModal({
         return prev.filter(pId => pId !== id);
       } else {
         if (prev.length >= 3) {
-          alert('Đạo hữu chỉ nên chọn tối đa 3 nhiệm vụ trọng tâm hàng ngày!');
+          alert('You can only select up to 3 core priority tasks per day!');
           return prev;
         }
         return [...prev, id];
@@ -209,11 +209,11 @@ export default function DailyRitualsModal({
     if (ritualType === 'PLANNING') {
       onCompletePlanning(ritualDate);
       onAddExp(30, 15);
-      alert('☀️ ĐẠO TÂM ĐÃ ĐỊNH!\n\nĐạo hữu đã hoàn thành Nghi Thức Vấn Đạo. Nhận ngay +30 Tu Vi & +15 Linh Thạch!');
+      alert('☀️ RESOLVE AFFIRMED!\n\nYou have completed the Morning Wisdom ritual. Received +30 Exp & +15 Spirit Stones!');
     } else {
       onCompleteReflection(ritualDate);
       onAddExp(30, 15);
-      alert('🌙 ĐẠO QUẢ ĐÃ TỔNG KẾT!\n\nĐạo hữu đã hoàn thành Nghi Thức Kết Nhật. Nhận ngay +30 Tu Vi & +15 Linh Thạch!');
+      alert('🌙 HARVEST REFLECTED!\n\nYou have completed the Night Reflection ritual. Received +30 Exp & +15 Spirit Stones!');
     }
 
     onClose();
@@ -228,13 +228,13 @@ export default function DailyRitualsModal({
             <Compass className="w-5 h-5 text-rose-400 animate-spin-slow" />
             <div>
               <h3 className="text-xs font-black text-slate-100 uppercase tracking-widest font-mono">
-                {ritualType === 'PLANNING' ? '☀️ Nghi Thức Vấn Đạo (Morning Wisdom)' : '🌙 Nghi Thức Kết Nhật (Night Reflection)'}
+                {ritualType === 'PLANNING' ? '☀️ Morning Wisdom Ritual' : '🌙 Night Reflection Ritual'}
               </h3>
               <p className="text-[10px] text-slate-400 font-mono">
-                Bước {step}/{maxSteps}: {
+                Step {step}/{maxSteps}: {
                   ritualType === 'PLANNING'
-                    ? (step === 1 ? 'Quét nhiệm vụ quá hạn' : step === 2 ? 'Chọn 3 việc trọng tâm & Phẩm cấp' : step === 3 ? 'Ước tính thời gian' : 'Tuyên bố Đạo Tâm')
-                    : (step === 1 ? 'Rà soát đạo quả' : step === 2 ? 'Đánh giá mức tập trung' : 'Đúc kết nhật ký & bài học')
+                    ? (step === 1 ? 'Sweep overdue tasks' : step === 2 ? 'Select 3 priorities & Tiers' : step === 3 ? 'Estimate time' : 'Affirm Daily Intent')
+                    : (step === 1 ? 'Review accomplishments' : step === 2 ? 'Rate focus level' : 'Journal & Lessons learned')
                 }
               </p>
             </div>
@@ -250,7 +250,7 @@ export default function DailyRitualsModal({
                   ritualDate === todayStr ? 'bg-rose-500 text-slate-950 font-black' : 'text-slate-400'
                 }`}
               >
-                Hôm Nay
+                Today
               </button>
               <button
                 type="button"
@@ -259,7 +259,7 @@ export default function DailyRitualsModal({
                   ritualDate === yesterdayStr ? 'bg-rose-500 text-slate-950 font-black' : 'text-slate-400'
                 }`}
               >
-                Hôm Qua
+                Yesterday
               </button>
             </div>
 
@@ -281,8 +281,8 @@ export default function DailyRitualsModal({
                 <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
                 <p className="text-[11px] text-rose-200 font-sans">
                   {overdueTodos.length > 0
-                    ? `Phát hiện ${overdueTodos.length} nhiệm vụ quá hạn từ trước. Hãy dời sang ngày chọn hoặc dọn dẹp!`
-                    : 'Tuyệt vời! Không có nhiệm vụ nào bị tồn đọng quá hạn trong quá khứ.'}
+                    ? `Found ${overdueTodos.length} overdue task(s). Reschedule to the selected date or clean them up!`
+                    : 'Great job! No overdue tasks lingering from the past.'}
                 </p>
               </div>
 
@@ -298,7 +298,7 @@ export default function DailyRitualsModal({
                           }}
                           className="px-2 py-1 bg-rose-500/20 text-rose-300 border border-rose-500/30 rounded-lg text-[9.5px] font-bold uppercase cursor-pointer"
                         >
-                          Dời sang ngày chọn
+                          Reschedule to date
                         </button>
                         <button
                           onClick={() => {
@@ -320,14 +320,14 @@ export default function DailyRitualsModal({
           {step === 2 && ritualType === 'PLANNING' && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <p className="text-slate-200 font-bold">Chọn tối đa 3 Nhiệm Vụ Trọng Tâm ({selectedPriorities.length}/3) & Chỉnh Phẩm Cấp:</p>
+                <p className="text-slate-200 font-bold">Select up to 3 Priority Focus Tasks ({selectedPriorities.length}/3) & Edit Tiers:</p>
               </div>
 
               {/* Quick Add Todo Field */}
               <div className="flex gap-2 bg-slate-950 p-2 rounded-xl border border-slate-900">
                 <input
                   type="text"
-                  placeholder="Thêm nhanh việc quan trọng..."
+                  placeholder="Quick add priority task..."
                   value={wizardNewTodoTitle}
                   onChange={(e) => setWizardNewTodoTitle(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleQuickAddTodoInWizard()}
@@ -346,23 +346,23 @@ export default function DailyRitualsModal({
                       : 'bg-slate-900 border-2 border-slate-700 text-slate-300'
                   }`}
                 >
-                  <option value="SO_CAP" className="bg-[#0e131d] text-slate-300 font-bold font-mono">⚪ Sơ Cấp (+15 TuVi)</option>
-                  <option value="TRUNG_CAP" className="bg-[#0e131d] text-blue-400 font-bold font-mono">🔵 Trung Cấp (+30 TuVi)</option>
-                  <option value="CAO_CAP" className="bg-[#0e131d] text-orange-400 font-bold font-mono">🟠 Địa Cấp (+60 TuVi)</option>
-                  <option value="THAN_CAP" className="bg-[#0e131d] text-purple-300 font-bold font-mono">🟣 Thiên Cấp (+120 TuVi)</option>
+                  <option value="SO_CAP" className="bg-[#0e131d] text-slate-300 font-bold font-mono">⚪ Novice (+15 Exp)</option>
+                  <option value="TRUNG_CAP" className="bg-[#0e131d] text-blue-400 font-bold font-mono">🔵 Adept (+30 Exp)</option>
+                  <option value="CAO_CAP" className="bg-[#0e131d] text-orange-400 font-bold font-mono">🟠 Earth (+60 Exp)</option>
+                  <option value="THAN_CAP" className="bg-[#0e131d] text-purple-300 font-bold font-mono">🟣 Heaven (+120 Exp)</option>
                 </select>
                 <button
                   onClick={handleQuickAddTodoInWizard}
                   className="px-3.5 py-1 bg-rose-500 hover:bg-rose-400 text-slate-950 font-black rounded-lg text-[10px] uppercase cursor-pointer shrink-0"
                 >
-                  Thêm
+                  Add
                 </button>
               </div>
 
               <div className="space-y-2 max-h-64 overflow-y-auto">
                 {ritualDateTodos.length === 0 ? (
                   <div className="text-center py-6 text-slate-500 font-mono text-[11px] italic">
-                    Chưa có nhiệm vụ cho ngày này. Hãy dán/nhập tên nhiệm vụ ở ô trên để tạo mới!
+                    No tasks for this date. Enter a task title above to create one!
                   </div>
                 ) : (
                   ritualDateTodos.map(todo => {
@@ -385,9 +385,8 @@ export default function DailyRitualsModal({
                           <span className="font-bold text-slate-100 truncate">{todo.title}</span>
                         </div>
 
-                        {/* RESTORED INLINE TASK PRIORITY / PHẨM CẤP SELECTOR WITH DISTINCT TIER COLORS */}
                         <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
-                          <span className="text-[9px] text-slate-500 font-mono font-semibold hidden sm:inline">Phẩm Cấp:</span>
+                          <span className="text-[9px] text-slate-500 font-mono font-semibold hidden sm:inline">Tier:</span>
                           <select
                             value={todo.difficulty || 'SO_CAP'}
                             onChange={(e) => handleUpdateTodoDifficulty(todo.id, e.target.value as Priority)}
@@ -401,10 +400,10 @@ export default function DailyRitualsModal({
                                 : 'bg-slate-900 border-2 border-slate-700 text-slate-300'
                             }`}
                           >
-                            <option value="SO_CAP" className="bg-[#0e131d] text-slate-300 font-bold font-mono">⚪ Sơ Cấp (+15 TuVi)</option>
-                            <option value="TRUNG_CAP" className="bg-[#0e131d] text-blue-400 font-bold font-mono">🔵 Trung Cấp (+30 TuVi)</option>
-                            <option value="CAO_CAP" className="bg-[#0e131d] text-orange-400 font-bold font-mono">🟠 Địa Cấp (+60 TuVi)</option>
-                            <option value="THAN_CAP" className="bg-[#0e131d] text-purple-300 font-bold font-mono">🟣 Thiên Cấp (+120 TuVi)</option>
+                            <option value="SO_CAP" className="bg-[#0e131d] text-slate-300 font-bold font-mono">⚪ Novice (+15 Exp)</option>
+                            <option value="TRUNG_CAP" className="bg-[#0e131d] text-blue-400 font-bold font-mono">🔵 Adept (+30 Exp)</option>
+                            <option value="CAO_CAP" className="bg-[#0e131d] text-orange-400 font-bold font-mono">🟠 Earth (+60 Exp)</option>
+                            <option value="THAN_CAP" className="bg-[#0e131d] text-purple-300 font-bold font-mono">🟣 Heaven (+120 Exp)</option>
                           </select>
                         </div>
                       </div>
@@ -418,11 +417,11 @@ export default function DailyRitualsModal({
           {/* STEP 3 (PLANNING): Estimate Time & RESTORED PRESET SELECTION BUTTONS */}
           {step === 3 && ritualType === 'PLANNING' && (
             <div className="space-y-4">
-              <p className="text-slate-200 font-bold">Ước tính thời gian bế quan (phút) cho các việc trọng tâm:</p>
+              <p className="text-slate-200 font-bold">Estimate focus time (minutes) for priority tasks:</p>
               
               {selectedPriorities.length === 0 ? (
                 <div className="text-center py-6 text-slate-500 font-mono text-[11px] italic">
-                  Chưa chọn việc trọng tâm nào. Hãy quay lại Bước 2 để chọn nhiệm vụ!
+                  No priority tasks selected. Please return to Step 2 to select tasks!
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -446,13 +445,13 @@ export default function DailyRitualsModal({
                               onChange={(e) => setEstimatedTimes({ ...estimatedTimes, [pId]: Number(e.target.value) })}
                               className="w-16 bg-slate-900 border border-slate-800 rounded px-2 py-1 text-center text-xs text-rose-300 font-bold focus:outline-none focus:border-rose-500"
                             />
-                            <span className="text-[10px] text-slate-400">phút</span>
+                            <span className="text-[10px] text-slate-400">min</span>
                           </div>
                         </div>
 
                         {/* RESTORED QUICK PRESET TIME SELECTION PILLS */}
                         <div className="flex items-center gap-1.5 flex-wrap pt-1 border-t border-slate-900">
-                          <span className="text-[9.5px] text-slate-500 font-mono font-semibold mr-1">Chọn nhanh:</span>
+                          <span className="text-[9.5px] text-slate-500 font-mono font-semibold mr-1">Quick pick:</span>
                           {[15, 25, 45, 60, 90, 120].map(mins => (
                             <button
                               key={mins}
@@ -464,7 +463,7 @@ export default function DailyRitualsModal({
                                   : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-slate-200 hover:border-slate-700'
                               }`}
                             >
-                              {mins} phút
+                              {mins}m
                             </button>
                           ))}
                         </div>
@@ -479,11 +478,11 @@ export default function DailyRitualsModal({
           {/* STEP 4 (PLANNING): Daily Affirmation & Intent Statement */}
           {step === 4 && ritualType === 'PLANNING' && (
             <div className="space-y-4">
-              <p className="text-slate-200 font-bold">Đại Nguyện & Tuyên Bố Đạo Tâm Hôm Nay:</p>
-              <p className="text-[11px] text-slate-400 leading-relaxed">Viết ra 1 câu quyết tâm hoặc thông điệp cốt lõi để giữ đạo tâm kiên định suốt ngày bế quan.</p>
+              <p className="text-slate-200 font-bold">Daily Resolve & Core Intent:</p>
+              <p className="text-[11px] text-slate-400 leading-relaxed">Write down a resolution or core focus statement to stay steadfast throughout your cultivation day.</p>
               <textarea
                 rows={3}
-                placeholder="Ví dụ: Hôm nay ta quyết tâm hoàn thành xong Đồ Án Vi Xử Lý mà không xao nhãng lướt mạng xã hội..."
+                placeholder="E.g., Today I will finish the Microprocessor assignment without getting distracted by social media..."
                 value={dailyIntent}
                 onChange={(e) => setDailyIntent(e.target.value)}
                 className="w-full bg-slate-950 border-2 border-slate-900 rounded-xl p-3 text-xs text-slate-100 focus:outline-none focus:border-rose-500 font-sans"
@@ -494,12 +493,12 @@ export default function DailyRitualsModal({
           {/* STEP 2 (REFLECTION): Focus Rating */}
           {step === 2 && ritualType === 'REFLECTION' && (
             <div className="space-y-4">
-              <p className="text-slate-200 font-bold">Đánh giá mức độ tập trung bế quan hôm nay:</p>
+              <p className="text-slate-200 font-bold">Rate your focus level today:</p>
               <div className="grid grid-cols-3 gap-3">
                 {[
-                  { rating: 1, label: 'Tâm Ma Xâm Nhập', emoji: '😞', desc: 'Xao nhãng nhiều' },
-                  { rating: 2, label: 'Tâm Cảnh Tạm Ổn', emoji: '😐', desc: 'Hoàn thành khá' },
-                  { rating: 3, label: 'Đại Đạo Viên Mãn', emoji: '🤩', desc: 'Tập trung tuyệt đối' }
+                  { rating: 1, label: 'Mind Wandered', emoji: '😞', desc: 'Frequent distractions' },
+                  { rating: 2, label: 'Steady Focus', emoji: '😐', desc: 'Decent progress' },
+                  { rating: 3, label: 'Pure Absorption', emoji: '🤩', desc: 'Absolute focus' }
                 ].map(item => (
                   <button
                     key={item.rating}
@@ -523,11 +522,11 @@ export default function DailyRitualsModal({
           {/* STEP 3 (REFLECTION): Daily Reflection Journal & Lessons */}
           {step === 3 && ritualType === 'REFLECTION' && (
             <div className="space-y-4">
-              <p className="text-slate-200 font-bold">Nhật Ký Đúc Kết Đạo Quả & Bài Học Kinh Nghiệm:</p>
-              <p className="text-[11px] text-slate-400 leading-relaxed">Ghi lại những việc làm tốt hôm nay, điều cần rút kinh nghiệm và điều làm đạo hữu cảm thấy biết ơn.</p>
+              <p className="text-slate-200 font-bold">Daily Harvest Journal & Lessons Learned:</p>
+              <p className="text-[11px] text-slate-400 leading-relaxed">Record what went well today, what to improve, and what you are grateful for.</p>
               <textarea
                 rows={4}
-                placeholder="Ví dụ: Hôm nay ta đã giải xong 3 bài tập lớn. Bài học rút ra là nên bắt đầu từ bài dễ trước..."
+                placeholder="E.g., Finished 3 major practice problems today. Key takeaway is to start with simpler problems first..."
                 value={reflectionJournal}
                 onChange={(e) => setReflectionJournal(e.target.value)}
                 className="w-full bg-slate-950 border-2 border-slate-900 rounded-xl p-3 text-xs text-slate-100 focus:outline-none focus:border-rose-500 font-sans"
@@ -543,7 +542,7 @@ export default function DailyRitualsModal({
               onClick={() => setStep(prev => prev - 1)}
               className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-300 font-bold rounded-xl border border-slate-800 flex items-center gap-1 cursor-pointer text-xs font-mono"
             >
-              <ChevronLeft className="w-4 h-4" /> Quay lại
+              <ChevronLeft className="w-4 h-4" /> Back
             </button>
           ) : <div />}
 
@@ -552,14 +551,14 @@ export default function DailyRitualsModal({
               onClick={() => setStep(prev => prev + 1)}
               className="px-5 py-2 bg-rose-500 hover:bg-rose-400 text-slate-950 font-black rounded-xl border-2 border-slate-950 text-xs flex items-center gap-1 cursor-pointer shadow-[2px_2px_0px_#000] uppercase font-mono"
             >
-              Tiếp theo <ChevronRight className="w-4 h-4" />
+              Next <ChevronRight className="w-4 h-4" />
             </button>
           ) : (
             <button
               onClick={handleFinishWizard}
               className="px-5 py-2 bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-xs uppercase rounded-xl border-2 border-slate-950 flex items-center gap-1.5 cursor-pointer animate-pulse shadow-[2px_2px_0px_#000] font-mono"
             >
-              <Award className="w-4 h-4" /> Hoàn Thành & Nhận +30 Tu Vi
+              <Award className="w-4 h-4" /> Complete & Claim +30 Exp
             </button>
           )}
         </div>
