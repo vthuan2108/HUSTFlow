@@ -2391,6 +2391,7 @@ export default function App() {
                 <TodoSection
                   todoItems={todoItems}
                   onAddTodo={handleAddTodo}
+                  onUpdateTodo={handleUpdateTodo}
                   onToggleTodo={handleToggleTodo}
                   onDeleteTodo={handleDeleteTodo}
                   onSyncTodos={handleSyncTodos}
