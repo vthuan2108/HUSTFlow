@@ -10,8 +10,6 @@ import {
   Trash2,
   CheckCircle,
   Circle,
-  CheckSquare,
-  Square,
   Sparkles,
   ListTodo,
   RefreshCw,
@@ -671,18 +669,19 @@ export default function TodoSection({
                     </div>
                   </div>
 
-                  {/* Content row: Checkbox + Title */}
+                  {/* Content row: Circular Checkbox + Title */}
                   <div className="flex items-start gap-2">
                     <button
                       onClick={() => handleToggleTodoWithGoogleSync(item)}
                       className={`mt-0.5 transition-colors cursor-pointer shrink-0 ${
                         item.isCompleted ? 'text-amber-400' : 'text-slate-500 hover:text-amber-400'
                       }`}
+                      title={item.isCompleted ? 'Đánh dấu chưa hoàn thành' : 'Đánh dấu hoàn thành'}
                     >
                       {item.isCompleted ? (
-                        <CheckSquare className="w-4 h-4 fill-amber-400/20" />
+                        <CheckCircle className="w-4 h-4 fill-amber-400/20" />
                       ) : (
-                        <Square className="w-4 h-4" />
+                        <Circle className="w-4 h-4" />
                       )}
                     </button>
                     <p
@@ -887,17 +886,9 @@ export default function TodoSection({
         </motion.div>
       )}
 
-      {/* Main 2-Row Week Layout */}
-      <div className="space-y-4">
-        {/* Row 1: T2, T3, T4, T5 (4 columns) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 xl:gap-4">
-          {weekDays.slice(0, 4).map((dayDate) => renderDayColumn(dayDate))}
-        </div>
-
-        {/* Row 2: T6, T7, CN (3 columns) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 xl:gap-4">
-          {weekDays.slice(4, 7).map((dayDate) => renderDayColumn(dayDate))}
-        </div>
+      {/* Main Week Grid: 4 columns per row for uniform column widths across all 7 days */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 xl:gap-4">
+        {weekDays.map((dayDate) => renderDayColumn(dayDate))}
       </div>
 
       {/* Unfinished Quests Reminder */}
