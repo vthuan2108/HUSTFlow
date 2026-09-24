@@ -5,6 +5,123 @@
 
 export type Priority = 'SO_CAP' | 'TRUNG_CAP' | 'CAO_CAP' | 'THAN_CAP';
 
+/**
+ * Normalizes any string, number, or variant to a valid Priority enum.
+ * Supports Vietnamese ('Sơ Cấp', 'Trung Cấp', 'Cao Cấp', 'Thần Cấp', 'Khẩn Cấp', 'Cao', 'Thấp', etc.),
+ * English ('Low', 'Medium', 'High', 'Urgent', 'Novice', 'Adept', 'Earth', 'Heaven'),
+ * and XP/tuVi numbers (120 -> THAN_CAP, 60 -> CAO_CAP, 30 -> TRUNG_CAP, 15 -> SO_CAP).
+ */
+export function normalizePriority(val?: any): Priority {
+  if (!val) return 'SO_CAP';
+
+  if (typeof val === 'number') {
+    if (val >= 120) return 'THAN_CAP';
+    if (val >= 60) return 'CAO_CAP';
+    if (val >= 30) return 'TRUNG_CAP';
+    return 'SO_CAP';
+  }
+
+  if (typeof val !== 'string') return 'SO_CAP';
+
+  const raw = val.trim().toUpperCase();
+
+  // Exact matching for enum keys
+  if (raw === 'SO_CAP' || raw === 'SO-CAP' || raw === 'SOCAP') return 'SO_CAP';
+  if (raw === 'TRUNG_CAP' || raw === 'TRUNG-CAP' || raw === 'TRUNGCAP') return 'TRUNG_CAP';
+  if (raw === 'CAO_CAP' || raw === 'CAO-CAP' || raw === 'CAOCAP') return 'CAO_CAP';
+  if (raw === 'THAN_CAP' || raw === 'THAN-CAP' || raw === 'THANCAP') return 'THAN_CAP';
+
+  // Normalize diacritics and spacing
+  const nonAccent = raw
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[-_\s]+/g, ' ');
+
+  // 1. THAN_CAP / HEAVEN / URGENT / CRITICAL / DIVINE
+  if (
+    nonAccent.includes('THAN') ||
+    nonAccent.includes('HEAVEN') ||
+    nonAccent.includes('URGENT') ||
+    nonAccent.includes('CRITICAL') ||
+    nonAccent.includes('DIVINE') ||
+    nonAccent.includes('HIGHEST') ||
+    nonAccent.includes('MAX')
+  ) {
+    return 'THAN_CAP';
+  }
+
+  // 2. CAO_CAP / HIGH / EARTH / HARD / ADVANCED / KHAN CAP
+  if (
+    nonAccent.includes('CAO') ||
+    nonAccent.includes('HIGH') ||
+    nonAccent.includes('EARTH') ||
+    nonAccent.includes('HARD') ||
+    nonAccent.includes('ADVANCED') ||
+    nonAccent.includes('KHAN')
+  ) {
+    return 'CAO_CAP';
+  }
+
+  // 3. TRUNG_CAP / MEDIUM / ADEPT / MODERATE / INTERMEDIATE / NORMAL
+  if (
+    nonAccent.includes('TRUNG') ||
+    nonAccent.includes('MEDIUM') ||
+    nonAccent.includes('ADEPT') ||
+    nonAccent.includes('MODERATE') ||
+    nonAccent.includes('INTERMEDIATE') ||
+    nonAccent.includes('NORMAL') ||
+    nonAccent.includes('MID')
+  ) {
+    return 'TRUNG_CAP';
+  }
+
+  // 4. SO_CAP / LOW / NOVICE / EASY / BASIC / THAP
+  if (
+    nonAccent.includes('SO') ||
+    nonAccent.includes('LOW') ||
+    nonAccent.includes('NOVICE') ||
+    nonAccent.includes('EASY') ||
+    nonAccent.includes('BASIC') ||
+    nonAccent.includes('THAP')
+  ) {
+    return 'SO_CAP';
+  }
+
+  return 'SO_CAP';
+}
+
+/**
+ * Returns canonical cultivation rewards (Tu Vi XP and Linh Thach Spirit Stones) for a given priority.
+ */
+export function getPriorityRewards(priority: Priority): { tuViReward: number; linhThachReward: number } {
+  const norm = normalizePriority(priority);
+  switch (norm) {
+    case 'THAN_CAP':
+      return { tuViReward: 120, linhThachReward: 75 };
+    case 'CAO_CAP':
+      return { tuViReward: 60, linhThachReward: 35 };
+    case 'TRUNG_CAP':
+      return { tuViReward: 30, linhThachReward: 15 };
+    case 'SO_CAP':
+    default:
+      return { tuViReward: 15, linhThachReward: 5 };
+  }
+}
+
+/**
+ * Resolves the actual priority of a task or todo item, falling back to tuViReward if difficulty is undefined.
+ */
+export function getTodoPriority(todo?: { difficulty?: Priority; tuViReward?: number }): Priority {
+  if (!todo) return 'SO_CAP';
+  if (todo.difficulty) return normalizePriority(todo.difficulty);
+  if (typeof todo.tuViReward === 'number') {
+    if (todo.tuViReward >= 120) return 'THAN_CAP';
+    if (todo.tuViReward >= 60) return 'CAO_CAP';
+    if (todo.tuViReward >= 30) return 'TRUNG_CAP';
+  }
+  return 'SO_CAP';
+}
+
 export interface Task {
   id: string;
   title: string;

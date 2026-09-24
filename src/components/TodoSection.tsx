@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { TodoItem, Priority } from '../types';
+import { TodoItem, Priority, normalizePriority, getTodoPriority } from '../types';
 import {
   Plus,
   Trash2,
@@ -354,7 +354,8 @@ export default function TodoSection({
 
   // Helpers for text labels and colors
   const getDifficultyInfo = (diff?: Priority) => {
-    switch (diff) {
+    const norm = normalizePriority(diff);
+    switch (norm) {
       case 'SO_CAP':
         return { label: 'Novice', color: 'text-slate-300 border-slate-800 bg-slate-900/40', xp: 15, stones: 5 };
       case 'TRUNG_CAP':
@@ -369,7 +370,8 @@ export default function TodoSection({
   };
 
   const getLeftBorderColor = (diff?: Priority) => {
-    switch (diff) {
+    const norm = normalizePriority(diff);
+    switch (norm) {
       case 'TRUNG_CAP': return 'border-l-4 border-l-blue-400';
       case 'CAO_CAP': return 'border-l-4 border-l-orange-400';
       case 'THAN_CAP': return 'border-l-4 border-l-amber-400';
@@ -378,7 +380,8 @@ export default function TodoSection({
   };
 
   const getDifficultyRank = (p?: Priority) => {
-    switch (p) {
+    const norm = normalizePriority(p);
+    switch (norm) {
       case 'THAN_CAP': return 4;
       case 'CAO_CAP': return 3;
       case 'TRUNG_CAP': return 2;
@@ -523,7 +526,7 @@ export default function TodoSection({
               if (a.isCompleted !== b.isCompleted) {
                 return a.isCompleted ? 1 : -1;
               }
-              return getDifficultyRank(b.difficulty) - getDifficultyRank(a.difficulty);
+              return getDifficultyRank(getTodoPriority(b)) - getDifficultyRank(getTodoPriority(a));
             });
 
           const isTodayColumn = dateStr === new Date().toISOString().split('T')[0];
@@ -617,7 +620,7 @@ export default function TodoSection({
                           item.isCompleted
                             ? 'bg-slate-950/40 opacity-50 shadow-none hover:shadow-none hover:translate-x-0 hover:translate-y-0'
                             : 'bg-[#1e2638]'
-                        } ${getLeftBorderColor(item.difficulty)}`}
+                        } ${getLeftBorderColor(getTodoPriority(item))}`}
                       >
                         <div className="flex items-start gap-1.5">
                           <button
@@ -655,7 +658,7 @@ export default function TodoSection({
                             )}
 
                             {(() => {
-                              const diff = getDifficultyInfo(item.difficulty);
+                              const diff = getDifficultyInfo(getTodoPriority(item));
                               return (
                                 <span className={`text-[7px] border px-1.5 py-0.5 rounded flex items-center gap-0.5 font-bold uppercase tracking-wider ${diff.color}`}>
                                   {diff.label}

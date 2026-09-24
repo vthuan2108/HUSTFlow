@@ -250,7 +250,8 @@ export async function syncGoogleTasks(
           tuViReward,
           linhThachReward,
           googleTaskId: finalGoogleTaskId,
-          dueDate
+          dueDate,
+          difficulty: 'SO_CAP'
         };
         
         // If from legacy list, migrate into default list!

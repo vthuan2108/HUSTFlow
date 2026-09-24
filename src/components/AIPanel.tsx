@@ -10,6 +10,8 @@ import {
   Habit, 
   CultivationState, 
   Priority, 
+  normalizePriority,
+  getTodoPriority,
   CultivationManual,
   GradeSubject,
   SemesterGPA,
@@ -296,8 +298,8 @@ export default function AIPanel({
   };
 
   const compileContext = (query: string = '') => {
-    const isCalendarQuery = query.includes('/calendar') || /calendar|schedule|time|free|busy|agenda/i.test(query);
-    const isTaskQuery = query.includes('/task') || /task|todo|homework|assignment|deadline|due/i.test(query);
+    const isCalendarQuery = query.includes('/calendar') || /calendar|schedule|time|free|busy|agenda|lịch|thời gian|lịch trình|thời khóa biểu/i.test(query);
+    const isTaskQuery = query.includes('/task') || /task|todo|homework|assignment|deadline|due|priority|nhiệm vụ|công việc|bài tập|độ ưu tiên|mức độ|ưu tiên/i.test(query);
 
     let contextParts: string[] = [
       `- Level: ${cultState.level} | Spirit Stones: ${cultState.linhThach} | CPA: ${cpaOverall.toFixed(2)}`,
@@ -329,17 +331,16 @@ export default function AIPanel({
     }
 
     if (isTaskQuery) {
-      const now = new Date();
-      const todayTimestamp = now.getTime();
-      const tenDaysLater = new Date(todayTimestamp + (10 * 24 * 60 * 60 * 1000));
-      const tenDaysLaterStr = `${tenDaysLater.getFullYear()}-${String(tenDaysLater.getMonth() + 1).padStart(2, '0')}-${String(tenDaysLater.getDate()).padStart(2, '0')}`;
-
       const pendingTasks = todoItems
-        .filter(t => !t.isCompleted && (!t.dueDate || t.dueDate <= tenDaysLaterStr))
-        .map(t => `[ID:${t.id}] Due: ${t.dueDate || 'None'} | Priority: ${t.difficulty || 'SO_CAP'} | ${t.title}`)
+        .filter(t => !t.isCompleted)
+        .slice(0, 100)
+        .map(t => {
+          const prio = getTodoPriority(t);
+          return `[ID:${t.id}] Due: ${t.dueDate || 'None'} | Priority: ${prio} | Title: ${t.title}`;
+        })
         .join('\n');
 
-      contextParts.push(`\n[ALL TASKS IN NEXT 10 DAYS (100% COMPLETE)]:\n${pendingTasks || 'No pending tasks'}`);
+      contextParts.push(`\n[ALL ACTIVE TASKS IN SYSTEM (100% COMPLETE)]:\n${pendingTasks || 'No pending tasks'}`);
     }
 
     return `=== CONTEXT ===\n${contextParts.join('\n')}`;
@@ -396,15 +397,28 @@ PERSONALITY & SPEAKING STYLE (MANDATORY):
     const systemInstruction = `
 ${personaPrompt}
 
+TASK PRIORITY ENUM (MANDATORY):
+Task priority MUST strictly be one of the following 4 enum values:
+- "SO_CAP" (Novice / Sơ Cấp / Low)
+- "TRUNG_CAP" (Adept / Trung Cấp / Medium)
+- "CAO_CAP" (Earth / Cao Cấp / High)
+- "THAN_CAP" (Heaven / Thần Cấp / Urgent / Critical)
+When the user asks to set or change task priority (e.g., "cao cấp", "high", "thần cấp", "urgent", "trung cấp", "medium", "sơ cấp", "low"), map it directly to the exact corresponding enum value: "SO_CAP", "TRUNG_CAP", "CAO_CAP", or "THAN_CAP".
+
 SLASH COMMANDS & INTENT TARGETING:
 1. **"/task [query]"**: If the request starts with or contains "/task", strictly generate ONLY "TASK" proposals for the Todo List.
-2. **"/calendar [query]"**: If the request starts with or contains "/calendar", strictly generate ONLY "CALENDAR" proposals for the Calendar Tab. Include \`calendarGroupId\` matching the best calendar group from context.
+2. **"/calendar [query]"**: If the request starts with or contains "/calendar", strictly generate ONLY "CALENDAR" proposals for the Calendar Tab. Include calendarGroupId matching the best calendar group from context.
 
 CALENDAR & TASK PROPOSALS (ADD / EDIT / DELETE MANDATORY FORMAT):
 1. **TASK PROPOSALS**:
-   - Create new task: {"type": "TASK", "action": "NEW", "title": "...", "priority": "SO_CAP", "dueDate": "YYYY-MM-DD"}
-   - Modify existing task: {"type": "TASK_EDIT", "action": "MODIFY", "taskId": "<exact ID from context>", "title": "...", "priority": "...", "dueDate": "YYYY-MM-DD"}
+   - Create new task: {"type": "TASK", "action": "NEW", "title": "...", "priority": "<SO_CAP|TRUNG_CAP|CAO_CAP|THAN_CAP>", "dueDate": "YYYY-MM-DD"}
+   - Modify existing task: {"type": "TASK_EDIT", "action": "MODIFY", "taskId": "<exact ID from context>", "title": "...", "priority": "<SO_CAP|TRUNG_CAP|CAO_CAP|THAN_CAP>", "dueDate": "YYYY-MM-DD"}
    - Delete existing task: {"type": "TASK_DELETE", "action": "DELETE", "taskId": "<exact ID from context>", "title": "..."}
+
+CRITICAL RULES FOR MODIFYING EXISTING TASKS (TASK_EDIT):
+- Always find the target task in [ALL ACTIVE TASKS IN SYSTEM] from context.
+- Set "taskId" to the exact task ID (e.g. "todo_1740000000000", WITHOUT brackets or prefix like "[ID:]").
+- When modifying priority: set "priority" to the desired Priority enum value ("SO_CAP", "TRUNG_CAP", "CAO_CAP", or "THAN_CAP"). Preserve the existing task title and dueDate unless explicitly asked to modify them.
 
 2. **CALENDAR PROPOSALS**:
    - Create new event: {"type": "CALENDAR", "action": "NEW", "title": "...", "startDate": "YYYY-MM-DDTHH:mm", "endDate": "YYYY-MM-DDTHH:mm", "calendarGroupId": "..."}
@@ -563,21 +577,37 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
 
           const rawProps = parsed.proposals || [];
           parsedProposals = rawProps.map((p: any, idx: number) => {
-            let type: 'TASK' | 'TASK_EDIT' | 'TASK_DELETE' | 'CALENDAR' | 'CALENDAR_EDIT' | 'CALENDAR_DELETE' | 'MANUAL' = p.type || 'TASK';
-            let action: 'NEW' | 'MODIFY' | 'DELETE' = p.action === 'DELETE' ? 'DELETE' : p.action === 'MODIFY' ? 'MODIFY' : 'NEW';
+            const rawType = String(p.type || '').toUpperCase();
+            const rawAction = String(p.action || '').toUpperCase();
 
-            if (type === 'TASK_DELETE' || type === 'CALENDAR_DELETE') action = 'DELETE';
-            if (type === 'TASK_EDIT' || type === 'CALENDAR_EDIT') action = 'MODIFY';
+            let action: 'NEW' | 'MODIFY' | 'DELETE' = 'NEW';
+            if (rawAction === 'DELETE' || rawType.includes('DELETE')) {
+              action = 'DELETE';
+            } else if (rawAction === 'MODIFY' || rawAction === 'EDIT' || rawType.includes('EDIT') || rawType.includes('MODIFY')) {
+              action = 'MODIFY';
+            }
+
+            let type: 'TASK' | 'TASK_EDIT' | 'TASK_DELETE' | 'CALENDAR' | 'CALENDAR_EDIT' | 'CALENDAR_DELETE' | 'MANUAL' = 'TASK';
+            if (rawType.includes('CALENDAR') || rawType.includes('EVENT')) {
+              type = action === 'DELETE' ? 'CALENDAR_DELETE' : action === 'MODIFY' ? 'CALENDAR_EDIT' : 'CALENDAR';
+            } else if (rawType.includes('MANUAL')) {
+              type = 'MANUAL';
+            } else {
+              type = action === 'DELETE' ? 'TASK_DELETE' : action === 'MODIFY' ? 'TASK_EDIT' : 'TASK';
+            }
+
+            const cleanTaskId = p.taskId || p.id || undefined;
+            const normPriority = normalizePriority(p.priority);
 
             return {
               id: `prop_${Date.now()}_${idx}`,
               type,
               action,
-              taskId: p.taskId || p.id || undefined,
+              taskId: cleanTaskId,
               eventId: p.eventId || p.id || undefined,
               calendarGroupId: p.calendarGroupId || p.groupId || undefined,
               title: p.title || (action === 'DELETE' ? 'Delete item' : 'New Task'),
-              priority: p.priority || 'SO_CAP',
+              priority: normPriority,
               dueDate: p.dueDate || new Date().toISOString().split('T')[0],
               startDate: p.startDate || undefined,
               endDate: p.endDate || undefined,
@@ -640,38 +670,66 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
     const selected = msg.proposals.filter(p => p.checked);
     if (selected.length === 0) return;
 
+    // Helper to find matching todo item by ID or title
+    const findExistingTodo = (inputTaskId?: string, inputTitle?: string) => {
+      const cleanId = (inputTaskId || '').replace(/^\[?ID:\s*/i, '').replace(/\]$/, '').trim();
+      if (cleanId) {
+        const matchById = todoItems.find(t => t.id === cleanId || t.id.toLowerCase() === cleanId.toLowerCase());
+        if (matchById) return matchById;
+      }
+
+      const candidateTitle = (inputTitle || cleanId).trim().toLowerCase();
+      if (candidateTitle) {
+        const exactMatch = todoItems.find(t => t.title.trim().toLowerCase() === candidateTitle);
+        if (exactMatch) return exactMatch;
+
+        const partialMatch = todoItems.find(t =>
+          t.title.toLowerCase().includes(candidateTitle) || candidateTitle.includes(t.title.toLowerCase())
+        );
+        if (partialMatch) return partialMatch;
+      }
+      return undefined;
+    };
+
     let appliedCount = 0;
     selected.forEach(p => {
       if (p.type === 'TASK_DELETE' || (p.type === 'TASK' && p.action === 'DELETE')) {
-        if (p.taskId && onDeleteTodo) {
-          onDeleteTodo(p.taskId);
+        const existing = findExistingTodo(p.taskId, p.title);
+        const targetId = existing ? existing.id : (p.taskId || '').replace(/^\[?ID:\s*/i, '').replace(/\]$/, '').trim();
+        if (targetId && onDeleteTodo) {
+          onDeleteTodo(targetId);
           appliedCount++;
         }
       } else if (p.type === 'TASK_EDIT' || (p.type === 'TASK' && p.action === 'MODIFY')) {
-        if (p.taskId) {
-          const existing = todoItems.find(t => t.id === p.taskId);
-          if (existing) {
-            onUpdateTodo({
-              ...existing,
-              title: p.title || existing.title,
-              difficulty: p.priority || existing.difficulty,
-              dueDate: p.dueDate || existing.dueDate
-            });
-            appliedCount++;
-          }
+        const existing = findExistingTodo(p.taskId, p.title);
+        if (existing) {
+          const updatedPriority = normalizePriority(p.priority || existing.difficulty);
+          const safeTitle = (p.title && p.title !== existing.id && !p.title.startsWith('todo_'))
+            ? p.title
+            : existing.title;
+
+          onUpdateTodo({
+            ...existing,
+            title: safeTitle,
+            difficulty: updatedPriority,
+            dueDate: p.dueDate || existing.dueDate
+          });
+          appliedCount++;
         }
       } else if (p.type === 'TASK' || !p.type) {
-        onAddTodo(p.title, p.priority || 'SO_CAP', p.dueDate || new Date().toISOString().split('T')[0]);
+        onAddTodo(p.title, normalizePriority(p.priority), p.dueDate || new Date().toISOString().split('T')[0]);
         appliedCount++;
       } else if (p.type === 'CALENDAR_DELETE' || (p.type === 'CALENDAR' && p.action === 'DELETE')) {
-        if (p.eventId && onDeleteCalendarEvent) {
-          onDeleteCalendarEvent(p.eventId);
+        const cleanEventId = (p.eventId || '').replace(/^\[?ID:\s*/i, '').replace(/\]$/, '').trim();
+        if (cleanEventId && onDeleteCalendarEvent) {
+          onDeleteCalendarEvent(cleanEventId);
           appliedCount++;
         }
       } else if (p.type === 'CALENDAR_EDIT' || (p.type === 'CALENDAR' && p.action === 'MODIFY')) {
-        if (p.eventId && onUpdateCalendarEvent) {
+        const cleanEventId = (p.eventId || '').replace(/^\[?ID:\s*/i, '').replace(/\]$/, '').trim();
+        if (cleanEventId && onUpdateCalendarEvent) {
           onUpdateCalendarEvent(
-            p.eventId,
+            cleanEventId,
             p.title,
             p.startDate || new Date().toISOString(),
             p.endDate || new Date(Date.now() + 3600000).toISOString()
@@ -961,7 +1019,7 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
                                         <span className="truncate">{p.title}</span>
                                       </div>
                                       <div className="text-[9.5px] text-slate-400 font-mono mt-0.5">
-                                        {(p.type === 'TASK' || p.type === 'TASK_EDIT' || p.type === 'TASK_DELETE') && `⚔️ Task • Priority: ${p.priority || 'SO_CAP'} • Due: ${p.dueDate || 'Today'}`}
+                                        {(p.type === 'TASK' || p.type === 'TASK_EDIT' || p.type === 'TASK_DELETE') && `⚔️ Task • Priority: ${p.priority === 'THAN_CAP' ? 'Thần Cấp (Heaven)' : p.priority === 'CAO_CAP' ? 'Cao Cấp (Earth)' : p.priority === 'TRUNG_CAP' ? 'Trung Cấp (Adept)' : 'Sơ Cấp (Novice)'} • Due: ${p.dueDate || 'Today'}`}
                                         {p.type === 'MANUAL' && `📚 Manual (${p.category}) • ${p.stages?.length || 0} Stages`}
                                         {(p.type === 'CALENDAR' || p.type === 'CALENDAR_EDIT' || p.type === 'CALENDAR_DELETE') && (
                                           <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">

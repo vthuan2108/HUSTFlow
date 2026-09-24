@@ -18,6 +18,9 @@ import {
   IeltsTargets,
   TimeBlock,
   Priority,
+  normalizePriority,
+  getPriorityRewards,
+  getTodoPriority,
   TodoItem,
   CultivationManual,
   CultivationNote,
@@ -191,10 +194,17 @@ export default function App() {
       try { 
         const res = JSON.parse(savedTodos);
         if (Array.isArray(res)) {
-          parsedTodos = res.map(todo => ({
-            ...todo,
-            createdAt: todo?.createdAt || new Date().toISOString()
-          }));
+          parsedTodos = res.map(todo => {
+            const priority = getTodoPriority(todo);
+            const { tuViReward, linhThachReward } = getPriorityRewards(priority);
+            return {
+              ...todo,
+              difficulty: priority,
+              tuViReward: todo?.tuViReward || tuViReward,
+              linhThachReward: todo?.linhThachReward || linhThachReward,
+              createdAt: todo?.createdAt || new Date().toISOString()
+            };
+          });
         }
       } catch (e) {}
     }
@@ -217,6 +227,9 @@ export default function App() {
           if (task.priority === 'CAO_CAP') type = 'WEEK';
           else if (task.priority === 'THAN_CAP') type = 'MONTH';
           
+          const taskPriority = normalizePriority(task.priority);
+          const { tuViReward, linhThachReward } = getPriorityRewards(taskPriority);
+
           parsedTodos.push({
             id: task.id || `todo_${Date.now()}_${Math.random()}`,
             title: task.title,
@@ -224,9 +237,10 @@ export default function App() {
             isCompleted: !!task.isCompleted,
             createdAt: task.createdAt || new Date().toISOString(),
             completedAt: task.completedAt,
-            tuViReward: task.tuViReward || 15,
-            linhThachReward: task.linhThachReward || 5,
-            dueDate: task.dueDate
+            tuViReward: task.tuViReward || tuViReward,
+            linhThachReward: task.linhThachReward || linhThachReward,
+            dueDate: task.dueDate,
+            difficulty: taskPriority
           });
           todoTitles.add(cleanedTitle);
         }
@@ -239,6 +253,8 @@ export default function App() {
         let type: 'DAY' | 'WEEK' | 'MONTH' = 'DAY';
         if (task.priority === 'CAO_CAP') type = 'WEEK';
         else if (task.priority === 'THAN_CAP') type = 'MONTH';
+        const taskPriority = normalizePriority(task.priority);
+        const { tuViReward, linhThachReward } = getPriorityRewards(taskPriority);
         return {
           id: task.id || `todo_${Date.now()}_${Math.random()}`,
           title: task.title,
@@ -246,9 +262,10 @@ export default function App() {
           isCompleted: !!task.isCompleted,
           createdAt: task.createdAt || new Date().toISOString(),
           completedAt: task.completedAt,
-          tuViReward: task.tuViReward || 15,
-          linhThachReward: task.linhThachReward || 5,
-          dueDate: task.dueDate
+          tuViReward: task.tuViReward || tuViReward,
+          linhThachReward: task.linhThachReward || linhThachReward,
+          dueDate: task.dueDate,
+          difficulty: taskPriority
         };
       });
     }
@@ -296,10 +313,8 @@ export default function App() {
 
   const tasks: Task[] = (todoItems || [])
     .map(todo => {
-      let priority: Priority = 'SO_CAP';
-      if ((todo?.tuViReward || 0) >= 120) priority = 'THAN_CAP';
-      else if ((todo?.tuViReward || 0) >= 60) priority = 'CAO_CAP';
-      else if ((todo?.tuViReward || 0) >= 30) priority = 'TRUNG_CAP';
+      const priority = getTodoPriority(todo);
+      const { tuViReward, linhThachReward } = getPriorityRewards(priority);
 
       return {
         id: todo.id,
@@ -310,8 +325,8 @@ export default function App() {
         dueDate: todo.dueDate || getLocalDateString(new Date(todo.createdAt || Date.now())),
         createdAt: todo.createdAt,
         completedAt: todo.completedAt,
-        tuViReward: todo.tuViReward || 15,
-        linhThachReward: todo.linhThachReward || 5
+        tuViReward: todo.tuViReward || tuViReward,
+        linhThachReward: todo.linhThachReward || linhThachReward
       };
     });
 
@@ -1347,19 +1362,8 @@ export default function App() {
 
   // Tasks
   const handleAddTask = (title: string, priority: Priority, dueDate: string, _desc?: string) => {
-    // All tasks are daily tasks (type: 'DAY')
-    let tuViReward = 15;
-    let linhThachReward = 10;
-    if (priority === 'TRUNG_CAP') {
-      tuViReward = 30;
-      linhThachReward = 20;
-    } else if (priority === 'CAO_CAP') {
-      tuViReward = 60;
-      linhThachReward = 40;
-    } else if (priority === 'THAN_CAP') {
-      tuViReward = 120;
-      linhThachReward = 80;
-    }
+    const normPriority = normalizePriority(priority);
+    const { tuViReward, linhThachReward } = getPriorityRewards(normPriority);
 
     const newTodo: TodoItem = {
       id: `todo_${Date.now()}`,
@@ -1369,7 +1373,8 @@ export default function App() {
       createdAt: new Date().toISOString(),
       tuViReward,
       linhThachReward,
-      dueDate: dueDate || getLocalDateString()
+      dueDate: dueDate || getLocalDateString(),
+      difficulty: normPriority
     };
     setTodoItems(prev => [newTodo, ...prev]);
   };
@@ -1509,19 +1514,8 @@ export default function App() {
 
   // --- TODO LIST HANDLERS ---
   const handleAddTodo = (title: string, difficulty: Priority, dueDate?: string, googleTaskId?: string) => {
-    let tuViReward = 15;
-    let linhThachReward = 5;
-
-    if (difficulty === 'TRUNG_CAP') {
-      tuViReward = 30;
-      linhThachReward = 15;
-    } else if (difficulty === 'CAO_CAP') {
-      tuViReward = 60;
-      linhThachReward = 35;
-    } else if (difficulty === 'THAN_CAP') {
-      tuViReward = 120;
-      linhThachReward = 75;
-    }
+    const normPriority = normalizePriority(difficulty);
+    const { tuViReward, linhThachReward } = getPriorityRewards(normPriority);
 
     const newTodo: TodoItem = {
       id: `todo_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
@@ -1533,13 +1527,23 @@ export default function App() {
       linhThachReward,
       dueDate: dueDate || getLocalDateString(),
       googleTaskId,
-      difficulty
+      difficulty: normPriority
     };
     setTodoItems(prev => [newTodo, ...prev]);
   };
 
   const handleSyncTodos = (syncedTodos: TodoItem[]) => {
-    setTodoItems(syncedTodos);
+    const sanitized = (syncedTodos || []).map(t => {
+      const p = getTodoPriority(t);
+      const { tuViReward, linhThachReward } = getPriorityRewards(p);
+      return {
+        ...t,
+        difficulty: p,
+        tuViReward: t.tuViReward || tuViReward,
+        linhThachReward: t.linhThachReward || linhThachReward
+      };
+    });
+    setTodoItems(sanitized);
   };
 
   const handleToggleTodo = (id: string) => {
@@ -1603,22 +1607,12 @@ export default function App() {
   };
 
   const handleUpdateTodo = (updatedTodo: TodoItem) => {
-    let tuViReward = 15;
-    let linhThachReward = 5;
+    const normPriority = normalizePriority(updatedTodo.difficulty);
+    const { tuViReward, linhThachReward } = getPriorityRewards(normPriority);
 
-    if (updatedTodo.difficulty === 'TRUNG_CAP') {
-      tuViReward = 30;
-      linhThachReward = 15;
-    } else if (updatedTodo.difficulty === 'CAO_CAP') {
-      tuViReward = 60;
-      linhThachReward = 35;
-    } else if (updatedTodo.difficulty === 'THAN_CAP') {
-      tuViReward = 120;
-      linhThachReward = 75;
-    }
-
-    const finalTodo = {
+    const finalTodo: TodoItem = {
       ...updatedTodo,
+      difficulty: normPriority,
       tuViReward,
       linhThachReward
     };
