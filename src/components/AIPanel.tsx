@@ -48,7 +48,7 @@ export interface AIPanelProps {
   tasks: Task[];
   habits: Habit[];
   manuals: CultivationManual[];
-  cultState: CultivationState;
+  cultState?: any;
   gradeSubjects?: GradeSubject[];
   cpaOverall?: number;
   semesterGpaList?: SemesterGPA[];
@@ -56,6 +56,8 @@ export interface AIPanelProps {
   calendarGroups?: CalendarGroup[];
   ieltsLogs?: IeltsTestLog[];
   notes?: CultivationNote[];
+  isOpen?: boolean;
+  onClose?: () => void;
   onAddTodo: (title: string, priority: Priority, dueDate: string, description?: string) => void;
   onUpdateTodo: (updatedTodo: TodoItem) => void;
   onDeleteTodo?: (id: string) => void;
@@ -92,6 +94,7 @@ export interface ChatMessage {
 }
 
 type ProviderType = 'gemini' | 'groq' | 'openrouter' | 'custom';
+export type AIPersonaType = 'CO_VAN' | 'HIEU_SUAT' | 'DONG_HANH' | 'MO_UYEN' | 'TONG_CHU' | 'TU_DO_NAM';
 
 export default function AIPanel({
   todoItems,
@@ -106,6 +109,8 @@ export default function AIPanel({
   calendarGroups = [],
   ieltsLogs = [],
   notes = [],
+  isOpen: externalIsOpen,
+  onClose,
   onAddTodo,
   onUpdateTodo,
   onDeleteTodo,
@@ -114,7 +119,12 @@ export default function AIPanel({
   onDeleteCalendarEvent,
   onCreateManual
 }: AIPanelProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isPanelOpen = externalIsOpen !== undefined ? externalIsOpen : internalOpen;
+  const handleClose = () => {
+    if (onClose) onClose();
+    setInternalOpen(false);
+  };
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
@@ -133,15 +143,26 @@ export default function AIPanel({
   // Dynamic Groq Models state fetched directly from https://api.groq.com/openai/v1/models
   const [availableGroqModels, setAvailableGroqModels] = useState<string[]>([
     'llama-3.3-70b-versatile',
-    'llama-3.1-8b-instant',
     'deepseek-r1-distill-llama-70b',
     'qwen-2.5-coder-32b',
     'gemma2-9b-it'
   ]);
 
   const [groqModel, setGroqModel] = useState<string>(() => {
-    return localStorage.getItem('tlk_groq_model') || 'llama-3.3-70b-versatile';
+    const saved = localStorage.getItem('tlk_groq_model');
+    if (!saved || saved.includes('3.1-8b') || saved === 'llama-3.1-8b-instant') {
+      return 'llama-3.3-70b-versatile';
+    }
+    return saved;
   });
+
+  // Automatically migrate away from decommissioned models on load
+  useEffect(() => {
+    if (groqModel.includes('3.1-8b') || groqModel === 'llama-3.1-8b-instant') {
+      setGroqModel('llama-3.3-70b-versatile');
+      localStorage.setItem('tlk_groq_model', 'llama-3.3-70b-versatile');
+    }
+  }, [groqModel]);
 
   // Dynamically query Groq Models API for the exact active model list for user's key
   useEffect(() => {
@@ -154,10 +175,19 @@ export default function AIPanel({
           if (data && Array.isArray(data.data) && data.data.length > 0) {
             const fetchedIds = data.data
               .map((m: any) => m.id)
-              .filter((id: string) => id && !id.includes('whisper') && !id.includes('safetensors') && !id.includes('guard'));
+              .filter((id: string) => 
+                id && 
+                !id.includes('whisper') && 
+                !id.includes('safetensors') && 
+                !id.includes('guard') &&
+                !id.includes('3.1-8b') // filter out deprecated llama-3.1-8b
+              );
             if (fetchedIds.length > 0) {
               setAvailableGroqModels(fetchedIds);
-              setGroqModel(prev => (fetchedIds.includes(prev) ? prev : fetchedIds[0]));
+              setGroqModel(prev => {
+                if (prev && fetchedIds.includes(prev) && !prev.includes('3.1-8b')) return prev;
+                return fetchedIds.includes('llama-3.3-70b-versatile') ? 'llama-3.3-70b-versatile' : fetchedIds[0];
+              });
             }
           }
         })
@@ -172,23 +202,17 @@ export default function AIPanel({
     return saved || 'gemini-1.5-flash';
   });
 
-  const [aiPersona, setAiPersona] = useState<AIPersonaType>(() => {
-    return (localStorage.getItem('tlk_ai_persona') as AIPersonaType) || 'MO_UYEN';
-  });
-
   // Multi-turn Chat Messages History (Resets fresh on page reload)
-  const [chatHistory, setChatHistory] = useState<ChatMessage[]>(() => [
-    {
-      id: 'init_msg',
-      role: 'assistant',
-      content: (localStorage.getItem('tlk_ai_persona') as AIPersonaType) === 'MO_UYEN' || !localStorage.getItem('tlk_ai_persona')
-        ? 'Senior Brother, Uyen Nhi is here by your side. Are you weary from seclusion? Please share your thoughts with Uyen Nhi...'
-        : (localStorage.getItem('tlk_ai_persona') as AIPersonaType) === 'TU_DO_NAM'
-        ? 'Tie Zhu! Old man Situ Nan is here. Hurry up and enter seclusion to cultivate! What trouble do you have for me?!'
-        : 'I am the Master of the Heavenly Secrets Pavilion. Fellow Daoist, whatever you wish to consult or calculate, please speak!',
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    }
-  ]);
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>(() => {
+    return [
+      {
+        id: 'init_msg',
+        role: 'assistant',
+        content: 'Xin chào! Mình là Trợ lý AI học tập của bạn. Mình có thể giúp bạn lập kế hoạch tuần, phân bổ thời gian học, quản lý nhiệm vụ (/task) hoặc sắp xếp lịch trình (/calendar). Hôm nay bạn cần hỗ trợ gì?',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }
+    ];
+  });
 
   // Active reasoning visibility toggles
   const [expandedReasoning, setExpandedReasoning] = useState<Record<string, boolean>>({});
@@ -244,10 +268,10 @@ export default function AIPanel({
 
   // Auto-scroll chat to bottom
   useEffect(() => {
-    if (isOpen) {
+    if (isPanelOpen) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [chatHistory, isOpen, isLoading]);
+  }, [chatHistory, isPanelOpen, isLoading]);
 
   // Auto-fill temp input on provider change
   useEffect(() => {
@@ -276,12 +300,8 @@ export default function AIPanel({
   };
 
   const handleClearHistory = () => {
-    if (confirm('Are you sure you want to clear all AI chat history?')) {
-      const clearText = aiPersona === 'MO_UYEN'
-        ? 'Chat history has been cleared. Uyen Nhi is ready to listen to Senior Brother!'
-        : aiPersona === 'TU_DO_NAM'
-        ? 'Chat history cleared. Old man Situ Nan is ready to guide Tie Zhu!'
-        : 'Chat history has been cleared. Ready for new inquiries!';
+    if (confirm('Bạn có chắc chắn muốn xóa toàn bộ lịch sử trò chuyện với AI không?')) {
+      const clearText = 'Lịch sử trò chuyện đã được làm mới. Trợ lý AI sẵn sàng hỗ trợ bạn!';
       setChatHistory([
         {
           id: `init_${Date.now()}`,
@@ -297,53 +317,125 @@ export default function AIPanel({
     setExpandedReasoning(prev => ({ ...prev, [msgId]: !prev[msgId] }));
   };
 
+  const getLocalDateString = (d: Date = new Date()): string => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const compileContext = (query: string = '') => {
-    const isCalendarQuery = query.includes('/calendar') || /calendar|schedule|time|free|busy|agenda|lịch|thời gian|lịch trình|thời khóa biểu/i.test(query);
-    const isTaskQuery = query.includes('/task') || /task|todo|homework|assignment|deadline|due|priority|nhiệm vụ|công việc|bài tập|độ ưu tiên|mức độ|ưu tiên/i.test(query);
+    const now = new Date();
+    const todayStr = getLocalDateString(now);
+    const dayNames = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+    const dayOfWeek = dayNames[now.getDay()];
+    const currentTimeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+    // Read projects & master tasks from storage so AI knows full project hierarchy
+    let userProjects: string[] = [];
+    let userMasterTasks: { title: string; project: string }[] = [];
+    try {
+      const savedPrj = localStorage.getItem('tlk_beaver_projects');
+      if (savedPrj) userProjects = JSON.parse(savedPrj);
+      const savedMt = localStorage.getItem('tlk_beaver_master_tasks');
+      if (savedMt) userMasterTasks = JSON.parse(savedMt);
+    } catch (e) {}
+
+    // 1. Tasks for Today (due today)
+    const todayTodos = todoItems.filter(t => t.dueDate === todayStr);
+    const todayPending = todayTodos.filter(t => !t.isCompleted);
+    const todayDone = todayTodos.filter(t => t.isCompleted);
+
+    // 2. Overdue Tasks (past due date & incomplete)
+    const overdueTodos = todoItems.filter(t => !t.isCompleted && t.dueDate && t.dueDate < todayStr);
+
+    // 3. Upcoming Tasks in current week
+    const upcomingTodos = todoItems.filter(t => !t.isCompleted && t.dueDate && t.dueDate > todayStr).slice(0, 20);
+
+    // 4. Backlog / Unscheduled Tasks
+    const backlogTodos = todoItems.filter(t => !t.isCompleted && !t.dueDate).slice(0, 20);
+
+    // 5. Today's Calendar Events
+    const todayTimestamp = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const tomorrowTimestamp = todayTimestamp + 24 * 60 * 60 * 1000;
+    const thirtyDaysLater = todayTimestamp + 30 * 24 * 60 * 60 * 1000;
+
+    const todayEvents = calendarEvents.filter(e => {
+      const dateStr = e.start?.dateTime || e.start?.date;
+      if (!dateStr) return false;
+      const d = new Date(dateStr).getTime();
+      return d >= todayTimestamp && d < tomorrowTimestamp;
+    });
+
+    const activeEvents = calendarEvents.filter(e => {
+      const dateStr = e.start?.dateTime || e.start?.date;
+      if (!dateStr) return false;
+      const d = new Date(dateStr).getTime();
+      return d >= todayTimestamp && d <= thirtyDaysLater;
+    }).slice(0, 25);
+
+    const formattedGroupsStr = (calendarGroups || []).map(g => `[Group ID:${g.id}] Name: ${g.summary}`).join('\n');
 
     let contextParts: string[] = [
-      `- Level: ${cultState.level} | Spirit Stones: ${cultState.linhThach} | CPA: ${cpaOverall.toFixed(2)}`,
-      `- Current Date: ${new Date().toISOString().split('T')[0]}`
+      `=== THỜI GIAN THỰC TẾ HIỆN TẠI ===`,
+      `- Thời gian: ${currentTimeStr}, ${dayOfWeek}, ngày ${todayStr}`,
+      `- CPA hiện tại: ${cpaOverall.toFixed(2)} | Tổng nhiệm vụ: ${todoItems.filter(t => !t.isCompleted).length} đang chờ, ${todoItems.filter(t => t.isCompleted).length} đã hoàn thành`,
+      ``,
+      `=== CÔNG VIỆC HÔM NAY (NGÀY ${todayStr} - ${dayOfWeek}) ===`,
+      `Tổng số việc hôm nay: ${todayTodos.length} (${todayPending.length} việc cần làm, ${todayDone.length} việc đã xong):`,
+      todayPending.length > 0 
+        ? todayPending.map(t => `- [ID:${t.id}] [Dự án: ${t.project || 'Chung'}] [Ưu tiên: ${getTodoPriority(t)}] ⭕ CẦN LÀM: ${t.title}`).join('\n')
+        : `- (Không có công việc nào chưa xong trong hôm nay)`,
+      todayDone.length > 0 
+        ? todayDone.map(t => `- [ID:${t.id}] [Dự án: ${t.project || 'Chung'}] ✅ ĐÃ HOÀN THÀNH: ${t.title}`).join('\n')
+        : '',
+      ``,
+      `=== CÔNG VIỆC QUÁ HẠN (CẦN LÀM NGAY) ===`,
+      overdueTodos.length > 0 
+        ? overdueTodos.map(t => `- [ID:${t.id}] [Dự án: ${t.project || 'Chung'}] [Hạn: ${t.dueDate}] [Ưu tiên: ${getTodoPriority(t)}] ⚠️ QUÁ HẠN: ${t.title}`).join('\n')
+        : `- (Không có việc quá hạn)`,
+      ``,
+      `=== CÔNG VIỆC SẮP TỚI TRONG TUẦN ===`,
+      upcomingTodos.length > 0
+        ? upcomingTodos.map(t => `- [ID:${t.id}] [Hạn: ${t.dueDate}] [Dự án: ${t.project || 'Chung'}]: ${t.title}`).join('\n')
+        : `- (Không có việc sắp tới)`,
+      ``,
+      `=== VIỆC CHƯA XẾP NGÀY / BACKLOG ===`,
+      backlogTodos.length > 0
+        ? backlogTodos.map(t => `- [ID:${t.id}] [Dự án: ${t.project || 'Chung'}]: ${t.title}`).join('\n')
+        : `- (Trống)`,
+      ``,
+      `=== CÁC DỰ ÁN & ĐẦU VIỆC TRONG DỰ ÁN ===`,
+      userProjects.length > 0
+        ? userProjects.map(p => {
+            const pTasks = userMasterTasks.filter(m => m.project.toLowerCase() === p.toLowerCase()).map(m => m.title);
+            return `* Dự án "${p}": ${pTasks.length > 0 ? pTasks.join(', ') : '(Chưa có đầu việc con nào)'}`;
+          }).join('\n')
+        : `- (Chưa có dự án nào)`,
+      ``,
+      `=== LỊCH BIỂU & SỰ KIỆN HÔM NAY (${todayStr}) ===`,
+      todayEvents.length > 0
+        ? todayEvents.map(e => {
+            const startStr = (e.start?.dateTime || e.start?.date || '').replace('T', ' ').substring(0, 16);
+            const endStr = (e.end?.dateTime || e.end?.date || '').split('T')[1]?.substring(0, 5) || '';
+            return `- [ID:${e.id}] ${endStr ? startStr + ' đến ' + endStr : startStr} | ${e.summary}`;
+          }).join('\n')
+        : `- (Hôm nay không có sự kiện lịch nào)`,
+      ``,
+      `=== LỊCH TRÌNH CÁC NGÀY TỚI ===`,
+      activeEvents.length > 0
+        ? activeEvents.map(e => {
+            const startStr = (e.start?.dateTime || e.start?.date || '').replace('T', ' ').substring(0, 16);
+            const endStr = (e.end?.dateTime || e.end?.date || '').split('T')[1]?.substring(0, 5) || '';
+            return `- [ID:${e.id}] ${endStr ? startStr + ' đến ' + endStr : startStr} | ${e.summary}`;
+          }).join('\n')
+        : `- (Không có sự kiện lịch)`,
+      ``,
+      `=== NHÓM LỊCH CÓ SẴN (CALENDAR GROUPS) ===`,
+      formattedGroupsStr || 'None'
     ];
 
-    if (isCalendarQuery) {
-      const now = new Date();
-      const todayTimestamp = now.getTime();
-      const thirtyDaysLater = todayTimestamp + (30 * 24 * 60 * 60 * 1000);
-
-      const activeEvents = calendarEvents.filter(e => {
-        const dateStr = e.start?.dateTime || e.start?.date;
-        if (!dateStr) return false;
-        const d = new Date(dateStr).getTime();
-        return d >= todayTimestamp - (24 * 60 * 60 * 1000) && d <= thirtyDaysLater;
-      });
-
-      const formattedEventsStr = activeEvents.map(e => {
-        const startStr = (e.start?.dateTime || e.start?.date || '').replace('T', ' ').substring(0, 16);
-        const endStr = (e.end?.dateTime || e.end?.date || '').split('T')[1]?.substring(0, 5) || '';
-        return `[ID:${e.id}] ${endStr ? startStr + ' to ' + endStr : startStr} | ${e.summary}`;
-      }).join('\n');
-
-      const formattedGroupsStr = (calendarGroups || []).map(g => `[Group ID:${g.id}] Name: ${g.summary}`).join('\n');
-
-      contextParts.push(`\n[AVAILABLE CALENDAR GROUPS]:\n${formattedGroupsStr}`);
-      contextParts.push(`\n[FULL 30-DAY SCHEDULE (100% COMPLETE)]:\n${formattedEventsStr || 'No scheduled events'}`);
-    }
-
-    if (isTaskQuery) {
-      const pendingTasks = todoItems
-        .filter(t => !t.isCompleted)
-        .slice(0, 100)
-        .map(t => {
-          const prio = getTodoPriority(t);
-          return `[ID:${t.id}] Due: ${t.dueDate || 'None'} | Priority: ${prio} | Title: ${t.title}`;
-        })
-        .join('\n');
-
-      contextParts.push(`\n[ALL ACTIVE TASKS IN SYSTEM (100% COMPLETE)]:\n${pendingTasks || 'No pending tasks'}`);
-    }
-
-    return `=== CONTEXT ===\n${contextParts.join('\n')}`;
+    return `=== CONTEXT DỮ LIỆU THỰC TẾ CỦA NGƯỜI DÙNG ===\n${contextParts.filter(Boolean).join('\n')}`;
   };
 
   const executeAIPlanning = async (customPrompt?: string) => {
@@ -365,34 +457,14 @@ export default function AIPanel({
 
     const context = compileContext(userQuery);
 
-    let personaPrompt = '';
-
-    if (aiPersona === 'MO_UYEN') {
-      personaPrompt = `
-You are "Li Muyan" (from Renegade Immortal / Tiên Nghịch novel), an AI companion in HUSTFlow.
-PERSONALITY & SPEAKING STYLE (MANDATORY):
-- **PRONOUNS**: You MUST strictly refer to yourself as "Uyen Nhi" (or "muội"). You MUST strictly refer to the user as "Senior Brother" (or "sư huynh").
-- **TONE**: Gentle, affectionate, devoted, sincere, sweet, deeply caring about Senior Brother's well-being and cultivation progress.
-- **DIRECT & NATURAL**: Answer naturally, warmly, and helpfully in English.
-- **NO PREACHING**: DO NOT preach philosophy or life lessons. Speak with love, care, and practical support.
+    const personaPrompt = `
+You are "Trợ lý AI" (AI Study & Productivity Assistant), a knowledgeable, empathetic, and action-oriented AI mentor in HUSTFlow.
+PERSONALITY & TONE:
+- Professional, encouraging, clear, and proactive in Vietnamese.
+- Help the user organize weekly plans, prioritize urgent and high-impact tasks (/task), balance schedule and calendar events (/calendar), optimize GPA/CPA, and build disciplined study habits.
+- Respond concisely, naturally, and helpfully in Vietnamese.
+- CRITICAL: You have FULL access to the user's real-time data in the CONTEXT above (including today's tasks, overdue tasks, projects, master tasks, and calendar events). When the user asks about their tasks or schedule (e.g., "tasks hôm nay", "hôm nay có việc gì", "dự án có việc gì"), ALWAYS directly read and summarize the tasks from the context. Mention exact task names, projects, and completion status. Never say you don't have access to their tasks or schedule.
 `;
-    } else if (aiPersona === 'TU_DO_NAM') {
-      personaPrompt = `
-You are "Situ Nan" (from Renegade Immortal / Tiên Nghịch novel), an AI companion in HUSTFlow.
-PERSONALITY & SPEAKING STYLE (MANDATORY):
-- **PRONOUNS**: You MUST strictly refer to yourself as "Old Man" (or "Lão phu"). You MUST strictly refer to the user as "Tie Zhu" (or "Thiết Trụ").
-- **TONE**: Domineering, fiery, fiercely urging cultivation, sharp-tongued but benevolent, sarcastic yet protective of Tie Zhu.
-- **NO PREACHING**: Speak aggressively, humorously, and practically in English.
-`;
-    } else {
-      personaPrompt = `
-You are "Master of Heavenly Secrets Pavilion", an AI companion in HUSTFlow.
-PERSONALITY & SPEAKING STYLE (MANDATORY):
-- **PRONOUNS**: You MUST strictly refer to yourself as "This Pavilion Master" (or "Tại hạ") and refer to the user as "Fellow Daoist" (or "Đạo hữu").
-- **TONE**: Polite, refined, objective, composed.
-- **NO PREACHING**: Answer clearly, helpfully, and practically in English.
-`;
-    }
 
     const systemInstruction = `
 ${personaPrompt}
@@ -530,8 +602,10 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
           const errData = await response.json().catch(() => ({}));
           console.warn(`Groq API Error ${response.status}:`, errData);
 
-          // If 400 Bad Request or 429 Rate Limit, retry with clean payload and fallback model
-          const fallbackModel = modelName === 'llama-3.1-8b-instant' ? 'llama-3.3-70b-versatile' : 'llama-3.1-8b-instant';
+          // If 400 Bad Request, 404 Model Not Found, or 429 Rate Limit, retry with clean payload and active fallback model
+          const fallbackModel = (modelName === 'llama-3.3-70b-versatile' || modelName.includes('3.1-8b'))
+            ? 'deepseek-r1-distill-llama-70b'
+            : 'llama-3.3-70b-versatile';
           console.warn(`Groq API Error ${response.status}! Retrying with fallback model ${fallbackModel}...`);
           bodyData.model = fallbackModel;
           delete bodyData.response_format;
@@ -541,6 +615,11 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
             headers,
             body: JSON.stringify(bodyData)
           });
+
+          if (response.ok) {
+            setGroqModel(fallbackModel);
+            localStorage.setItem('tlk_groq_model', fallbackModel);
+          }
         }
 
         if (!response.ok) {
@@ -633,16 +712,12 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
       setChatHistory(prev => [...prev, assistantMessage]);
     } catch (err: any) {
       console.error('AI Error:', err);
-      const errPrefix = aiPersona === 'MO_UYEN'
-        ? 'Uyen Nhi encountered an issue connecting to AI assistant.'
-        : aiPersona === 'TU_DO_NAM'
-        ? 'This old man encountered an issue transmitting divine sense.'
-        : 'The Pavilion Master encountered an issue divining heavenly secrets.';
+      const errPrefix = 'Rất tiếc, đã xảy ra lỗi kết nối với trợ lý AI.';
 
       const errorMessage: ChatMessage = {
         id: `msg_err_${Date.now()}`,
         role: 'assistant',
-        content: `${errPrefix} Error details: ${err.message || err}`,
+        content: `${errPrefix} Chi tiết lỗi: ${err.message || err}`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setChatHistory(prev => [...prev, errorMessage]);
@@ -758,34 +833,17 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
       return m;
     }));
 
-    alert(`⚡ Successfully applied ${appliedCount} proposals from Heavenly Secrets!`);
+    alert(`✓ Đã áp dụng thành công ${appliedCount} đề xuất vào kế hoạch học tập!`);
   };
 
   return (
     <>
-      {/* Floating Trigger Button (Minimalist Sleek Circle) */}
-      <button
-        onClick={() => setIsOpen(true)}
-        className={`fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full border-2 shadow-[0_4px_20px_rgba(0,0,0,0.6)] active:scale-95 cursor-pointer flex items-center justify-center transition-all select-none group backdrop-blur-md ${
-          aiPersona === 'MO_UYEN'
-            ? 'bg-[#18111b]/95 border-rose-500/50 hover:border-rose-400 text-rose-300 shadow-rose-950/40'
-            : aiPersona === 'TU_DO_NAM'
-            ? 'bg-[#1c1811]/95 border-amber-500/50 hover:border-amber-400 text-amber-300 shadow-amber-950/40'
-            : 'bg-[#141124]/95 border-purple-500/50 hover:border-purple-400 text-purple-300 shadow-purple-950/40'
-        }`}
-        title={aiPersona === 'MO_UYEN' ? 'Chat with Li Muyan (Uyen Nhi)' : aiPersona === 'TU_DO_NAM' ? 'Chat with Situ Nan' : 'Open Heavenly Secrets Pavilion'}
-      >
-        <span className="text-2xl transition-transform group-hover:scale-110">
-          {aiPersona === 'MO_UYEN' ? '🌸' : aiPersona === 'TU_DO_NAM' ? '👺' : '🔮'}
-        </span>
-      </button>
-
       {/* Slide-over AI Panel with Backdrop Click Outside */}
       <AnimatePresence>
-        {isOpen && (
+        {isPanelOpen && (
           <div 
-            className="fixed inset-0 bg-slate-950/40 backdrop-blur-[2px] z-50 flex justify-end"
-            onClick={() => setIsOpen(false)}
+            className="fixed inset-0 bg-[#2C2825]/30 backdrop-blur-xs z-50 flex justify-end"
+            onClick={handleClose}
           >
             <motion.div
               initial={{ opacity: 0, x: 400 }}
@@ -793,44 +851,45 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
               exit={{ opacity: 0, x: 400 }}
               transition={{ type: 'spring', damping: 25, stiffness: 250 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full sm:w-[480px] bg-[#070a0f] border-l-3 border-slate-950 shadow-[-10px_0_30px_rgba(0,0,0,0.8)] flex flex-col font-sans h-full ai-slideover-panel"
+              className="w-full sm:w-[480px] bg-[#FAF8F5] border-l border-[#E7E1D7] shadow-2xl flex flex-col font-sans h-full text-[#2C2825] ai-slideover-panel"
             >
               {/* Panel Header */}
-              <div className="p-4 bg-[#0f141c] border-b-2 border-slate-950 flex items-center justify-between gap-3 shrink-0">
+              <div className="p-4 bg-white border-b border-[#E7E1D7] flex items-center justify-between gap-3 shrink-0">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-300 shadow-[2px_2px_0px_#000]">
-                    {aiPersona === 'MO_UYEN' ? '🌸' : aiPersona === 'TU_DO_NAM' ? '👺' : '🔮'}
+                  <div className="w-9 h-9 rounded-xl bg-[#EEF5EE] border border-[#D2E5D2] flex items-center justify-center text-[#2E6930] shrink-0">
+                    <Bot className="w-5 h-5 text-[#2E6930]" />
                   </div>
                   <div>
-                    <h2 className="text-xs font-black text-slate-100 uppercase tracking-widest font-mono flex items-center gap-1.5">
-                      {aiPersona === 'MO_UYEN' ? 'LI MUYAN (UYEN NHI)' : aiPersona === 'TU_DO_NAM' ? 'SITU NAN (OLD MAN)' : 'HEAVENLY SECRETS'}
+                    <h2 className="text-sm font-bold text-[#2C2825] tracking-tight flex items-center gap-1.5">
+                      Trợ lý AI
                     </h2>
-                    <p className="text-[9.5px] text-slate-400 font-mono">
-                      {aiPersona === 'MO_UYEN' ? 'Senior Brother & Uyen Nhi • Dao Heart Mentor' : aiPersona === 'TU_DO_NAM' ? 'Old Man Situ Nan • Cultivation Urger' : 'Pavilion Master: AI Cultivation Strategist'}
+                    <p className="text-[11px] text-[#7A7268]">
+                      Cố vấn học tập & kế hoạch
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1">
                   <button
                     onClick={handleClearHistory}
-                    className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-900 rounded-lg transition-colors cursor-pointer"
-                    title="Clear chat history"
+                    className="p-2 text-[#7A7268] hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
+                    title="Xóa lịch sử trò chuyện"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => setIsConfiguringKey(!isConfiguringKey)}
-                    className={`p-1.5 rounded-lg border-2 border-slate-950 transition-all cursor-pointer ${
-                      isConfiguringKey ? 'bg-amber-400 text-slate-950' : 'bg-slate-900 text-slate-300 hover:bg-slate-800'
+                    className={`p-2 rounded-xl border transition-all cursor-pointer ${
+                      isConfiguringKey ? 'bg-emerald-50 border-emerald-200 text-[#2E6930]' : 'border-transparent text-[#7A7268] hover:text-[#2C2825] hover:bg-[#FAF8F5]'
                     }`}
-                    title="Configure API Key & Provider"
+                    title="Cài đặt API Key & Nguồn AI"
                   >
-                    <Settings className="w-4 h-4 stroke-[2.5]" />
+                    <Settings className="w-4 h-4" />
                   </button>
                   <button
-                    onClick={() => setIsOpen(false)}
-                    className="p-1.5 text-slate-400 hover:text-slate-100 hover:bg-slate-900 rounded-lg transition-colors cursor-pointer"
+                    onClick={handleClose}
+                    className="p-2 text-[#7A7268] hover:text-[#2C2825] hover:bg-[#FAF8F5] rounded-xl transition-colors cursor-pointer"
+                    title="Đóng"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -844,13 +903,13 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    className="bg-[#0f141c] border-b-2 border-slate-950 p-4 space-y-3 shrink-0 overflow-hidden text-xs"
+                    className="bg-white border-b border-[#E7E1D7] p-4 space-y-3 shrink-0 overflow-hidden text-xs"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-slate-200 uppercase text-[10px] tracking-wider font-mono">AI Provider Source</span>
+                      <span className="font-semibold text-xs text-[#2C2825]">Nguồn cung cấp AI</span>
                       {activeKey && (
-                        <span className="text-[9px] text-emerald-400 bg-emerald-950/60 border border-emerald-900 px-2 py-0.5 rounded-full font-mono">
-                          ✓ API Key Connected
+                        <span className="text-[10px] text-[#2E6930] bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-lg font-medium">
+                          ✓ Đã kết nối API Key
                         </span>
                       )}
                     </div>
@@ -860,10 +919,10 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
                         <button
                           key={p}
                           onClick={() => setProvider(p)}
-                          className={`py-1.5 px-2 rounded-lg border-2 border-slate-950 font-extrabold uppercase text-[9px] transition-all cursor-pointer ${
+                          className={`py-1.5 px-2 rounded-xl border text-[11px] font-semibold transition-all cursor-pointer ${
                             provider === p
-                              ? 'bg-amber-400 text-slate-950 shadow-[1px_1px_0px_#000]'
-                              : 'bg-slate-950 text-slate-400 hover:text-slate-200'
+                              ? 'bg-emerald-50 border-emerald-200 text-[#2E6930] shadow-xs'
+                              : 'bg-[#FAF8F5] border-[#E7E1D7] text-[#7A7268] hover:text-[#2C2825]'
                           }`}
                         >
                           {p === 'groq' ? 'Groq Free' : p === 'gemini' ? 'Gemini' : p === 'openrouter' ? 'OpenRouter' : 'Custom'}
@@ -874,15 +933,15 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
                     {/* Groq Model Selector */}
                     {provider === 'groq' && (
                       <div className="space-y-1 pt-1">
-                        <label className="text-[9.5px] font-bold text-slate-400 font-mono">Select Free Groq Model:</label>
+                        <label className="text-[11px] font-semibold text-[#7A7268]">Chọn Model Groq:</label>
                         <select
                           value={groqModel}
                           onChange={(e) => setGroqModel(e.target.value)}
-                          className="w-full bg-slate-950 border-2 border-slate-900 rounded-lg px-2 py-1.5 text-[10px] font-mono text-amber-300 font-bold focus:outline-none focus:border-amber-500 cursor-pointer"
+                          className="w-full bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl px-2.5 py-1.5 text-xs text-[#2C2825] focus:outline-none focus:border-[#2E6930] cursor-pointer"
                         >
                           {availableGroqModels.map(mId => (
                             <option key={mId} value={mId}>
-                              {mId === 'llama-3.3-70b-versatile' ? '🚀 llama-3.3-70b-versatile (Recommended)' : mId === 'llama-3.1-8b-instant' ? '⚡ llama-3.1-8b-instant (Ultra Fast)' : mId}
+                              {mId === 'llama-3.3-70b-versatile' ? '🚀 llama-3.3-70b-versatile (Khuyên dùng)' : mId === 'llama-3.1-8b-instant' ? '⚡ llama-3.1-8b-instant (Siêu nhanh)' : mId}
                             </option>
                           ))}
                         </select>
@@ -891,55 +950,26 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
 
                     {/* API Key Input */}
                     <div className="space-y-1">
-                      <div className="flex items-center justify-between text-[9.5px] text-slate-400 font-mono">
+                      <div className="flex items-center justify-between text-[11px] text-[#7A7268]">
                         <span>API Key ({provider.toUpperCase()}):</span>
                         {provider === 'groq' && (
-                          <a href="https://console.groq.com/keys" target="_blank" rel="noreferrer" className="text-amber-400 underline">Get free Groq API key</a>
+                          <a href="https://console.groq.com/keys" target="_blank" rel="noreferrer" className="text-[#2E6930] underline">Lấy API key Groq miễn phí</a>
                         )}
                       </div>
                       <div className="flex gap-2">
                         <input
                           type="password"
-                          placeholder={provider === 'groq' ? 'Paste Groq Key (gsk_...)' : 'Paste API Key...'}
+                          placeholder={provider === 'groq' ? 'Dán khóa Groq (gsk_...)' : 'Dán khóa API...'}
                           value={inputKeyTemp}
                           onChange={(e) => setInputKeyTemp(e.target.value)}
-                          className="flex-1 bg-slate-950 border-2 border-slate-900 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500 font-mono"
+                          className="flex-1 bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl px-3 py-1.5 text-xs text-[#2C2825] focus:outline-none focus:border-[#2E6930] focus:bg-white"
                         />
                         <button
                           onClick={saveApiKey}
-                          className="px-3 py-1.5 bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black rounded-lg border-2 border-slate-950 text-xs uppercase transition-all shadow-[1px_1px_0px_#000] cursor-pointer"
+                          className="px-4 py-1.5 bg-[#2E6930] hover:bg-[#245226] text-white font-semibold rounded-xl text-xs transition-colors shadow-xs cursor-pointer"
                         >
-                          Save
+                          Lưu
                         </button>
-                      </div>
-                    </div>
-
-                    {/* AI Persona Selector */}
-                    <div className="pt-2 border-t border-slate-900 space-y-1.5">
-                      <span className="font-bold text-slate-300 uppercase text-[9.5px] tracking-wider font-mono">AI Persona & Mentor Style:</span>
-                      <div className="grid grid-cols-3 gap-1.5">
-                        {[
-                          { id: 'MO_UYEN', label: '🌸 Li Muyan', desc: 'Uyen Nhi • Senior Brother' },
-                          { id: 'TONG_CHU', label: '📜 Pavilion Master', desc: 'Humble One • Fellow Daoist' },
-                          { id: 'TU_DO_NAM', label: '👺 Situ Nan', desc: 'Old Man • Tie Zhu' }
-                        ].map(p => (
-                          <button
-                            key={p.id}
-                            type="button"
-                            onClick={() => {
-                              setAiPersona(p.id as AIPersonaType);
-                              localStorage.setItem('tlk_ai_persona', p.id);
-                            }}
-                            className={`p-2 rounded-xl border-2 border-slate-950 text-left transition-all cursor-pointer ${
-                              aiPersona === p.id
-                                ? 'bg-rose-500/20 border-rose-500 text-rose-300 shadow-[1px_1px_0px_#000]'
-                                : 'bg-slate-950 border-slate-900 text-slate-400 hover:text-slate-200'
-                            }`}
-                          >
-                            <div className="font-black text-[10px] truncate">{p.label}</div>
-                            <div className="text-[8px] opacity-75 font-mono truncate">{p.desc}</div>
-                          </button>
-                        ))}
                       </div>
                     </div>
                   </motion.div>
@@ -947,7 +977,7 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
               </AnimatePresence>
 
               {/* Chat History View */}
-              <div className="flex-1 p-4 overflow-y-auto space-y-4 font-sans text-xs bg-[#080b12]">
+              <div className="flex-1 p-4 overflow-y-auto space-y-4 font-sans text-xs bg-[#FAF8F5]">
                 {chatHistory.map((msg) => (
                   <div
                     key={msg.id}
@@ -955,39 +985,35 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
                   >
                     {msg.role === 'user' ? (
                       /* User Message Bubble */
-                      <div className="max-w-[85%] bg-slate-900 border-2 border-slate-950 text-slate-100 p-3.5 rounded-2xl shadow-[3px_3px_0px_#000] text-xs leading-relaxed whitespace-pre-wrap font-sans">
+                      <div className="max-w-[85%] bg-white border border-[#E7E1D7] text-[#2C2825] p-3.5 rounded-2xl shadow-xs text-xs leading-relaxed whitespace-pre-wrap font-sans">
                         {msg.content}
                       </div>
                     ) : (
-                      /* Assistant Message Card (Matching Screenshot Exactly) */
-                      <div className="w-full bg-[#121622] border-2 border-slate-950 rounded-2xl p-4.5 shadow-[4px_4px_0px_#000] text-xs leading-relaxed space-y-3.5">
-                        {/* Card Header matching screenshot */}
-                        <div className="flex items-center justify-between pb-2 border-b border-slate-800/80 font-sans">
+                      /* Assistant Message Card */
+                      <div className="w-full bg-white border border-[#E7E1D7] rounded-2xl p-4.5 shadow-xs text-xs leading-relaxed space-y-3.5 text-[#2C2825]">
+                        {/* Card Header */}
+                        <div className="flex items-center justify-between pb-2 border-b border-[#F0EDE6]">
                           <div className="flex items-center gap-1.5">
-                            <span className="text-base">
-                              {aiPersona === 'MO_UYEN' ? '🌸' : aiPersona === 'TU_DO_NAM' ? '👺' : '📜'}
-                            </span>
-                            <span className={`text-[13px] font-extrabold tracking-wide font-sans ${
-                              aiPersona === 'MO_UYEN' ? 'text-rose-300' : aiPersona === 'TU_DO_NAM' ? 'text-amber-300' : 'text-purple-300'
-                            }`}>
-                              {aiPersona === 'MO_UYEN' ? 'Uyen Nhi:' : aiPersona === 'TU_DO_NAM' ? 'Situ Nan:' : 'Heavenly Secrets Master:'}
+                            <span className="text-base">🤖</span>
+                            <span className="text-xs font-bold text-[#2C2825]">
+                              Trợ lý AI:
                             </span>
                           </div>
-                          <span className="px-2 py-0.5 bg-purple-950/80 text-purple-300 border border-purple-800/80 rounded-md text-[9px] font-extrabold font-mono uppercase tracking-wider">
+                          <span className="px-2 py-0.5 bg-[#FAF8F5] text-[#7A7268] border border-[#E7E1D7] rounded-md text-[10px] font-mono font-semibold uppercase tracking-wider">
                             {provider.toUpperCase()}
                           </span>
                         </div>
 
                         {/* Text Message Content */}
-                        <div className="text-slate-100 leading-relaxed whitespace-pre-wrap font-sans text-[13px] font-normal tracking-wide">
+                        <div className="text-[#2C2825] leading-relaxed whitespace-pre-wrap font-sans text-xs">
                           {msg.content}
                         </div>
 
                         {/* Interactive Proposals list if attached */}
                         {msg.proposals && msg.proposals.length > 0 && (
-                          <div className="pt-3 border-t border-slate-800/80 space-y-2 text-[11px] text-left">
-                            <div className="font-extrabold uppercase text-[9.5px] tracking-wider text-amber-400 font-mono flex items-center gap-1">
-                              <Sparkles className="w-3 h-3" /> Automated Proposals from Heavenly Secrets:
+                          <div className="pt-3 border-t border-[#F0EDE6] space-y-2 text-xs text-left">
+                            <div className="font-bold text-xs text-[#2E6930] flex items-center gap-1.5">
+                              <Sparkles className="w-3.5 h-3.5" /> Đề xuất thao tác tự động:
                             </div>
                             
                             <div className="space-y-1.5">
@@ -995,36 +1021,36 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
                                 <div
                                   key={p.id}
                                   onClick={() => handleToggleProposal(msg.id, p.id)}
-                                  className={`p-2.5 rounded-xl border border-slate-900 flex items-center justify-between gap-2 cursor-pointer transition-all ${
-                                    p.checked ? 'bg-slate-950 border-amber-500/50' : 'bg-slate-950/40 opacity-60'
+                                  className={`p-3 rounded-xl border flex items-center justify-between gap-2.5 cursor-pointer transition-all ${
+                                    p.checked ? 'bg-emerald-50/40 border-emerald-200' : 'bg-white border-[#E7E1D7] opacity-60'
                                   }`}
                                 >
-                                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                                  <div className="flex items-center gap-2.5 flex-1 min-w-0">
                                     {p.checked ? (
-                                      <CheckSquare className="w-4 h-4 text-amber-400 shrink-0" />
+                                      <CheckSquare className="w-4 h-4 text-[#2E6930] shrink-0" />
                                     ) : (
-                                      <Square className="w-4 h-4 text-slate-600 shrink-0" />
+                                      <Square className="w-4 h-4 text-[#7A7268] shrink-0" />
                                     )}
                                     <div className="truncate text-left">
-                                      <div className="flex items-center gap-1.5 font-bold text-slate-200 truncate">
-                                        <span className={`text-[8.5px] px-1.5 py-0.5 rounded font-mono font-black uppercase shrink-0 ${
+                                      <div className="flex items-center gap-1.5 font-bold text-[#2C2825] truncate">
+                                        <span className={`text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase shrink-0 ${
                                           p.action === 'DELETE' || p.type.includes('DELETE')
-                                            ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                                            ? 'bg-rose-50 text-rose-700 border border-rose-200'
                                             : p.action === 'MODIFY' || p.type.includes('EDIT')
-                                            ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                                            : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                                            ? 'bg-amber-50 text-[#B85D38] border border-amber-200'
+                                            : 'bg-emerald-50 text-[#2E6930] border border-emerald-200'
                                         }`}>
-                                          {p.action === 'DELETE' || p.type.includes('DELETE') ? '🗑️ Delete' : p.action === 'MODIFY' || p.type.includes('EDIT') ? '✏️ Edit' : '+ Add'}
+                                          {p.action === 'DELETE' || p.type.includes('DELETE') ? '🗑️ Xóa' : p.action === 'MODIFY' || p.type.includes('EDIT') ? '✏️ Sửa' : '+ Thêm'}
                                         </span>
                                         <span className="truncate">{p.title}</span>
                                       </div>
-                                      <div className="text-[9.5px] text-slate-400 font-mono mt-0.5">
-                                        {(p.type === 'TASK' || p.type === 'TASK_EDIT' || p.type === 'TASK_DELETE') && `⚔️ Task • Priority: ${p.priority === 'THAN_CAP' ? 'Thần Cấp (Heaven)' : p.priority === 'CAO_CAP' ? 'Cao Cấp (Earth)' : p.priority === 'TRUNG_CAP' ? 'Trung Cấp (Adept)' : 'Sơ Cấp (Novice)'} • Due: ${p.dueDate || 'Today'}`}
-                                        {p.type === 'MANUAL' && `📚 Manual (${p.category}) • ${p.stages?.length || 0} Stages`}
+                                      <div className="text-[10px] text-[#7A7268] font-mono mt-0.5">
+                                        {(p.type === 'TASK' || p.type === 'TASK_EDIT' || p.type === 'TASK_DELETE') && `Nhiệm vụ • Mức độ: ${p.priority === 'THAN_CAP' ? 'Khẩn cấp' : p.priority === 'CAO_CAP' ? 'Cao' : p.priority === 'TRUNG_CAP' ? 'Trung bình' : 'Thấp'} • Hạn: ${p.dueDate || 'Hôm nay'}`}
+                                        {p.type === 'MANUAL' && `Lộ trình (${p.category}) • ${p.stages?.length || 0} Chặng`}
                                         {(p.type === 'CALENDAR' || p.type === 'CALENDAR_EDIT' || p.type === 'CALENDAR_DELETE') && (
                                           <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                                            <span className="text-[9.5px] text-amber-300/90 font-mono">
-                                              📅 {p.startDate ? p.startDate.replace('T', ' ') : 'Upcoming'}
+                                            <span className="text-[10px] text-[#B85D38] font-mono">
+                                              📅 {p.startDate ? p.startDate.replace('T', ' ') : 'Sắp tới'}
                                             </span>
                                             {calendarGroups && calendarGroups.length > 0 && p.type === 'CALENDAR' && (
                                               <select
@@ -1043,10 +1069,10 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
                                                     return m;
                                                   }));
                                                 }}
-                                                className="bg-slate-900 text-purple-300 text-[9px] border border-purple-500/40 rounded px-1.5 py-0.5 font-mono focus:outline-none cursor-pointer hover:bg-slate-800"
+                                                className="bg-white text-[#2C2825] text-[10px] border border-[#E7E1D7] rounded-lg px-2 py-0.5 font-mono focus:outline-none cursor-pointer hover:bg-[#FAF8F5]"
                                               >
                                                 {calendarGroups.map(g => (
-                                                  <option key={g.id} value={g.id}>📁 Group: {g.summary || g.id}</option>
+                                                  <option key={g.id} value={g.id}>📁 {g.summary || g.id}</option>
                                                 ))}
                                               </select>
                                             )}
@@ -1061,9 +1087,9 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
 
                             <button
                               onClick={() => handleApplyProposals(msg.id)}
-                              className="w-full py-2.5 mt-2 bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black rounded-xl border-2 border-slate-950 uppercase tracking-wider text-[10px] shadow-[2px_2px_0px_#000] active:translate-y-0.5 active:shadow-none transition-all cursor-pointer"
+                              className="w-full py-2.5 mt-2 bg-[#2E6930] hover:bg-[#245226] text-white font-semibold rounded-xl uppercase tracking-wider text-xs shadow-xs transition-colors cursor-pointer"
                             >
-                              ⚡ Apply Selected Proposals
+                              ✓ ÁP DỤNG CÁC ĐỀ XUẤT ĐÃ CHỌN
                             </button>
                           </div>
                         )}
@@ -1072,27 +1098,21 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
                   </div>
                 ))}
 
-                {/* Loading Indicator Bubble */}
+                {/* Loading Indicator */}
                 {isLoading && (
-                  <div className="flex items-center gap-2 text-slate-400 text-xs font-mono p-3 bg-[#141a29] border-2 border-slate-950 rounded-2xl max-w-[85%] shadow-[2px_2px_0px_#000]">
-                    <Compass className={`w-4 h-4 animate-spin ${aiPersona === 'MO_UYEN' ? 'text-rose-400' : 'text-purple-400'}`} />
-                    <span>
-                      {aiPersona === 'MO_UYEN'
-                        ? 'Uyen Nhi is listening and preparing response for Senior Brother...'
-                        : aiPersona === 'TU_DO_NAM'
-                        ? 'Old man Situ Nan is calculating the heavenly secrets for Tie Zhu...'
-                        : 'The Pavilion Master is divining the cosmic patterns...'}
-                    </span>
+                  <div className="flex items-center gap-2.5 text-[#7A7268] text-xs font-medium p-3.5 bg-white border border-[#E7E1D7] rounded-2xl max-w-[85%] shadow-xs">
+                    <Compass className="w-4 h-4 animate-spin text-[#2E6930]" />
+                    <span>Trợ lý AI đang xử lý và chuẩn bị câu trả lời cho bạn...</span>
                   </div>
                 )}
                 <div ref={messagesEndRef} />
               </div>
 
               {/* Input Form & Quick Command Presets */}
-              <div className="p-3 bg-[#0d111a] border-t-2 border-slate-950 shrink-0 space-y-2 relative">
+              <div className="p-3.5 bg-white border-t border-[#E7E1D7] shrink-0 space-y-2.5 relative">
                 {/* Slash Command Autocomplete Popup */}
                 {prompt.startsWith('/') && !prompt.includes(' ') && (
-                  <div className="bg-[#121722] border-2 border-purple-500/60 rounded-xl p-1.5 shadow-[0_4px_20px_rgba(0,0,0,0.6)] flex items-center gap-2 animate-fadeIn">
+                  <div className="bg-white border border-[#E7E1D7] rounded-xl p-1.5 shadow-md flex items-center gap-2 animate-fadeIn">
                     {['/task', '/calendar']
                       .filter(cmd => cmd.toLowerCase().startsWith(prompt.toLowerCase()))
                       .map((opt) => (
@@ -1100,7 +1120,7 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
                           key={opt}
                           type="button"
                           onClick={() => setPrompt(`${opt} `)}
-                          className="px-3.5 py-1.5 bg-[#182030] hover:bg-purple-600 hover:text-white text-purple-300 font-mono font-bold text-xs rounded-lg border border-purple-500/30 transition-all cursor-pointer"
+                          className="px-3.5 py-1.5 bg-[#FAF8F5] hover:bg-emerald-50 hover:text-[#2E6930] text-[#2C2825] font-mono font-semibold text-xs rounded-lg border border-[#E7E1D7] transition-all cursor-pointer"
                         >
                           {opt}
                         </button>
@@ -1111,18 +1131,18 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
                 {/* Quick Command Preset Pills */}
                 <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto">
                   {[
-                    { icon: '📜', label: 'Manual Cultivation Schedule', text: 'Please devise a manual cultivation schedule and daily routine for me.' },
-                    { icon: '⚖️', label: 'Balance Dao Heart', text: 'Analyze and help me balance my current study and practice habits.' },
-                    { icon: '⚔️', label: 'Prioritize Tasks', text: 'Please prioritize my pending tasks and assignments.' },
-                    { icon: '🔮', label: 'Daily Divination', text: 'Divine heavenly secrets and suggest an optimal cultivation plan for tomorrow.' },
-                    { icon: '🔨', label: 'Deconstruct Goals', text: 'Help me break down large academic courses into bite-sized study units.' },
+                    { icon: '📅', label: 'Lập lịch tuần này', text: 'Hãy giúp tôi lập kế hoạch và phân bổ thời gian học tập cho tuần này.' },
+                    { icon: '⚖️', label: 'Cân bằng thói quen', text: 'Phân tích và gợi ý cách cân bằng giữa việc học tập và duy trì thói quen tốt.' },
+                    { icon: '🎯', label: 'Ưu tiên nhiệm vụ', text: 'Hãy xem xét và sắp xếp thứ tự ưu tiên các nhiệm vụ còn tồn đọng.' },
+                    { icon: '💡', label: 'Kế hoạch ngày mai', text: 'Gợi ý lịch trình và công việc trọng tâm cho ngày mai.' },
+                    { icon: '🧩', label: 'Chia nhỏ môn học', text: 'Giúp tôi chia nhỏ các môn học lớn thành các mục tiêu học tập cụ thể theo từng chặng.' },
                   ].map((cmd, idx) => (
                     <button
                       key={idx}
                       type="button"
                       disabled={!activeKey || isLoading}
                       onClick={() => executeAIPlanning(cmd.text)}
-                      className="px-3 py-1.5 bg-[#141a29] hover:bg-slate-900 border border-slate-800 hover:border-purple-500/40 rounded-xl text-[11px] font-medium font-sans text-slate-300 flex items-center gap-1.5 transition-all cursor-pointer shadow-[1px_1px_0px_#000] disabled:opacity-40"
+                      className="px-3 py-1.5 bg-[#FAF8F5] hover:bg-white border border-[#E7E1D7] hover:border-[#2E6930] rounded-xl text-[11px] font-medium text-[#2C2825] flex items-center gap-1.5 transition-all cursor-pointer shadow-xs disabled:opacity-40"
                     >
                       <span>{cmd.icon}</span>
                       <span>{cmd.label}</span>
@@ -1139,18 +1159,18 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
                 >
                   <input
                     type="text"
-                    placeholder={activeKey ? "Type / to browse slash commands (/task, /calendar) or ask questions..." : "Please configure your API Key in Settings above..."}
+                    placeholder={activeKey ? "Nhập / để xem lệnh nhanh (/task, /calendar) hoặc đặt câu hỏi..." : "Vui lòng nhập API Key trong Cài đặt ở trên..."}
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
                     disabled={!activeKey || isLoading}
-                    className="flex-1 bg-[#070910] border-2 border-slate-900 rounded-xl px-3.5 py-3 text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-purple-500 font-sans disabled:opacity-50"
+                    className="flex-1 bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl px-3.5 py-2.5 text-xs text-[#2C2825] placeholder-[#7A7268]/60 focus:outline-none focus:border-[#2E6930] focus:bg-white font-sans disabled:opacity-50 transition-all"
                   />
                   <button
                     type="submit"
                     disabled={!activeKey || !prompt.trim() || isLoading}
-                    className="p-3 bg-[#171d2d] hover:bg-[#1f273d] text-slate-100 rounded-xl border-2 border-slate-950 shadow-[2px_2px_0px_#000] active:translate-y-0.5 active:shadow-none disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shrink-0"
+                    className="p-2.5 bg-[#2E6930] hover:bg-[#245226] text-white rounded-xl shadow-xs active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shrink-0"
                   >
-                    <Send className="w-4 h-4 text-purple-400 stroke-[2.5]" />
+                    <Send className="w-4 h-4 text-white" />
                   </button>
                 </form>
               </div>

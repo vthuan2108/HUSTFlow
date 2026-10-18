@@ -15,10 +15,8 @@ import {
   Task,
   Priority
 } from '../types';
-import MeditationTimer, { SoundscapeType } from './MeditationTimer';
 import TaskSection from './TaskSection';
 import HabitSection from './HabitSection';
-import SpiritualGarden from './SpiritualGarden';
 import { 
   ExternalLink,
   Flame
@@ -41,7 +39,6 @@ export default function NewTabApp() {
 
   const [gardenPlants, setGardenPlants] = useState<GardenPlant[]>([]);
   const [dailyLogs, setDailyLogs] = useState<DailyLog[]>([]);
-  const [soundscape, setSoundscape] = useState<SoundscapeType>('NONE');
   const [isFocusMode, setIsFocusMode] = useState<boolean>(false);
   const [hours, setHours] = useState<string>('00');
   const [minutes, setMinutes] = useState<string>('00');
@@ -491,20 +488,9 @@ export default function NewTabApp() {
         </div>
 
         {/* C. MAIN WIDGETS GRID */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start w-full">
           
-          {/* Column 1: MeditationTimer */}
-          <MeditationTimer
-            state={cultState}
-            onMeditationComplete={handleMeditationComplete}
-            onPassiveQiTick={handlePassiveQiTick}
-            isFocusMode={isFocusMode}
-            onToggleFocusMode={() => setIsFocusMode(!isFocusMode)}
-            soundscape={soundscape}
-            onSoundscapeChange={setSoundscape}
-          />
-          
-          {/* Column 2: TaskSection */}
+          {/* Column 1: TaskSection */}
           <TaskSection
             tasks={tasks}
             onAddTask={handleAddTask}
@@ -512,12 +498,8 @@ export default function NewTabApp() {
             onDeleteTask={handleDeleteTask}
           />
 
-          {/* Column 3: Spiritual Garden + Habit Section */}
+          {/* Column 2: Habit Section */}
           <div className="flex flex-col gap-6">
-            <SpiritualGarden
-              plants={gardenPlants}
-              onClearGarden={handleClearGarden}
-            />
             <HabitSection
               habits={habits}
               onAddHabit={handleAddHabit}

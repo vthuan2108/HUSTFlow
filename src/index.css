@@ -7,43 +7,45 @@
   --font-retro: "Silkscreen", "VT323", "Press Start 2P", monospace;
 }
 
-:root, [data-theme="dark"] {
+:root {
+  --bg-app: #FBF8F2;
+  --card-bg: #FFFFFF;
+  --card-border: #E7E1D7;
+  --card-border-width: 1px;
+  --card-shadow: 0 1px 3px rgba(44, 40, 37, 0.05), 0 1px 2px rgba(44, 40, 37, 0.03);
+  --card-radius: 16px;
+  --text-main: #2C2825;
+  --text-muted: #797268;
+  --input-bg: #FFFFFF;
+  --input-border: #E7E1D7;
+  --btn-primary-bg: #2E6930;
+  --btn-primary-text: #FFFFFF;
+  --btn-secondary-bg: #EFECE6;
+  --btn-secondary-text: #2C2825;
+  --accent-green: #2E6930;
+  --accent-rust: #B85D38;
+  --scrollbar-track: #FBF8F2;
+  --scrollbar-thumb: #D8D2C5;
+  font-family: "Plus Jakarta Sans", "Inter", sans-serif;
+}
+
+[data-theme="dark"] {
   --bg-app: #070a0f;
   --card-bg: #131924;
-  --card-border: #000000;
-  --card-border-width: 3px;
-  --card-shadow: 4px 4px 0px 0px #000000;
+  --card-border: #1e293b;
+  --card-border-width: 1px;
+  --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
   --card-radius: 16px;
   --text-main: #f1f5f9;
   --text-muted: #64748b;
   --input-bg: #090d16;
-  --input-border: #000000;
-  --btn-primary-bg: #fbbf24;
-  --btn-primary-text: #000000;
+  --input-border: #1e293b;
+  --btn-primary-bg: #2E6930;
+  --btn-primary-text: #ffffff;
   --btn-secondary-bg: #1e293b;
   --btn-secondary-text: #ffffff;
   --scrollbar-track: #070a0f;
   --scrollbar-thumb: #1e293b;
-}
-
-[data-theme="cozy"] {
-  --bg-app: #F7F5F0;
-  --card-bg: #FFFFFF;
-  --card-border: #E8E4DA;
-  --card-border-width: 1.5px;
-  --card-shadow: 0 4px 16px rgba(46, 40, 35, 0.04), 0 1px 3px rgba(46, 40, 35, 0.03);
-  --card-radius: 20px;
-  --text-main: #2E2823;
-  --text-muted: #8C8479;
-  --input-bg: #FBF9F5;
-  --input-border: #E8E4DA;
-  --btn-primary-bg: #507D58;
-  --btn-primary-text: #FFFFFF;
-  --btn-secondary-bg: #EAE6DD;
-  --btn-secondary-text: #332D28;
-  --scrollbar-track: #F7F5F0;
-  --scrollbar-thumb: #D8D2C5;
-  font-family: "Plus Jakarta Sans", sans-serif !important;
 }
 
 @layer base {
@@ -51,11 +53,11 @@
     background-color: var(--bg-app);
     color: var(--text-main);
     font-family: var(--font-sans);
-    @apply antialiased selection:bg-amber-500/20 selection:text-amber-300 transition-colors duration-200;
+    @apply antialiased selection:bg-emerald-500/20 selection:text-emerald-900 transition-colors duration-200;
   }
 }
 
-/* Neo-Brutalist Cards & Cozy Paper Cards */
+/* Warm Paper Cards */
 .neo-card {
   background-color: var(--card-bg);
   border: var(--card-border-width) solid var(--card-border);
@@ -65,39 +67,32 @@
 }
 
 .neo-card-hover:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 6px 6px 0px 0px #000000;
-}
-
-[data-theme="cozy"] .neo-card-hover:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(46, 40, 35, 0.08), 0 2px 6px rgba(46, 40, 35, 0.04);
+  box-shadow: 0 6px 20px rgba(44, 40, 37, 0.08), 0 2px 6px rgba(44, 40, 37, 0.04);
 }
 
-/* Neo-Brutalist Buttons */
+/* Minimalist Clean Buttons */
 .neo-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border: var(--card-border-width) solid var(--card-border);
   border-radius: 10px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  box-shadow: var(--card-shadow);
-  transform: translate(0px, 0px);
+  font-weight: 700;
+  box-shadow: 0 1px 2px rgba(44, 40, 37, 0.05);
   transition: all 0.15s ease-in-out;
   cursor: pointer;
   user-select: none;
 }
 
 .neo-btn:hover {
-  transform: translate(1px, 1px);
+  filter: brightness(0.96);
 }
 
 .neo-btn-primary {
   background-color: var(--btn-primary-bg);
   color: var(--btn-primary-text);
+  border-color: var(--btn-primary-bg);
 }
 
 .neo-btn-secondary {
@@ -107,13 +102,15 @@
 }
 
 .neo-btn-success {
-  background-color: #10b981;
-  color: #000000;
+  background-color: #2E6930;
+  color: #ffffff;
+  border-color: #2E6930;
 }
 
 .neo-btn-danger {
-  background-color: #ef4444;
+  background-color: #dc2626;
   color: #ffffff;
+  border-color: #dc2626;
 }
 
 /* Input Fields */
@@ -122,8 +119,8 @@
   border: var(--card-border-width) solid var(--input-border);
   border-radius: 10px;
   color: var(--text-main);
-  font-weight: 600;
-  box-shadow: var(--card-shadow);
+  font-weight: 500;
+  box-shadow: 0 1px 2px rgba(44, 40, 37, 0.04);
   transition: all 0.15s ease-in-out;
 }
 
@@ -132,10 +129,11 @@
   border-color: var(--btn-primary-bg);
 }
 
-/* Retro pixel-style text and labels */
+/* Labels */
 .pixel-label {
-  font-family: var(--font-retro);
-  letter-spacing: 0.05em;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
 .pixel-shadow {

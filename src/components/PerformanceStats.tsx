@@ -3,45 +3,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState } from 'react';
-import { WeeklyChallenge, DailyLog, Task, TodoItem, CultivationState } from '../types';
-import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
-import { Trophy, Award, TrendingUp, Plus, CheckCircle, Compass, Trash2, RefreshCw, Lock, Crown } from 'lucide-react';
-import { getRealmInfo } from '../data';
+import { useState, useMemo } from 'react';
+import { WeeklyChallenge, DailyLog, Task, TodoItem } from '../types';
+import { Target, Plus, CheckCircle, Trash2 } from 'lucide-react';
 
 function getLocalDateString(d: Date = new Date()): string {
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
-}
-
-function getStreakFromLogs(logs: DailyLog[]): number {
-  const activeDates = logs
-    .filter(log => log.tuViGained > 0 || log.meditationMinutes > 0 || log.tasksCompleted > 0 || !!log.isStreakProtected)
-    .map(log => log.date)
-    .sort();
-  if (activeDates.length === 0) return 0;
-  const uniqueDates = Array.from(new Set(activeDates));
-  const todayStr = getLocalDateString(new Date());
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayStr = getLocalDateString(yesterday);
-  const hasToday = uniqueDates.includes(todayStr);
-  const hasYesterday = uniqueDates.includes(yesterdayStr);
-  if (!hasToday && !hasYesterday) return 0;
-  let checkDate = hasToday ? new Date() : yesterday;
-  let streakCount = 0;
-  while (true) {
-    const checkStr = getLocalDateString(checkDate);
-    if (uniqueDates.includes(checkStr)) {
-      streakCount++;
-      checkDate.setDate(checkDate.getDate() - 1);
-    } else {
-      break;
-    }
-  }
-  return streakCount;
 }
 
 interface PerformanceStatsProps {
@@ -51,501 +21,676 @@ interface PerformanceStatsProps {
   onAddChallenge?: (title: string, targetValue: number, tuViReward: number, linhThachReward: number) => void;
   onProgressChallenge?: (id: string, amount: number) => void;
   onDeleteChallenge?: (id: string) => void;
-  tasks: Task[];
+  tasks?: Task[];
   todoItems: TodoItem[];
-  currentUser: any;
-  leaderboard: any[];
-  isFetchingLeaderboard: boolean;
-  onRefreshLeaderboard: () => void;
-  state?: CultivationState;
+  currentUser?: any;
+  leaderboard?: any[];
+  isFetchingLeaderboard?: boolean;
+  onRefreshLeaderboard?: () => void;
+  state?: any;
 }
 
 export default function PerformanceStats({
-  challenges,
-  dailyLogs,
+  challenges = [],
+  dailyLogs = [],
   onClaimChallenge,
   onAddChallenge,
   onProgressChallenge,
   onDeleteChallenge,
-  tasks,
-  todoItems,
-  currentUser,
-  leaderboard,
-  isFetchingLeaderboard,
-  onRefreshLeaderboard,
-  state
+  todoItems = []
 }: PerformanceStatsProps) {
-  const [activeSubTab, setActiveSubTab] = useState<'STATS' | 'LEADERBOARD'>('STATS');
-  const [isAddingChallenge, setIsAddingChallenge] = useState(false);
-  const [newTitle, setNewTitle] = useState('');
-  const [newTarget, setNewTarget] = useState(10);
-  const [newTuVi, setNewTuVi] = useState(100);
-  const [newLinhThach, setNewLinhThach] = useState(50);
+  const [isAddingGoal, setIsAddingGoal] = useState(false);
+  const [newGoalTitle, setNewGoalTitle] = useState('');
+  const [newGoalTarget, setNewGoalTarget] = useState(5);
 
-  // Generate 30 days of data ending today for the 1-month meditation line/area chart
-  const last30DaysData = [];
-  const today = new Date();
-  for (let i = 29; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(today.getDate() - i);
-    const dateStr = getLocalDateString(d);
-    const realLog = dailyLogs.find(log => log.date === dateStr);
-    
-    if (realLog) {
-      last30DaysData.push({
-        date: dateStr,
-        meditationMinutes: realLog.meditationMinutes,
-        tuViGained: realLog.tuViGained,
-        tasksCompleted: realLog.tasksCompleted,
-        formattedDate: d.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' })
-      });
-    } else {
-      const isLogEmpty = dailyLogs.length === 0;
-      // Deterministic fallback mock pattern to make the monthly chart beautiful on first run
-      const seedVal = isLogEmpty 
-        ? Math.max(0, Math.round(Math.sin((29 - i) * 0.4) * 8 + 15 + ((29 - i) % 4))) 
-        : 0;
-      last30DaysData.push({
-        date: dateStr,
-        meditationMinutes: seedVal,
-        tuViGained: seedVal * 10,
-        tasksCompleted: isLogEmpty ? ((29 - i) % 5 === 0 ? 1 : 0) : 0,
-        formattedDate: d.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric' })
-      });
-    }
-  }
-
-  // Task calculations
-  const totalTasks = tasks ? tasks.length : 0;
-  const completedTasks = tasks ? tasks.filter(t => t.isCompleted).length : 0;
-  const taskCompletionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
-
-  // Todo calculations
-  const totalTodos = todoItems ? todoItems.length : 0;
-  const completedTodos = todoItems ? todoItems.filter(t => t.isCompleted).length : 0;
-
-  // Overall calculations
-  const totalItems = totalTasks + totalTodos;
-  const completedItems = completedTasks + completedTodos;
+  // 1. Calculate General Task Metrics
+  const totalItems = todoItems.length;
+  const completedItems = todoItems.filter(t => t.isCompleted).length;
   const overallRate = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
 
-  // Calculate current month's đại nguyện (todoItems) completion rate
-  const localToday = new Date();
-  const todayStr = getLocalDateString(localToday);
-  const currentYearMonth = todayStr.slice(0, 7); // YYYY-MM
-  const monthlyTodos = todoItems ? todoItems.filter(todo => {
-    const todoDate = todo.dueDate || todo.createdAt.split('T')[0];
-    return todoDate.startsWith(currentYearMonth) && todoDate <= todayStr;
-  }) : [];
+  // 2. Compute Weekly Performance Data (for past 12 weeks)
+  const weeklyData = useMemo(() => {
+    const weeks: Array<{
+      weekStart: string;
+      weekLabel: string;
+      dateRange: string;
+      total: number;
+      completed: number;
+      rate: number;
+    }> = [];
 
-  const totalMonthlyTodos = monthlyTodos.length;
-  const completedMonthlyTodos = monthlyTodos.filter(t => t.isCompleted).length;
-  const pendingMonthlyTodos = totalMonthlyTodos - completedMonthlyTodos;
-  const monthlyCompletionRate = totalMonthlyTodos > 0 ? Math.round((completedMonthlyTodos / totalMonthlyTodos) * 100) : 0;
+    const now = new Date();
+    // Monday of current week
+    const currentDay = now.getDay();
+    const currentDiff = now.getDate() - currentDay + (currentDay === 0 ? -6 : 1);
+    const currentMonday = new Date(now.setDate(currentDiff));
+    currentMonday.setHours(0, 0, 0, 0);
 
-  const monthlyPieData = totalMonthlyTodos > 0
-    ? [
-        { name: 'Completed Tasks', value: completedMonthlyTodos, color: '#10b981' },
-        { name: 'Pending Tasks', value: pendingMonthlyTodos, color: '#f43f5e' }
-      ]
-    : [
-        { name: 'No tasks this month', value: 1, color: '#475569' }
-      ];
+    // Look back 11 weeks + current week = 12 weeks
+    for (let w = 11; w >= 0; w--) {
+      const mon = new Date(currentMonday);
+      mon.setDate(currentMonday.getDate() - w * 7);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTitle.trim()) return;
-    if (onAddChallenge) {
-      onAddChallenge(newTitle.trim(), newTarget, newTuVi, newLinhThach);
-      setNewTitle('');
-      setIsAddingChallenge(false);
+      const sun = new Date(mon);
+      sun.setDate(mon.getDate() + 6);
+
+      const weekDates: string[] = [];
+      for (let d = 0; d < 7; d++) {
+        const day = new Date(mon);
+        day.setDate(mon.getDate() + d);
+        weekDates.push(getLocalDateString(day));
+      }
+
+      const weekItems = todoItems.filter(item => {
+        const itemDate = item.dueDate || item.createdAt.split('T')[0];
+        return weekDates.includes(itemDate);
+      });
+
+      const total = weekItems.length;
+      const completed = weekItems.filter(t => t.isCompleted).length;
+      const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+      const monStr = mon.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
+      const sunStr = sun.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
+
+      weeks.push({
+        weekStart: getLocalDateString(mon),
+        weekLabel: monStr,
+        dateRange: `${monStr} – ${sunStr}`,
+        total,
+        completed,
+        rate
+      });
     }
+
+    return weeks;
+  }, [todoItems]);
+
+  // Find Best Week
+  const { bestWeekRate, bestWeekRange } = useMemo(() => {
+    const weeksWithTasks = weeklyData.filter(w => w.total > 0);
+    if (weeksWithTasks.length === 0) {
+      return { bestWeekRate: overallRate, bestWeekRange: 'Chưa có dữ liệu' };
+    }
+    const best = weeksWithTasks.reduce((max, curr) => (curr.rate > max.rate ? curr : max), weeksWithTasks[0]);
+    return {
+      bestWeekRate: best.rate,
+      bestWeekRange: best.dateRange
+    };
+  }, [weeklyData, overallRate]);
+
+  // Compute Consecutive Streak of weeks with >= 50%
+  const consecutiveWeeks = useMemo(() => {
+    let streak = 0;
+    // Walk backward from the latest week that has tasks
+    for (let i = weeklyData.length - 1; i >= 0; i--) {
+      const w = weeklyData[i];
+      if (w.total > 0) {
+        if (w.rate >= 50) {
+          streak++;
+        } else {
+          break;
+        }
+      }
+    }
+    return streak;
+  }, [weeklyData]);
+
+  // Total weeks tracked
+  const weeksTracked = useMemo(() => {
+    const tracked = weeklyData.filter(w => w.total > 0).length;
+    return tracked > 0 ? tracked : 1;
+  }, [weeklyData]);
+
+  // 3. Compute 365-Day Activity Heatmap Data
+  const { heatmapWeeks, totalCompletedYear } = useMemo(() => {
+    const today = new Date();
+    // End on Sunday of current week
+    const currentDay = today.getDay();
+    const endSunday = new Date(today);
+    endSunday.setDate(today.getDate() + (currentDay === 0 ? 0 : 7 - currentDay));
+    endSunday.setHours(23, 59, 59, 999);
+
+    // Count tasks completed per date string
+    const completedByDate: Record<string, number> = {};
+    let yearTotal = 0;
+
+    todoItems.forEach(t => {
+      if (t.isCompleted) {
+        const dateStr = t.completedAt ? t.completedAt.split('T')[0] : (t.dueDate || t.createdAt.split('T')[0]);
+        completedByDate[dateStr] = (completedByDate[dateStr] || 0) + 1;
+        yearTotal++;
+      }
+    });
+
+    // Also include logs if present
+    dailyLogs.forEach(log => {
+      if (log.tasksCompleted && log.tasksCompleted > 0) {
+        if (!completedByDate[log.date]) {
+          completedByDate[log.date] = log.tasksCompleted;
+          yearTotal += log.tasksCompleted;
+        }
+      }
+    });
+
+    // 52 weeks grid (each week is 7 days from Mon to Sun)
+    const weeks: Array<Array<{ dateStr: string; count: number; monthLabel?: string }>> = [];
+    const startDate = new Date(endSunday);
+    startDate.setDate(endSunday.getDate() - 52 * 7 + 1); // 52 weeks back, starting Monday
+
+    let currentCursor = new Date(startDate);
+    for (let w = 0; w < 52; w++) {
+      const colDays: Array<{ dateStr: string; count: number; monthLabel?: string }> = [];
+      let monthLabel: string | undefined = undefined;
+
+      for (let d = 0; d < 7; d++) {
+        const dStr = getLocalDateString(currentCursor);
+        const count = completedByDate[dStr] || 0;
+
+        // Check if 1st day of month falls here to place month label
+        if (currentCursor.getDate() <= 7 && d === 0) {
+          monthLabel = `Th${currentCursor.getMonth() + 1}`;
+        }
+
+        colDays.push({ dateStr: dStr, count, monthLabel });
+        currentCursor.setDate(currentCursor.getDate() + 1);
+      }
+      weeks.push(colDays);
+    }
+
+    return { heatmapWeeks: weeks, totalCompletedYear: yearTotal };
+  }, [todoItems, dailyLogs]);
+
+  // 4. Compute Day-of-Week Metrics (T2 to CN)
+  const { dayStats, bestDay, busiestDay } = useMemo(() => {
+    // Indices: 0: T2 (Mon), 1: T3, 2: T4, 3: T5, 4: T6, 5: T7, 6: CN (Sun)
+    const dayLabels = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+    const fullNames = ['Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy', 'Chủ Nhật'];
+    const totals = [0, 0, 0, 0, 0, 0, 0];
+    const completed = [0, 0, 0, 0, 0, 0, 0];
+
+    todoItems.forEach(t => {
+      const dStr = t.dueDate || t.createdAt.split('T')[0];
+      const parts = dStr.split('-');
+      if (parts.length === 3) {
+        const dateObj = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+        const dayIdx = (dateObj.getDay() + 6) % 7; // Monday = 0, Sunday = 6
+        totals[dayIdx]++;
+        if (t.isCompleted) {
+          completed[dayIdx]++;
+        }
+      }
+    });
+
+    const totalCompletedAllDays = completed.reduce((a, b) => a + b, 0);
+
+    const stats = dayLabels.map((lbl, idx) => {
+      const tot = totals[idx];
+      const comp = completed[idx];
+      const compRate = tot > 0 ? Math.round((comp / tot) * 100) : 0;
+      const share = totalCompletedAllDays > 0 ? Math.round((comp / totalCompletedAllDays) * 100) : 0;
+
+      return {
+        label: lbl,
+        fullName: fullNames[idx],
+        total: tot,
+        completed: comp,
+        completionRate: compRate,
+        shareRate: share
+      };
+    });
+
+    // Best day by completion rate (minimum 1 task)
+    const withTasks = stats.filter(s => s.total > 0);
+    const best = withTasks.length > 0
+      ? withTasks.reduce((max, s) => (s.completionRate > max.completionRate ? s : max), withTasks[0])
+      : stats[0];
+
+    // Busiest day by share rate
+    const busiest = stats.reduce((max, s) => (s.shareRate > max.shareRate ? s : max), stats[0]);
+
+    return { dayStats: stats, bestDay: best, busiestDay: busiest };
+  }, [todoItems]);
+
+  const handleCreateGoal = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newGoalTitle.trim() || !onAddChallenge) return;
+    onAddChallenge(newGoalTitle.trim(), newGoalTarget, 50, 20);
+    setNewGoalTitle('');
+    setIsAddingGoal(false);
+  };
+
+  // Terracotta heatmap color selector (matching Image 2)
+  const getHeatmapColor = (count: number): string => {
+    if (count === 0) return 'bg-[#F0EAE1] hover:bg-[#E5DDD2]';
+    if (count <= 2) return 'bg-[#E6B89C] hover:bg-[#DCAB8E]';
+    if (count <= 4) return 'bg-[#D98A60] hover:bg-[#CC7C51]';
+    return 'bg-[#B85D38] hover:bg-[#A34E2B]';
   };
 
   return (
-    <div className="space-y-6" id="performance-stats">
-      {/* Sub Tab Switcher */}
-      <div className="flex text-[10px] font-bold gap-2 mb-4 border-b-2 border-slate-950 pb-2">
-        <button
-          onClick={() => setActiveSubTab('STATS')}
-          className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 border-2 border-slate-950 ${
-            activeSubTab === 'STATS'
-              ? 'bg-amber-400 text-slate-950 font-black shadow-[2px_2px_0px_#000]'
-              : 'bg-[#1e2638] text-slate-450 hover:text-slate-200'
-          }`}
-        >
-          📊 Insights & Analytics
-        </button>
-        <button
-          onClick={() => {
-            setActiveSubTab('LEADERBOARD');
-            onRefreshLeaderboard();
-          }}
-          className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 border-2 border-slate-950 ${
-            activeSubTab === 'LEADERBOARD'
-              ? 'bg-amber-400 text-slate-950 font-black shadow-[2px_2px_0px_#000]'
-              : 'bg-[#1e2638] text-slate-450 hover:text-slate-200'
-          }`}
-        >
-          ⚔️ Immortal Leaderboard
-        </button>
+    <div className="space-y-5" id="performance-stats">
+      {/* 1. TOP 4 METRIC CARDS (Beaverplans Image 2 Style) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+        {/* Card 1: TỶ LỆ HOÀN THÀNH */}
+        <div className="bg-white border border-[#E7E1D7] rounded-xl p-5 shadow-xs flex flex-col justify-between">
+          <div>
+            <h3 className="text-3xl font-light text-[#9A3412] tracking-tight">
+              {overallRate}%
+            </h3>
+            <p className="text-[11px] uppercase tracking-wider font-semibold text-[#7A7268] mt-2">
+              TỶ LỆ HOÀN THÀNH
+            </p>
+          </div>
+          <p className="text-xs text-[#4A443C] mt-1 font-mono">
+            {completedItems} trên {totalItems} việc
+          </p>
+        </div>
+
+        {/* Card 2: TUẦN TỐT NHẤT */}
+        <div className="bg-white border border-[#E7E1D7] rounded-xl p-5 shadow-xs flex flex-col justify-between">
+          <div>
+            <h3 className="text-3xl font-light text-[#9A3412] tracking-tight">
+              {bestWeekRate}%
+            </h3>
+            <p className="text-[11px] uppercase tracking-wider font-semibold text-[#7A7268] mt-2">
+              TUẦN TỐT NHẤT
+            </p>
+          </div>
+          <p className="text-xs text-[#4A443C] mt-1 font-mono">
+            {bestWeekRange}
+          </p>
+        </div>
+
+        {/* Card 3: CHUỖI TUẦN */}
+        <div className="bg-white border border-[#E7E1D7] rounded-xl p-5 shadow-xs flex flex-col justify-between">
+          <div>
+            <h3 className="text-3xl font-light text-[#9A3412] tracking-tight">
+              {consecutiveWeeks}
+            </h3>
+            <p className="text-[11px] uppercase tracking-wider font-semibold text-[#7A7268] mt-2">
+              CHUỖI TUẦN
+            </p>
+          </div>
+          <p className="text-xs text-[#4A443C] mt-1">
+            liên tiếp đạt 50%+
+          </p>
+        </div>
+
+        {/* Card 4: TUẦN ĐÃ THEO DÕI */}
+        <div className="bg-white border border-[#E7E1D7] rounded-xl p-5 shadow-xs flex flex-col justify-between">
+          <div>
+            <h3 className="text-3xl font-light text-[#9A3412] tracking-tight">
+              {weeksTracked}
+            </h3>
+            <p className="text-[11px] uppercase tracking-wider font-semibold text-[#7A7268] mt-2">
+              TUẦN ĐÃ THEO DÕI
+            </p>
+          </div>
+          <p className="text-xs text-[#4A443C] mt-1">
+            từ trước tới nay
+          </p>
+        </div>
       </div>
 
-      {activeSubTab === 'STATS' ? (
-        <>
-          {/* Tỷ Lệ Hoàn Thành Nhiệm Vụ Dashboard */}
-          <div className="neo-card p-6 space-y-6">
-            <div className="flex items-center gap-2 border-b-2 border-slate-950 pb-3">
-              <Compass className="w-5 h-5 text-amber-500" />
-              <div>
-                <h3 className="text-sm font-black text-slate-100 uppercase tracking-wider">Cultivation Insights & Performance</h3>
-                <p className="text-[10px] text-slate-550">Inspect your cultivation attributes and quest completion rates.</p>
+      {/* 2. SECTION: TỪNG TUẦN (Weekly Performance Bar Chart) */}
+      <div className="bg-white border border-[#E7E1D7] rounded-xl p-6 shadow-xs space-y-4">
+        <div>
+          <h4 className="text-xs font-bold text-[#7A7268] uppercase tracking-wider">
+            TỪNG TUẦN
+          </h4>
+          <p className="text-xs text-[#524B43] mt-0.5">
+            Chiều cao cột là khối lượng của tuần; phần tô đậm là những gì bạn đã làm xong
+          </p>
+        </div>
+
+        {/* Stacked Bars Container */}
+        <div className="pt-8 pb-2">
+          {/* Find max total in weekly data for normalization (minimum 5 for pleasant view) */}
+          {(() => {
+            const maxTasks = Math.max(5, ...weeklyData.map(w => w.total));
+
+            return (
+              <div className="grid grid-cols-6 sm:grid-cols-12 gap-2 sm:gap-3 items-end h-40">
+                {weeklyData.map((w, idx) => {
+                  const hasTasks = w.total > 0;
+                  const totalHeightPct = hasTasks ? Math.max(15, Math.round((w.total / maxTasks) * 100)) : 0;
+                  const completedRatio = w.total > 0 ? w.completed / w.total : 0;
+
+                  return (
+                    <div key={idx} className="flex flex-col items-center h-full justify-end group cursor-pointer">
+                      {/* Percent on top of column */}
+                      <span className={`text-[10px] font-mono mb-1.5 transition-colors ${
+                        hasTasks ? 'text-[#2C2825] font-semibold' : 'text-transparent'
+                      }`}>
+                        {w.rate}%
+                      </span>
+
+                      {/* Stacked Bar Box */}
+                      <div className="w-full max-w-[38px] h-28 flex flex-col justify-end">
+                        {hasTasks ? (
+                          <div
+                            className="w-full bg-[#D9E8D8] rounded-t-[4px] relative overflow-hidden transition-all duration-300"
+                            style={{ height: `${totalHeightPct}%` }}
+                            title={`${w.dateRange}: ${w.completed}/${w.total} nhiệm vụ hoàn thành`}
+                          >
+                            {/* Completed Portion: Dark Forest Green */}
+                            <div
+                              className="w-full bg-[#2E6930] absolute bottom-0 left-0 transition-all duration-500 rounded-t-[2px]"
+                              style={{ height: `${Math.round(completedRatio * 100)}%` }}
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-full h-1 bg-[#EAE5DC] rounded-full" />
+                        )}
+                      </div>
+
+                      {/* Week Start Date Label */}
+                      <span className="text-[10px] text-[#7A7268] font-mono mt-2">
+                        {w.weekLabel}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
+        </div>
+      </div>
+
+      {/* 3. SECTION: HOẠT ĐỘNG (Activity Heatmap) */}
+      <div className="bg-white border border-[#E7E1D7] rounded-xl p-6 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h4 className="text-xs font-bold text-[#7A7268] uppercase tracking-wider">
+              HOẠT ĐỘNG
+            </h4>
+            <p className="text-xs text-[#524B43] mt-0.5">
+              {totalCompletedYear} việc đã hoàn thành trong năm qua
+            </p>
+          </div>
+
+          {/* Legend */}
+          <div className="flex items-center gap-1.5 text-[10px] text-[#7A7268] font-mono">
+            <span>ÍT</span>
+            <span className="w-2.5 h-2.5 rounded-[2px] bg-[#F0EAE1]" />
+            <span className="w-2.5 h-2.5 rounded-[2px] bg-[#E6B89C]" />
+            <span className="w-2.5 h-2.5 rounded-[2px] bg-[#D98A60]" />
+            <span className="w-2.5 h-2.5 rounded-[2px] bg-[#B85D38]" />
+            <span>NHIỀU</span>
+          </div>
+        </div>
+
+        {/* Heatmap Grid */}
+        <div className="overflow-x-auto pb-2 scrollbar-thin">
+          <div className="min-w-[680px]">
+            {/* Week Columns Grid */}
+            <div className="flex items-start gap-1">
+              {/* Day Labels on Left: T2, T4, T6, CN */}
+              <div className="flex flex-col justify-between h-[96px] text-[9px] text-[#8C827A] font-mono pr-2 shrink-0 select-none">
+                <span>T2</span>
+                <span>T4</span>
+                <span>T6</span>
+                <span>CN</span>
+              </div>
+
+              {/* 52 Columns */}
+              <div className="flex-1 flex gap-1">
+                {heatmapWeeks.map((colDays, colIdx) => (
+                  <div key={colIdx} className="flex flex-col gap-1 shrink-0">
+                    {colDays.map((dayItem, dIdx) => (
+                      <div
+                        key={dIdx}
+                        className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-[2px] transition-colors cursor-pointer ${getHeatmapColor(
+                          dayItem.count
+                        )}`}
+                        title={`${dayItem.dateStr}: ${dayItem.count} việc hoàn thành`}
+                      />
+                    ))}
+                  </div>
+                ))}
               </div>
             </div>
+          </div>
+        </div>
+      </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-              {/* Radar Chart Column */}
-              <div className="flex flex-col items-center bg-slate-950/60 border-2 border-slate-950 p-4 rounded-xl shadow-[2px_2px_0px_#000] relative">
-                <h4 className="text-[10px] font-black text-amber-400 uppercase tracking-wider mb-2 pixel-label">
-                  🛡️ Primordial Soul Radar
-                </h4>
-                
-                {/* SVG Radar Chart */}
-                <svg width="220" height="220" viewBox="0 0 220 220" className="w-full max-w-[200px] h-auto overflow-visible select-none">
-                  {/* Concentric grid lines (20%, 40%, 60%, 80%, 100%) */}
-                  {[20, 40, 60, 80, 100].map((pct, idx) => {
-                    const r = (pct / 100) * 75;
-                    const points = Array.from({ length: 5 }).map((_, stepIdx) => {
-                       const angle = -Math.PI/2 + (stepIdx * 2 * Math.PI / 5);
-                      return `${110 + r * Math.cos(angle)},${110 + r * Math.sin(angle)}`;
-                    }).join(' ');
-                    return (
-                      <polygon
-                        key={idx}
-                        points={points}
-                        fill="none"
-                        stroke="#334155"
-                        strokeWidth="1.2"
-                        strokeDasharray="3 3"
-                      />
-                    );
-                  })}
+      {/* 4 & 5. SECTIONS: MỨC ĐỘ HOÀN THÀNH & PHÂN BỐ */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Section 4: MỨC ĐỘ HOÀN THÀNH (Completion Rate by Day) */}
+        <div className="bg-white border border-[#E7E1D7] rounded-xl p-6 shadow-xs space-y-4">
+          <div>
+            <h4 className="text-xs font-bold text-[#7A7268] uppercase tracking-wider">
+              MỨC ĐỘ HOÀN THÀNH
+            </h4>
+            <p className="text-xs text-[#524B43] mt-0.5">
+              {bestDay.total > 0
+                ? `${bestDay.fullName} là ngày bạn làm tốt nhất — ${bestDay.completionRate}% số việc bạn xếp vào đó được làm xong.`
+                : 'Chưa có đủ dữ liệu theo ngày.'}
+            </p>
+          </div>
 
-                  {/* Axis line spokes */}
-                  {Array.from({ length: 5 }).map((_, stepIdx) => {
-                    const angle = -Math.PI/2 + (stepIdx * 2 * Math.PI / 5);
-                    const outerPoint = {
-                      x: 110 + 75 * Math.cos(angle),
-                      y: 110 + 75 * Math.sin(angle)
-                    };
-                    return (
-                      <line
-                        key={stepIdx}
-                        x1="110"
-                        y1="110"
-                        x2={outerPoint.x}
-                        y2={outerPoint.y}
-                        stroke="#334155"
-                        strokeWidth="1"
-                      />
-                    );
-                  })}
-
-                  {/* Draw the user stats polygon */}
-                  {(() => {
-                    // Compute values
-                    const focusVal = Math.min(100, Math.max(15, Math.round((dailyLogs.reduce((sum, log) => sum + log.meditationMinutes, 0) || 0) / 2)));
-                    const willVal = Math.max(15, Math.min(100, overallRate));
-                    const currentStreak = getStreakFromLogs(dailyLogs);
-                    const mindVal = Math.min(100, Math.max(15, currentStreak * 8));
-                    const wealthVal = Math.min(100, Math.max(15, (state?.spiritStonesEarned || 0) / 3));
-                    const wisdomVal = Math.min(100, Math.max(15, (challenges.filter(c => c.isClaimed).length * 20 + (state?.level || 1) * 3)));
-
-                    const getPt = (angle: number, val: number) => {
-                      const r = (val / 100) * 75;
-                      return {
-                        x: 110 + r * Math.cos(angle),
-                        y: 110 + r * Math.sin(angle)
-                      };
-                    };
-
-                    const ptsArr = [
-                      getPt(-Math.PI/2, focusVal),
-                      getPt(-Math.PI/2 + 2*Math.PI/5, willVal),
-                      getPt(-Math.PI/2 + 4*Math.PI/5, mindVal),
-                      getPt(-Math.PI/2 + 6*Math.PI/5, wealthVal),
-                      getPt(-Math.PI/2 + 8*Math.PI/5, wisdomVal)
-                    ];
-                    
-                    const pointsStr = ptsArr.map(p => `${p.x},${p.y}`).join(' ');
-
-                    return (
-                      <>
-                        <polygon
-                          points={pointsStr}
-                          fill="url(#radar-neon-grad)"
-                          stroke="#fbbf24"
-                          strokeWidth="2.5"
-                          className="drop-shadow-[0_0_8px_rgba(251,191,36,0.3)]"
-                        />
-                        {/* Dot Vertices */}
-                        {ptsArr.map((pt, ptIdx) => (
-                          <circle
-                            key={ptIdx}
-                            cx={pt.x}
-                            cy={pt.y}
-                            r="4.5"
-                            fill="#fbbf24"
-                            stroke="#000000"
-                            strokeWidth="2.5"
-                          />
-                        ))}
-                        
-                        {/* Define neon gradient */}
-                        <defs>
-                          <radialGradient id="radar-neon-grad" cx="50%" cy="50%" r="50%">
-                            <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.15" />
-                            <stop offset="100%" stopColor="#fbbf24" stopOpacity="0.45" />
-                          </radialGradient>
-                        </defs>
-                      </>
-                    );
-                  })()}
-
-                  {/* Labels text with custom placement adjustment */}
-                  {/* Axis 0: Top Center */}
-                  <text x="110" y="20" textAnchor="middle" fill="#94a3b8" fontSize="8" fontWeight="bold" className="font-sans">FOCUS</text>
-                  {/* Axis 1: Right Top */}
-                  <text x="200" y="88" textAnchor="start" fill="#94a3b8" fontSize="8" fontWeight="bold" className="font-sans">RESOLVE</text>
-                  {/* Axis 2: Right Bottom */}
-                  <text x="165" y="202" textAnchor="start" fill="#94a3b8" fontSize="8" fontWeight="bold" className="font-sans">MINDSET</text>
-                  {/* Axis 3: Left Bottom */}
-                  <text x="55" y="202" textAnchor="end" fill="#94a3b8" fontSize="8" fontWeight="bold" className="font-sans">WEALTH</text>
-                  {/* Axis 4: Left Top */}
-                  <text x="20" y="88" textAnchor="end" fill="#94a3b8" fontSize="8" fontWeight="bold" className="font-sans">WISDOM</text>
-                </svg>
-              </div>
-
-              {/* Progress and Motivation Column */}
-              <div className="space-y-4">
-                {/* Task Progress Card */}
-                <div className="bg-slate-950/40 border-2 border-slate-950 p-4 rounded-xl flex items-center gap-4 shadow-[2px_2px_0px_#000] hover:shadow-[3px_3px_0px_#000] transition-all">
-                  <div className="relative w-16 h-16 flex items-center justify-center shrink-0">
-                    <svg className="w-full h-full transform -rotate-90">
-                      <circle cx="32" cy="32" r="28" stroke="#1e293b" strokeWidth="4.5" fill="transparent" />
-                      <circle
-                        cx="32"
-                        cy="32"
-                        r="28"
-                        stroke="#c084fc"
-                        strokeWidth="4.5"
-                        fill="transparent"
-                        strokeDasharray={175.9}
-                        strokeDashoffset={175.9 - (175.9 * taskCompletionRate) / 100}
-                        className="transition-all duration-1000 ease-out"
-                      />
-                    </svg>
-                    <div className="absolute flex flex-col items-center">
-                      <span className="text-sm font-black text-slate-100 font-mono">{taskCompletionRate}%</span>
-                    </div>
+          {/* 7 Vertical Green Bars */}
+          <div className="pt-6">
+            <div className="grid grid-cols-7 gap-2 items-end h-36">
+              {dayStats.map((s, idx) => (
+                <div key={idx} className="flex flex-col items-center h-full justify-end group">
+                  {/* Bar Box */}
+                  <div className="w-full max-w-[32px] h-24 bg-[#D9E8D8] rounded-t-[4px] relative overflow-hidden">
+                    <div
+                      className="w-full bg-[#2E6930] absolute bottom-0 left-0 transition-all duration-500 rounded-t-[2px]"
+                      style={{ height: `${s.completionRate}%` }}
+                      title={`${s.fullName}: ${s.completed}/${s.total} việc (${s.completionRate}%)`}
+                    />
                   </div>
-                  <div>
-                    <h4 className="text-xs font-bold text-purple-400 uppercase tracking-wide">Sect Quests</h4>
-                    <p className="text-[10px] text-slate-400 mt-1">Completed <strong className="text-slate-200 font-mono">{completedTasks}/{totalTasks}</strong> scheduled quests.</p>
-                  </div>
+
+                  <span className="text-[11px] text-[#2C2825] font-medium mt-2">
+                    {s.label}
+                  </span>
+                  <span className="text-[10px] text-[#7A7268] font-mono">
+                    {s.completionRate}%
+                  </span>
                 </div>
+              ))}
+            </div>
+          </div>
+        </div>
 
-                {/* Motivation bar */}
-                <div className="bg-slate-950 border-2 border-slate-950 p-4 rounded-xl flex flex-col gap-2 shadow-[2px_2px_0px_#000]">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-emerald-450 shrink-0" />
-                    <span className="text-[10.5px] leading-relaxed text-slate-350">
-                      {overallRate >= 80 
-                        ? "Splendid! Your Dao heart is rock solid; inner demons stand no chance."
-                        : overallRate >= 50 
-                        ? "Good progress! Maintain your focus and diligence to break through to the next realm soon."
-                        : "Alert! You are falling behind schedule. Enter deep focus seclusion immediately to overcome obstacles."}
+        {/* Section 5: PHÂN BỐ (Workload Distribution by Day) */}
+        <div className="bg-white border border-[#E7E1D7] rounded-xl p-6 shadow-xs space-y-4">
+          <div>
+            <h4 className="text-xs font-bold text-[#7A7268] uppercase tracking-wider">
+              PHÂN BỐ
+            </h4>
+            <p className="text-xs text-[#524B43] mt-0.5">
+              {busiestDay.completed > 0
+                ? `${busiestDay.fullName} là ngày bận rộn nhất — ${busiestDay.shareRate}% tổng số việc bạn hoàn thành rơi vào ngày đó.`
+                : 'Chưa có đủ dữ liệu theo ngày.'}
+            </p>
+          </div>
+
+          {/* 7 Vertical Terracotta Bars */}
+          <div className="pt-6">
+            <div className="grid grid-cols-7 gap-2 items-end h-36">
+              {dayStats.map((s, idx) => {
+                // Find highest share to scale bar heights
+                const maxShare = Math.max(25, ...dayStats.map(d => d.shareRate));
+                const barHeightPct = s.shareRate > 0 ? Math.max(12, Math.round((s.shareRate / maxShare) * 100)) : 4;
+
+                return (
+                  <div key={idx} className="flex flex-col items-center h-full justify-end group">
+                    {/* Bar Box */}
+                    <div className="w-full max-w-[32px] h-24 flex flex-col justify-end">
+                      <div
+                        className="w-full bg-[#B85D38] rounded-t-[4px] transition-all duration-500"
+                        style={{ height: `${barHeightPct}%` }}
+                        title={`${s.fullName}: ${s.shareRate}% tổng việc hoàn thành`}
+                      />
+                    </div>
+
+                    <span className="text-[11px] text-[#2C2825] font-medium mt-2">
+                      {s.label}
+                    </span>
+                    <span className="text-[10px] text-[#7A7268] font-mono">
+                      {s.shareRate}%
                     </span>
                   </div>
-                </div>
-              </div>
+                );
+              })}
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Productivity Charts */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* 1-Month Meditation Line Chart */}
-            <div className="bg-[#0f141c] border border-slate-800/80 rounded-2xl p-5 shadow-xl">
-              <div className="flex items-center gap-2 mb-4">
-                <TrendingUp className="w-4 h-4 text-amber-500" />
-                <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider">Meditation Focus History (30 Days)</h4>
-              </div>
-
-              <div className="h-60 text-[10px] font-mono">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={last30DaysData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" opacity={0.3} />
-                    <XAxis dataKey="formattedDate" stroke="#64748b" />
-                    <YAxis stroke="#64748b" />
-                    <Tooltip
-                      contentStyle={{ backgroundColor: '#0a0d14', borderColor: '#1e293b', borderRadius: '12px' }}
-                      labelStyle={{ fontWeight: 'bold', color: '#94a3b8' }}
-                    />
-                    <Legend iconSize={8} />
-                    <Line type="monotone" dataKey="meditationMinutes" name="Focus Time (Minutes)" stroke="#f59e0b" strokeWidth={2.5} dot={false} activeDot={{ r: 4 }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            {/* Monthly Task Completion Pie Chart */}
-            <div className="bg-[#0f141c] border border-slate-800/80 rounded-2xl p-5 shadow-xl">
-              <div className="flex items-center gap-2 mb-4">
-                <Award className="w-4 h-4 text-emerald-400" />
-                <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider">Monthly Task Completion Rate</h4>
-              </div>
-
-              <div className="h-60 text-[10px] font-mono flex items-center justify-center relative">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={monthlyPieData}
-                      cx="50%"
-                      cy="45%"
-                      innerRadius={60}
-                      outerRadius={80}
-                      paddingAngle={4}
-                      dataKey="value"
-                    >
-                      {monthlyPieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      contentStyle={{ backgroundColor: '#0a0d14', borderColor: '#1e293b', borderRadius: '12px' }}
-                    />
-                    <Legend iconSize={8} layout="horizontal" verticalAlign="bottom" align="center" />
-                  </PieChart>
-                </ResponsiveContainer>
-                {totalMonthlyTodos > 0 && (
-                  <div className="absolute top-[40%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none">
-                    <span className="text-[10px] text-slate-500 uppercase font-black tracking-wider">COMPLETED</span>
-                    <span className="text-xl font-mono font-black text-emerald-400">{monthlyCompletionRate}%</span>
-                  </div>
-                )}
-              </div>
-            </div>
+      {/* 6. WEEKLY GOALS / CHALLENGES SECTION (Modern Productivity Goals) */}
+      <div className="bg-white border border-[#E7E1D7] rounded-xl p-6 shadow-xs space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-[#EFECE6]">
+          <div>
+            <h4 className="text-xs font-bold text-[#7A7268] uppercase tracking-wider">
+              MỤC TIÊU TUẦN
+            </h4>
+            <p className="text-xs text-[#524B43] mt-0.5">
+              Các cột mốc tuần giúp bạn duy trì năng suất và kỷ luật
+            </p>
           </div>
-        </>
-      ) : (
-        /* Render Leaderboard */
-        <div className="bg-[#0f141c]/90 border border-slate-800/80 rounded-2xl p-6 shadow-xl space-y-4">
-          <div className="flex justify-between items-center border-b border-slate-800/60 pb-3">
-            <div className="flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-amber-400" />
-              <div>
-                <h3 className="text-sm font-black text-slate-100 uppercase tracking-wider">⚔️ Immortal Leaderboard</h3>
-                <p className="text-[10px] text-slate-500">Honoring disciples with resolute Dao hearts and profound cultivation.</p>
-              </div>
-            </div>
+
+          {onAddChallenge && (
             <button
-              onClick={onRefreshLeaderboard}
-              disabled={isFetchingLeaderboard}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 border border-slate-800 text-slate-300 hover:text-slate-100 hover:border-slate-700 rounded-lg text-xs font-semibold cursor-pointer disabled:opacity-40 transition-all"
+              onClick={() => setIsAddingGoal(!isAddingGoal)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#FAF8F5] hover:bg-[#F2EFE9] text-[#2C2825] border border-[#E7E1D7] rounded-xl text-xs font-medium transition-colors cursor-pointer"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isFetchingLeaderboard ? 'animate-spin' : ''}`} />
-              REFRESH
+              <Plus className="w-3.5 h-3.5 text-[#2E6930]" />
+              <span>Thêm mục tiêu</span>
             </button>
-          </div>
-
-          {!currentUser ? (
-            <div className="bg-slate-950/60 border border-slate-900 p-8 rounded-xl flex flex-col items-center justify-center text-center space-y-3">
-              <div className="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-slate-500">
-                <Lock className="w-5 h-5 text-amber-500/60" />
-              </div>
-              <div className="space-y-1">
-                <h4 className="text-xs font-bold text-slate-300">Account Not Connected</h4>
-                <p className="text-[10px] text-slate-500 max-w-[260px] leading-relaxed">
-                  Please sign in with Google to place your name on the sect leaderboard!
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="border-b border-slate-800/40 text-slate-500 text-[10px] uppercase tracking-wider">
-                    <th className="py-2 px-3">Rank</th>
-                    <th className="py-2 px-3">Daoist Name</th>
-                    <th className="py-2 px-3">Realm</th>
-                    <th className="py-2 px-3 text-right">Total Exp</th>
-                    <th className="py-2 px-3 text-right">Streak</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-900/60 text-slate-300">
-                  {leaderboard.length > 0 ? (
-                    leaderboard.map((user, idx) => {
-                      const isMe = currentUser && user.uid === currentUser.uid;
-                      const realmInfo = getRealmInfo(user.level);
-                      const rank = idx + 1;
-
-                      return (
-                        <tr
-                          key={user.uid}
-                          className={`hover:bg-slate-950/40 transition-colors ${
-                            isMe ? 'bg-amber-950/10 text-amber-400 font-bold border-l-2 border-l-amber-500' : ''
-                          }`}
-                        >
-                          <td className="py-3 px-3 flex items-center gap-1.5">
-                            {rank === 1 ? (
-                              <Crown className="w-4 h-4 text-amber-400 fill-amber-400/20 animate-bounce" />
-                            ) : rank === 2 ? (
-                              <span className="text-lg">🥈</span>
-                            ) : rank === 3 ? (
-                              <span className="text-lg">🥉</span>
-                            ) : (
-                              <span className="text-slate-500 font-mono pl-1">{rank}</span>
-                            )}
-                          </td>
-                          <td className="py-3 px-3">
-                            <div className="flex items-center gap-2">
-                              <img 
-                                src="/default_avatar.jpg" 
-                                alt="Avatar" 
-                                className="w-5 h-5 rounded-full border border-slate-750 shrink-0 object-cover select-none"
-                              />
-                              <span className={isMe ? 'text-amber-400 font-extrabold' : 'text-slate-200 font-medium'}>
-                                {user.userName} {isMe && <span className="text-[8px] bg-amber-500/10 text-amber-500 border border-amber-500/20 px-1 py-0.5 rounded-full ml-1 font-bold animate-pulse">You</span>}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="py-3 px-3">
-                            <span className={`text-[10px] border px-2 py-0.5 rounded-full font-bold ${realmInfo.colorClass} ${realmInfo.bgClass} ${realmInfo.borderClass}`}>
-                              {realmInfo.fullName}
-                            </span>
-                          </td>
-                          <td className="py-3 px-3 text-right font-mono text-slate-400">
-                            {user.totalExp.toLocaleString()} Exp
-                          </td>
-                          <td className="py-3 px-3 text-right text-orange-400 font-bold">
-                            {user.currentStreak > 0 ? `🔥 ${user.currentStreak}d` : '0d'}
-                          </td>
-                        </tr>
-                      );
-                    })
-                  ) : (
-                    <tr>
-                      <td colSpan={5} className="py-8 text-center text-slate-500 italic">
-                        Gathering leaderboard rankings...
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
           )}
         </div>
-      )}
+
+        {/* Add Goal Form */}
+        {isAddingGoal && (
+          <form onSubmit={handleCreateGoal} className="p-4 bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="sm:col-span-2">
+                <label className="text-[11px] font-semibold text-[#7A7268] block mb-1">
+                  Tên mục tiêu
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ví dụ: Hoàn thành 10 bài tập Giải tích..."
+                  value={newGoalTitle}
+                  onChange={(e) => setNewGoalTitle(e.target.value)}
+                  className="w-full bg-white border border-[#E7E1D7] rounded-lg px-3 py-1.5 text-xs text-[#2C2825] focus:outline-none focus:border-[#2E6930]"
+                />
+              </div>
+
+              <div>
+                <label className="text-[11px] font-semibold text-[#7A7268] block mb-1">
+                  Chỉ tiêu số lượng
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={newGoalTarget}
+                  onChange={(e) => setNewGoalTarget(parseInt(e.target.value, 10) || 1)}
+                  className="w-full bg-white border border-[#E7E1D7] rounded-lg px-3 py-1.5 text-xs text-[#2C2825] focus:outline-none focus:border-[#2E6930]"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setIsAddingGoal(false)}
+                className="px-3 py-1 text-xs text-[#7A7268] hover:text-[#2C2825] cursor-pointer"
+              >
+                Hủy
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-1.5 bg-[#2E6930] hover:bg-[#255527] text-white text-xs font-medium rounded-lg transition-colors cursor-pointer shadow-xs"
+              >
+                Lưu mục tiêu
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* Goals List */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+          {challenges.map(goal => {
+            const pct = Math.min(100, Math.round((goal.currentValue / goal.targetValue) * 100));
+            const isCompleted = goal.currentValue >= goal.targetValue;
+
+            return (
+              <div
+                key={goal.id}
+                className="p-4 bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl flex flex-col justify-between space-y-3"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-start gap-2.5">
+                    <div className={`p-1.5 rounded-lg shrink-0 mt-0.5 ${
+                      isCompleted ? 'bg-[#EEF5EE] text-[#2E6930]' : 'bg-white border border-[#E7E1D7] text-[#7A7268]'
+                    }`}>
+                      <Target className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h5 className={`text-xs font-medium ${isCompleted ? 'line-through text-[#8C827A]' : 'text-[#2C2825]'}`}>
+                        {goal.title}
+                      </h5>
+                      <span className="text-[10px] text-[#7A7268] font-mono mt-0.5 block">
+                        Tiến độ: {goal.currentValue}/{goal.targetValue} ({pct}%)
+                      </span>
+                    </div>
+                  </div>
+
+                  {onDeleteChallenge && (
+                    <button
+                      onClick={() => onDeleteChallenge(goal.id)}
+                      className="text-[#A8A196] hover:text-rose-600 transition-colors p-1"
+                      title="Xóa mục tiêu"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Progress bar */}
+                <div className="space-y-1.5">
+                  <div className="w-full bg-[#EAE5DC] h-2 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-300 ${
+                        isCompleted ? 'bg-[#2E6930]' : 'bg-[#B85D38]'
+                      }`}
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1">
+                    {!isCompleted && onProgressChallenge && (
+                      <button
+                        onClick={() => onProgressChallenge(goal.id, 1)}
+                        className="text-[10px] font-medium text-[#2E6930] hover:underline cursor-pointer"
+                      >
+                        + Cập nhật tiến độ (+1)
+                      </button>
+                    )}
+
+                    {isCompleted && !goal.isClaimed && (
+                      <button
+                        onClick={() => onClaimChallenge(goal.id)}
+                        className="flex items-center gap-1 text-[10px] font-bold text-[#2E6930] bg-[#EEF5EE] px-2 py-0.5 rounded-md cursor-pointer ml-auto"
+                      >
+                        <CheckCircle className="w-3 h-3" />
+                        Đã đạt
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }

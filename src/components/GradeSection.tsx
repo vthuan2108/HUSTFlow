@@ -64,16 +64,16 @@ const AVAILABLE_SEMESTERS = [
 function getSemesterSelectStyle(sem: string): string {
   const s = String(sem || '').trim();
   switch (s) {
-    case '2024.1': return 'bg-rose-500/15 text-rose-400 border border-rose-500/25';
-    case '2024.2': return 'bg-slate-500/15 text-slate-300 border border-slate-500/25';
-    case '2025.1': return 'bg-amber-500/15 text-amber-400 border border-amber-500/25';
-    case '2025.2': return 'bg-sky-500/15 text-sky-400 border border-sky-500/25';
-    case '2026.1': return 'bg-purple-500/15 text-purple-400 border border-purple-500/25';
-    case '2026.2': return 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/25';
-    case '2026.3': return 'bg-teal-500/15 text-teal-400 border border-teal-500/25';
-    case '2027.1': return 'bg-indigo-500/15 text-indigo-400 border border-indigo-500/25';
-    case '2027.2': return 'bg-pink-500/15 text-pink-400 border border-pink-500/25';
-    default: return 'bg-slate-800 text-slate-400 border border-slate-700';
+    case '2024.1': return 'bg-rose-50 text-rose-800 border border-rose-200';
+    case '2024.2': return 'bg-stone-100 text-stone-800 border border-stone-200';
+    case '2025.1': return 'bg-amber-50 text-amber-800 border border-amber-200';
+    case '2025.2': return 'bg-sky-50 text-sky-800 border border-sky-200';
+    case '2026.1': return 'bg-purple-50 text-purple-800 border border-purple-200';
+    case '2026.2': return 'bg-emerald-50 text-emerald-800 border border-emerald-200';
+    case '2026.3': return 'bg-teal-50 text-teal-800 border border-teal-200';
+    case '2027.1': return 'bg-indigo-50 text-indigo-800 border border-indigo-200';
+    case '2027.2': return 'bg-pink-50 text-pink-800 border border-pink-200';
+    default: return 'bg-stone-100 text-stone-800 border border-stone-200';
   }
 }
 
@@ -81,16 +81,16 @@ function getSemesterSelectStyle(sem: string): string {
 function getSemesterBadgeStyle(sem: string): string {
   const s = String(sem || '').trim();
   switch (s) {
-    case '2024.1': return 'bg-rose-500/15 text-rose-400 border-rose-500/25';
-    case '2024.2': return 'bg-slate-500/15 text-slate-400 border-slate-500/25';
-    case '2025.1': return 'bg-amber-500/15 text-amber-400 border-amber-500/25';
-    case '2025.2': return 'bg-sky-500/15 text-sky-400 border-sky-500/25';
-    case '2026.1': return 'bg-purple-500/15 text-purple-400 border-purple-500/25';
-    case '2026.2': return 'bg-emerald-500/15 text-emerald-400 border-emerald-500/25';
-    case '2026.3': return 'bg-teal-500/15 text-teal-400 border-teal-500/25';
-    case '2027.1': return 'bg-indigo-500/15 text-indigo-400 border-indigo-500/25';
-    case '2027.2': return 'bg-pink-500/15 text-pink-400 border-pink-500/25';
-    default: return 'bg-slate-800 text-slate-400 border-slate-700';
+    case '2024.1': return 'bg-rose-50 text-rose-800 border-rose-200';
+    case '2024.2': return 'bg-stone-100 text-stone-800 border-stone-200';
+    case '2025.1': return 'bg-amber-50 text-amber-800 border-amber-200';
+    case '2025.2': return 'bg-sky-50 text-sky-800 border-sky-200';
+    case '2026.1': return 'bg-purple-50 text-purple-800 border-purple-200';
+    case '2026.2': return 'bg-emerald-50 text-emerald-800 border-emerald-200';
+    case '2026.3': return 'bg-teal-50 text-teal-800 border-teal-200';
+    case '2027.1': return 'bg-indigo-50 text-indigo-800 border-indigo-200';
+    case '2027.2': return 'bg-pink-50 text-pink-800 border-pink-200';
+    default: return 'bg-stone-100 text-stone-800 border-stone-200';
   }
 }
 
@@ -333,14 +333,14 @@ export default function GradeSection({
     <div className="space-y-6" id="grade-section-view">
       
       {/* ── SECTION 1: HEADER & GOOGLE SHEETS SETUP ── */}
-      <div className="neo-card p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white border border-[#E7E1D7] p-5 rounded-2xl shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h2 className="text-sm font-bold text-slate-100 flex items-center gap-2 uppercase tracking-wider font-sans">
-            <GraduationCap className="w-4 h-4 text-amber-400 animate-pulse" />
-            Academic Gradebook Sync
+          <h2 className="text-sm font-bold text-[#2C2825] flex items-center gap-2">
+            <GraduationCap className="w-4 h-4 text-[#2E6930]" />
+            Đồng bộ bảng điểm học tập
           </h2>
-          <p className="text-[10px] text-slate-500">
-            Two-way data sync with Google Sheets (Credits from Col K4, GPA from Col L4).
+          <p className="text-xs text-[#7A7268]">
+            Đồng bộ 2 chiều với Google Sheets (Tín chỉ từ cột K4, CPA từ cột L4).
           </p>
         </div>
 
@@ -351,36 +351,36 @@ export default function GradeSection({
                 type="text"
                 value={sheetInput}
                 onChange={e => setSheetInput(e.target.value)}
-                placeholder="Paste Google Sheet Link or ID..."
-                className="bg-slate-950 border-2 border-slate-950 rounded-xl px-3 py-1.5 text-xs text-slate-200 w-full sm:w-80 focus:outline-none focus:border-amber-400 font-mono"
+                placeholder="Dán link hoặc ID Google Sheet..."
+                className="bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl px-3 py-2 text-xs text-[#2C2825] w-full sm:w-80 focus:outline-none focus:border-[#2E6930] font-mono"
               />
               <div className="flex gap-2">
                 <button
                   onClick={handleSaveConfig}
-                  className="bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-[10px] px-3.5 py-2 rounded-xl transition-colors cursor-pointer flex items-center gap-1 shadow-[2px_2px_0px_#000] active:translate-y-[2px] active:translate-x-[2px] active:shadow-none uppercase"
+                  className="bg-[#2E6930] hover:bg-[#255527] text-white font-medium text-xs px-3.5 py-2 rounded-xl transition-colors cursor-pointer flex items-center gap-1 shadow-xs"
                 >
-                  Confirm
+                  Xác nhận
                 </button>
                 {spreadsheetId && (
                   <button
                     onClick={() => { setSheetInput(spreadsheetId); setEditingConfig(false); }}
-                    className="bg-slate-950 border-2 border-slate-950 text-slate-400 hover:text-slate-300 font-bold text-[10px] px-3.5 py-2 rounded-xl transition-colors cursor-pointer shadow-[2px_2px_0px_#000] active:translate-y-[2px] active:translate-x-[2px] active:shadow-none uppercase"
+                    className="bg-[#FAF8F5] hover:bg-[#F2EFE9] text-[#7A7268] border border-[#E7E1D7] font-medium text-xs px-3.5 py-2 rounded-xl transition-colors cursor-pointer"
                   >
-                    Cancel
+                    Hủy
                   </button>
                 )}
               </div>
-              {errorMsg && <p className="text-rose-500 text-[10px] block mt-1 font-semibold">{errorMsg}</p>}
+              {errorMsg && <p className="text-rose-600 text-[10px] block mt-1 font-semibold">{errorMsg}</p>}
             </div>
           ) : (
-            <div className="flex items-center gap-2 bg-slate-950 border-2 border-slate-950 px-3.5 py-1.5 rounded-xl shadow-[1px_1px_0px_#000]">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-              <span className="text-[10px] text-slate-400 font-mono truncate max-w-[200px]">ID: {spreadsheetId}</span>
+            <div className="flex items-center gap-2 bg-[#FAF8F5] border border-[#E7E1D7] px-3.5 py-1.5 rounded-xl shadow-xs">
+              <span className="w-2 h-2 rounded-full bg-[#2E6930] shrink-0" />
+              <span className="text-xs text-[#57534E] font-mono truncate max-w-[200px]">ID: {spreadsheetId}</span>
               <button
                 onClick={() => setEditingConfig(true)}
-                className="text-[9px] text-[#fbbf24] hover:text-[#f59e0b] font-bold ml-2 underline cursor-pointer"
+                className="text-xs text-[#2E6930] hover:underline font-medium ml-2 cursor-pointer"
               >
-                Change
+                Đổi link
               </button>
             </div>
           )}
@@ -395,22 +395,22 @@ export default function GradeSection({
                 }
                 target="_blank"
                 rel="noreferrer"
-                className="bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-[10px] px-4 py-2.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shadow-[2px_2px_0px_#000] active:translate-y-[2px] active:translate-x-[2px] active:shadow-none uppercase no-underline font-mono"
-                title="Open your Google Sheet in a new browser tab"
+                className="bg-[#FAF8F5] hover:bg-[#F2EFE9] text-[#2C2825] border border-[#E7E1D7] font-medium text-xs px-3.5 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shadow-xs no-underline"
+                title="Mở Google Sheet trên tab mới"
               >
-                <FileSpreadsheet className="w-3.5 h-3.5" />
-                <span>Open Google Sheet</span>
-                <ExternalLink className="w-3 h-3 opacity-70" />
+                <FileSpreadsheet className="w-3.5 h-3.5 text-[#2E6930]" />
+                <span>Mở Google Sheet</span>
+                <ExternalLink className="w-3 h-3 text-[#8C827A]" />
               </a>
 
               <button
                 onClick={onSync}
                 disabled={isSyncing}
-                className={`bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-[10px] px-4 py-2.5 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shadow-[2px_2px_0px_#000] active:translate-y-[2px] active:translate-x-[2px] active:shadow-none uppercase font-mono ${isSyncing ? 'opacity-50 cursor-not-allowed' : ''}`}
-                title="Smart two-way sync between Web and Google Sheets"
+                className={`bg-[#2E6930] hover:bg-[#255527] text-white font-medium text-xs px-3.5 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shadow-xs ${isSyncing ? 'opacity-50 cursor-not-allowed' : ''}`}
+                title="Đồng bộ 2 chiều giữa Web và Google Sheets"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-                {isSyncing ? 'Syncing...' : 'Two-Way Sync'}
+                <span>{isSyncing ? 'Đang đồng bộ...' : 'Đồng bộ 2 chiều'}</span>
               </button>
             </div>
           )}
@@ -419,15 +419,15 @@ export default function GradeSection({
 
       {/* Helper guide link */}
       {!spreadsheetId && (
-        <div className="bg-amber-950/10 border border-amber-900/30 p-4 rounded-2xl flex gap-3 text-xs text-amber-300/80 leading-relaxed font-sans">
-          <HelpCircle className="w-5 h-5 text-amber-400 shrink-0" />
+        <div className="bg-amber-50/60 border border-amber-200/80 p-4 rounded-2xl flex gap-3 text-xs text-amber-900 leading-relaxed font-sans">
+          <HelpCircle className="w-5 h-5 text-amber-700 shrink-0" />
           <div className="space-y-1">
-            <p className="font-bold text-amber-200">You haven't linked a Google Sheet to manage grades!</p>
+            <p className="font-semibold text-amber-950">Bạn chưa liên kết Google Sheet để quản lý điểm!</p>
             <p>
-              1. Click here to make a copy of the template: <a href="https://docs.google.com/spreadsheets/d/1In58O2CMig4yO6PpufTrDrbKIjyPXQDgVEV7XcAGk7U/copy" target="_blank" rel="noreferrer" className="underline text-amber-400 font-bold hover:text-amber-300">Copy Gradebook Google Sheet Template ➔</a>
+              1. Nhấn vào đây để tạo bản sao mẫu: <a href="https://docs.google.com/spreadsheets/d/1In58O2CMig4yO6PpufTrDrbKIjyPXQDgVEV7XcAGk7U/copy" target="_blank" rel="noreferrer" className="underline text-[#2E6930] font-semibold hover:opacity-80">Sao chép mẫu bảng điểm Google Sheet ➔</a>
             </p>
             <p>
-              2. After copying the template to your Google Drive, paste the spreadsheet link into the configuration box above and click <strong>Confirm</strong>.
+              2. Sau khi sao chép về Drive của bạn, dán link Google Sheet vào ô cấu hình phía trên và nhấn <strong>Xác nhận</strong>.
             </p>
           </div>
         </div>
@@ -437,33 +437,33 @@ export default function GradeSection({
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-stretch">
         
         {/* CPA Large Dashboard Box */}
-        <div className="lg:col-span-1 bg-[#0f141c] border-2 border-slate-950 p-6 flex flex-col justify-center items-center text-center shadow-[2px_2px_0px_#000] rounded-2xl select-none">
-          <span className="text-[9px] uppercase tracking-widest font-bold text-slate-500 font-mono mb-1">CUMULATIVE CPA</span>
-          <span className="text-5xl font-black font-mono text-red-500 leading-none tracking-tight">
+        <div className="lg:col-span-1 bg-white border border-[#E7E1D7] p-6 flex flex-col justify-center items-center text-center shadow-xs rounded-2xl select-none">
+          <span className="text-[10px] uppercase tracking-wider font-semibold text-[#8C827A] mb-1">CPA TÍCH LŨY</span>
+          <span className="text-5xl font-black font-mono text-[#B85D38] leading-none tracking-tight">
             {safeCpaOverall.toFixed(2)}
           </span>
           <div className="flex items-center gap-1.5 mt-3">
-            <span className="text-[8px] bg-slate-950 text-slate-400 px-2 py-0.5 rounded border border-slate-900 font-semibold font-mono">
-              Scale 4.0
+            <span className="text-[10px] bg-[#FAF8F5] text-[#7A7268] px-2 py-0.5 rounded-md border border-[#E7E1D7] font-semibold font-mono">
+              Thang 4.0
             </span>
-            <span className="text-[9px] bg-amber-400/10 text-amber-400 border border-amber-400/20 px-2 py-0.5 rounded-md font-bold font-mono">
-              {computedPassedCredits}/{computedTotalCredits} credits
+            <span className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-md font-semibold font-mono">
+              {computedPassedCredits}/{computedTotalCredits} tín chỉ
             </span>
           </div>
         </div>
 
         {/* GPA Semester Winding Timeline */}
-        <div className="lg:col-span-3 neo-card p-5 flex flex-col justify-between">
-          <div className="border-b-2 border-slate-950 pb-2.5 mb-4">
-            <h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-1.5">
-              Semester GPA (Winding Timeline)
+        <div className="lg:col-span-3 bg-white border border-[#E7E1D7] p-5 rounded-2xl shadow-xs flex flex-col justify-between">
+          <div className="border-b border-[#EFECE6] pb-2.5 mb-4">
+            <h3 className="text-xs font-bold text-[#2C2825] uppercase tracking-wider flex items-center gap-1.5">
+              GPA từng kỳ (Tiến trình)
             </h3>
-            <p className="text-[10px] text-slate-500">Semester GPA progression (Data from Sheet Column L4)</p>
+            <p className="text-xs text-[#7A7268]">Tiến trình điểm trung bình theo học kỳ (Dữ liệu từ cột L4)</p>
           </div>
 
           {safeSemesterGpaList.filter(item => item && item.gpa > 0).length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center py-6 text-slate-500 text-xs italic">
-              <span>No semester data yet. Click "Two-Way Sync" to load data from Google Sheets.</span>
+            <div className="flex-1 flex flex-col items-center justify-center py-6 text-[#8C827A] text-xs italic">
+              <span>Chưa có dữ liệu học kỳ. Nhấn "Đồng bộ 2 chiều" để tải điểm từ Google Sheets.</span>
             </div>
           ) : (
             <div className="flex flex-col gap-10 p-2 relative">
@@ -485,32 +485,32 @@ export default function GradeSection({
                           <div key={cell.item.semester} className="relative flex flex-col items-center">
                             
                             {/* Semester Card */}
-                            <div className="w-full bg-slate-950 border-2 border-slate-950 p-2 flex flex-col items-center justify-center text-center shadow-[1.5px_1.5px_0px_#000] relative z-10 rounded-xl">
-                              <span className={`text-[8px] px-1.5 py-0.5 border rounded-md font-bold font-mono mb-1.5 uppercase ${semesterBadgeStyle}`}>
+                            <div className="w-full bg-[#FAF8F5] border border-[#E7E1D7] p-2 flex flex-col items-center justify-center text-center shadow-xs relative z-10 rounded-xl">
+                              <span className={`text-[9px] px-2 py-0.5 border rounded-md font-semibold font-mono mb-1.5 uppercase ${semesterBadgeStyle}`}>
                                 {cell.item.semester}
                               </span>
-                              <span className="text-base font-bold font-mono text-slate-200 leading-none">
+                              <span className="text-base font-bold font-mono text-[#2C2825] leading-none">
                                 {cell.item.gpa ? Number(cell.item.gpa).toFixed(2) : '0.00'}
                               </span>
                             </div>
 
                             {/* L-to-R Connection Line */}
                             {isEvenRow && cIdx < row.length - 1 && row[cIdx + 1]?.item !== null && (
-                              <div className="absolute top-1/2 left-1/2 w-full h-0.5 bg-white/80 -translate-y-1/2 z-0 pointer-events-none" />
+                              <div className="absolute top-1/2 left-1/2 w-full h-0.5 bg-[#E7E1D7] -translate-y-1/2 z-0 pointer-events-none" />
                             )}
                             {/* R-to-L Connection Line */}
                             {!isEvenRow && cIdx > 0 && row[cIdx - 1]?.item !== null && (
-                              <div className="absolute top-1/2 right-1/2 w-full h-0.5 bg-white/80 -translate-y-1/2 z-0 pointer-events-none" />
+                              <div className="absolute top-1/2 right-1/2 w-full h-0.5 bg-[#E7E1D7] -translate-y-1/2 z-0 pointer-events-none" />
                             )}
 
                             {/* Curved right turn loop */}
                             {isEvenRow && cIdx === row.length - 1 && (windingTimelineRows.totalCount > cell.originalIndex + 1) && (
-                              <div className="absolute top-1/2 left-1/2 w-[60%] h-[80px] border-t-2 border-r-2 border-b-2 border-white/80 rounded-r-2xl z-0 pointer-events-none" />
+                              <div className="absolute top-1/2 left-1/2 w-[60%] h-[80px] border-t-2 border-r-2 border-b-2 border-[#E7E1D7] rounded-r-2xl z-0 pointer-events-none" />
                             )}
 
                             {/* Curved left turn loop */}
                             {!isEvenRow && cIdx === 0 && (windingTimelineRows.totalCount > cell.originalIndex + 1) && (
-                              <div className="absolute top-1/2 right-1/2 w-[60%] h-[80px] border-t-2 border-l-2 border-b-2 border-white/80 rounded-l-2xl z-0 pointer-events-none" />
+                              <div className="absolute top-1/2 right-1/2 w-[60%] h-[80px] border-t-2 border-l-2 border-b-2 border-[#E7E1D7] rounded-l-2xl z-0 pointer-events-none" />
                             )}
 
                           </div>
@@ -532,36 +532,37 @@ export default function GradeSection({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
             {/* Chart 1: Line Chart - GPA Theo Kì (Cột L4) */}
-            <div className="bg-[#0f141c] border-2 border-slate-950 p-5 shadow-[2px_2px_0px_#000] rounded-2xl">
-              <div className="border-b-2 border-slate-950 pb-2 mb-4">
-                <h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-1.5 font-sans">
-                  <TrendingUp className="w-4 h-4 text-sky-400 stroke-[2]" />
-                  GPA by Semester (Col L4)
+            <div className="bg-white border border-[#E7E1D7] p-5 shadow-xs rounded-2xl">
+              <div className="border-b border-[#EFECE6] pb-2 mb-4">
+                <h3 className="text-xs font-bold text-[#2C2825] uppercase tracking-wider flex items-center gap-1.5 font-sans">
+                  <TrendingUp className="w-4 h-4 text-[#2E6930] stroke-[2]" />
+                  GPA theo học kỳ (Cột L4)
                 </h3>
               </div>
               
               <div className="h-64 text-[10px] font-mono">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={lineChartData} margin={{ top: 10, right: 10, left: -25, bottom: 5 }}>
-                    <XAxis dataKey="semester" stroke="#475569" tickLine={false} />
-                    <YAxis domain={[0, 4]} ticks={[0, 1, 2, 3, 4]} stroke="#475569" tickLine={false} />
+                    <XAxis dataKey="semester" stroke="#A8A29E" tickLine={false} />
+                    <YAxis domain={[0, 4]} ticks={[0, 1, 2, 3, 4]} stroke="#A8A29E" tickLine={false} />
                     <RechartsTooltip
                       contentStyle={{
-                        backgroundColor: '#070a0f',
-                        border: '2px solid #0f172a',
+                        backgroundColor: '#FFFFFF',
+                        border: '1px solid #E7E1D7',
                         borderRadius: '12px',
-                        color: '#cbd5e1',
+                        color: '#2C2825',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
                         fontFamily: 'monospace'
                       }}
                     />
                     <Line 
-                      name="Semester GPA" 
+                      name="GPA học kỳ" 
                       type="monotone" 
                       dataKey="gpa" 
-                      stroke="#38bdf8" 
+                      stroke="#2E6930" 
                       strokeWidth={3} 
-                      dot={{ stroke: '#070a0f', strokeWidth: 1.5, r: 4, fill: '#38bdf8' }}
-                      activeDot={{ stroke: '#070a0f', strokeWidth: 1.5, r: 6, fill: '#fbbf24' }} 
+                      dot={{ stroke: '#FFFFFF', strokeWidth: 2, r: 4, fill: '#2E6930' }}
+                      activeDot={{ stroke: '#FFFFFF', strokeWidth: 2, r: 6, fill: '#B85D38' }} 
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -569,17 +570,17 @@ export default function GradeSection({
             </div>
 
             {/* Chart 2: Pie Chart - Thống Kê Điểm Chữ */}
-            <div className="bg-[#0f141c] border-2 border-slate-950 p-5 shadow-[2px_2px_0px_#000] rounded-2xl">
-              <div className="border-b-2 border-slate-950 pb-2 mb-4">
-                <h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-1.5 font-sans">
-                  <PieIcon className="w-4 h-4 text-amber-400 stroke-[2]" />
-                  Letter Grade Distribution
+            <div className="bg-white border border-[#E7E1D7] p-5 shadow-xs rounded-2xl">
+              <div className="border-b border-[#EFECE6] pb-2 mb-4">
+                <h3 className="text-xs font-bold text-[#2C2825] uppercase tracking-wider flex items-center gap-1.5 font-sans">
+                  <PieIcon className="w-4 h-4 text-[#B85D38] stroke-[2]" />
+                  Phân bố điểm chữ
                 </h3>
               </div>
 
               <div className="h-64 flex flex-col sm:flex-row items-center justify-center gap-4">
                 {letterGradeChartData.length === 0 ? (
-                  <div className="text-slate-500 text-xs font-bold font-sans italic">No letter grade data yet</div>
+                  <div className="text-[#8C827A] text-xs font-medium italic">Chưa có dữ liệu điểm chữ</div>
                 ) : (
                   <>
                     <div className="w-full sm:w-1/2 h-full">
@@ -597,18 +598,19 @@ export default function GradeSection({
                             {letterGradeChartData.map((entry, idx) => (
                               <Cell 
                                 key={`cell-${idx}`} 
-                                fill={PIE_COLORS[entry.name] || '#64748b'} 
-                                stroke="#070a0f"
+                                fill={PIE_COLORS[entry.name] || '#A8A29E'} 
+                                stroke="#FFFFFF"
                                 strokeWidth={2}
                               />
                             ))}
                           </Pie>
                           <RechartsTooltip
                             contentStyle={{
-                              backgroundColor: '#070a0f',
-                              border: '2px solid #0f172a',
+                              backgroundColor: '#FFFFFF',
+                              border: '1px solid #E7E1D7',
                               borderRadius: '12px',
-                              color: '#cbd5e1',
+                              color: '#2C2825',
+                              boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
                               fontFamily: 'monospace'
                             }}
                           />
@@ -616,15 +618,15 @@ export default function GradeSection({
                       </ResponsiveContainer>
                     </div>
                     {/* Legends list */}
-                    <div className="grid grid-cols-3 gap-x-3 gap-y-1.5 text-[9px] font-mono shrink-0">
+                    <div className="grid grid-cols-3 gap-x-3 gap-y-1.5 text-[10px] font-mono shrink-0">
                       {letterGradeChartData.map((entry) => (
-                        <div key={entry.name} className="flex items-center gap-1 bg-slate-950 border border-slate-900 p-1 rounded-lg">
+                        <div key={entry.name} className="flex items-center gap-1.5 bg-[#FAF8F5] border border-[#E7E1D7] px-2 py-1 rounded-lg">
                           <span 
-                            className="w-2.5 h-2.5 rounded border border-slate-950 shrink-0" 
+                            className="w-2.5 h-2.5 rounded-full shrink-0" 
                             style={{ backgroundColor: PIE_COLORS[entry.name] }}
                           />
-                          <span className="text-slate-400 font-bold">{entry.name}:</span>
-                          <span className="text-[#fbbf24] font-black">{entry.value}</span>
+                          <span className="text-[#57534E] font-medium">{entry.name}:</span>
+                          <span className="text-[#2C2825] font-bold">{entry.value}</span>
                         </div>
                       ))}
                     </div>
@@ -636,39 +638,40 @@ export default function GradeSection({
           </div>
 
           {/* Row 2 (Full Width): Bar Chart - Số Tín Chỉ Học Theo Kỳ (Cột J4 & K4) */}
-          <div className="bg-[#0f141c] border-2 border-slate-950 p-5 shadow-[2px_2px_0px_#000] rounded-2xl">
-            <div className="border-b-2 border-slate-950 pb-2 mb-4">
-              <h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider flex items-center gap-1.5 font-sans">
-                <BarChart3 className="w-4 h-4 text-emerald-400 stroke-[2]" />
-                Credits Completed by Semester (Col J4 & K4)
+          <div className="bg-white border border-[#E7E1D7] p-5 shadow-xs rounded-2xl">
+            <div className="border-b border-[#EFECE6] pb-2 mb-4">
+              <h3 className="text-xs font-bold text-[#2C2825] uppercase tracking-wider flex items-center gap-1.5 font-sans">
+                <BarChart3 className="w-4 h-4 text-[#2E6930] stroke-[2]" />
+                Số tín chỉ hoàn thành theo kỳ (Cột J4 & K4)
               </h3>
             </div>
             
             <div className="h-64 text-[10px] font-mono">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={creditsChartData} margin={{ top: 10, right: 20, left: -20, bottom: 5 }}>
-                  <XAxis dataKey="semester" stroke="#475569" tickLine={false} />
-                  <YAxis stroke="#475569" tickLine={false} allowDecimals={false} />
+                  <XAxis dataKey="semester" stroke="#A8A29E" tickLine={false} />
+                  <YAxis stroke="#A8A29E" tickLine={false} allowDecimals={false} />
                   <RechartsTooltip
                     contentStyle={{
-                      backgroundColor: '#070a0f',
-                      border: '2px solid #0f172a',
+                      backgroundColor: '#FFFFFF',
+                      border: '1px solid #E7E1D7',
                       borderRadius: '12px',
-                      color: '#cbd5e1',
+                      color: '#2C2825',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
                       fontFamily: 'monospace'
                     }}
                   />
                   <Bar 
-                    name="Credits" 
+                    name="Tín chỉ" 
                     dataKey="credits" 
-                    fill="#10b981" 
+                    fill="#2E6930" 
                     barSize={32}
                     radius={[6, 6, 0, 0]}
                   >
                     <LabelList 
                       dataKey="credits" 
                       position="top" 
-                      fill="#34d399" 
+                      fill="#2E6930" 
                       fontSize={11} 
                       fontFamily="monospace" 
                       fontWeight="bold" 
@@ -683,37 +686,37 @@ export default function GradeSection({
       )}
 
       {/* ── SECTION 4: DETAILED SUBJECT GRADEBOOK TABLE ── */}
-      <div className="bg-[#0f141c] border-2 border-slate-950 p-5 shadow-[2px_2px_0px_#000] rounded-2xl">
-        <div className="flex items-center justify-between border-b-2 border-slate-950 pb-3 mb-4">
+      <div className="bg-white border border-[#E7E1D7] p-5 shadow-xs rounded-2xl">
+        <div className="flex items-center justify-between border-b border-[#EFECE6] pb-3 mb-4">
           <div className="space-y-0.5">
-            <h3 className="text-xs font-bold text-slate-100 uppercase tracking-wider">
-              Detailed Gradebook
+            <h3 className="text-xs font-bold text-[#2C2825] uppercase tracking-wider">
+              Bảng điểm chi tiết
             </h3>
-            <p className="text-[10px] text-slate-500 font-semibold">Select semester and enter grades. Decimals can use dots or commas (e.g., 8.5).</p>
+            <p className="text-xs text-[#7A7268]">Chọn học kỳ và nhập điểm số. Hỗ trợ cả dấu chấm hoặc phẩy (ví dụ: 8.5 hoặc 8,5).</p>
           </div>
         </div>
 
         {safeSubjects.length === 0 ? (
-          <div className="py-10 text-center text-xs text-slate-500 border border-dashed border-slate-800 rounded-xl bg-slate-950">
-            Gradebook is currently empty. Click "Add New Course" below or paste your Google Sheet link to sync.
+          <div className="py-10 text-center text-xs text-[#8C827A] border border-dashed border-[#E7E1D7] rounded-xl bg-[#FAF8F5]">
+            Bảng điểm hiện đang trống. Nhấn "Thêm môn học mới" bên dưới hoặc dán link Google Sheet để đồng bộ.
           </div>
         ) : (
-          <div className="overflow-x-auto border border-slate-950 rounded-xl bg-slate-950 shadow-[1px_1px_0px_#000]">
+          <div className="overflow-x-auto border border-[#E7E1D7] rounded-xl bg-white shadow-xs">
             <table className="w-full text-left text-xs min-w-[760px]">
-              <thead className="bg-[#0f141c] text-slate-400 font-mono text-[9px] uppercase border-b border-slate-950 select-none">
+              <thead className="bg-[#FAF8F5] text-[#7A7268] font-mono text-[10px] uppercase border-b border-[#E7E1D7] select-none">
                 <tr>
-                  <th className="py-2.5 px-3 w-36">Semester</th>
-                  <th className="py-2.5 px-3">Course Name</th>
-                  <th className="py-2.5 px-3 w-20 text-center">Credits</th>
-                  <th className="py-2.5 px-3 w-24 text-center">Weight (Midterm)</th>
-                  <th className="py-2.5 px-3 w-20 text-center">Midterm</th>
-                  <th className="py-2.5 px-3 w-20 text-center">Final</th>
-                  <th className="py-2.5 px-3 w-20 text-center">Letter</th>
-                  <th className="py-2.5 px-3 w-20 text-center">Scale 4.0</th>
+                  <th className="py-2.5 px-3 w-36">Học kỳ</th>
+                  <th className="py-2.5 px-3">Tên học phần</th>
+                  <th className="py-2.5 px-3 w-20 text-center">Tín chỉ</th>
+                  <th className="py-2.5 px-3 w-24 text-center">Trọng số (GK)</th>
+                  <th className="py-2.5 px-3 w-20 text-center">Giữa kỳ</th>
+                  <th className="py-2.5 px-3 w-20 text-center">Cuối kỳ</th>
+                  <th className="py-2.5 px-3 w-20 text-center">Điểm chữ</th>
+                  <th className="py-2.5 px-3 w-20 text-center">Thang 4</th>
                   <th className="py-2.5 px-2 w-10 text-center"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-950 font-sans">
+              <tbody className="divide-y divide-[#EFECE6] font-sans">
                 {safeSubjects.map((s) => {
                   const semIdx = uniqueSemestersInTable.indexOf(s.semester);
                   const isAltSemester = semIdx % 2 === 1;
@@ -722,7 +725,7 @@ export default function GradeSection({
                     <tr 
                       key={s.id} 
                       className={`transition-colors ${
-                        isAltSemester ? 'bg-white/[0.03] hover:bg-white/[0.07]' : 'bg-transparent hover:bg-white/[0.03]'
+                        isAltSemester ? 'bg-[#FAF8F5]/60 hover:bg-[#FAF8F5]' : 'bg-transparent hover:bg-[#FAF8F5]/80'
                       }`}
                     >
                       {/* Semester Select Dropdown Cell */}
@@ -740,7 +743,7 @@ export default function GradeSection({
                           }}
                         >
                           {AVAILABLE_SEMESTERS.map(sem => (
-                            <option key={sem} value={sem} className="bg-slate-950 text-slate-300">{sem}</option>
+                            <option key={sem} value={sem} className="bg-white text-[#2C2825]">{sem}</option>
                           ))}
                         </select>
                       </td>
@@ -751,8 +754,8 @@ export default function GradeSection({
                           type="text"
                           value={s.name}
                           onChange={e => onUpdateSubject(s.id, { name: e.target.value })}
-                          className="bg-slate-950 border border-white/30 focus:border-white rounded-xl px-3 py-1 text-xs text-slate-200 w-full focus:outline-none transition-colors"
-                          placeholder="Course name..."
+                          className="bg-[#FAF8F5] border border-[#E7E1D7] focus:border-[#2E6930] rounded-xl px-3 py-1 text-xs text-[#2C2825] w-full focus:outline-none transition-colors"
+                          placeholder="Tên học phần..."
                         />
                       </td>
                       
@@ -761,7 +764,7 @@ export default function GradeSection({
                         <GradeInput
                           value={s.credits}
                           onChange={val => onUpdateSubject(s.id, { credits: Math.floor(val) })}
-                          className="bg-slate-950 border border-white/30 focus:border-white rounded-xl px-1 py-1 text-xs text-slate-200 text-center w-full focus:outline-none font-mono font-bold transition-colors"
+                          className="bg-[#FAF8F5] border border-[#E7E1D7] focus:border-[#2E6930] rounded-xl px-1 py-1 text-xs text-[#2C2825] text-center w-full focus:outline-none font-mono font-bold transition-colors"
                           placeholder="0"
                         />
                       </td>
@@ -771,7 +774,7 @@ export default function GradeSection({
                         <GradeInput
                           value={s.processWeight}
                           onChange={val => onUpdateSubject(s.id, { processWeight: val })}
-                          className="bg-slate-950 border border-white/30 focus:border-white rounded-xl px-1 py-1 text-xs text-slate-200 text-center w-full focus:outline-none font-mono font-semibold transition-colors"
+                          className="bg-[#FAF8F5] border border-[#E7E1D7] focus:border-[#2E6930] rounded-xl px-1 py-1 text-xs text-[#2C2825] text-center w-full focus:outline-none font-mono font-semibold transition-colors"
                           placeholder="0,0"
                         />
                       </td>
@@ -781,7 +784,7 @@ export default function GradeSection({
                         <GradeInput
                           value={s.processScore}
                           onChange={val => onUpdateSubject(s.id, { processScore: val })}
-                          className="bg-slate-950 border border-white/30 focus:border-white rounded-xl px-1 py-1 text-xs text-slate-200 text-center w-full focus:outline-none font-mono transition-colors"
+                          className="bg-[#FAF8F5] border border-[#E7E1D7] focus:border-[#2E6930] rounded-xl px-1 py-1 text-xs text-[#2C2825] text-center w-full focus:outline-none font-mono transition-colors"
                           placeholder="0,0"
                         />
                       </td>
@@ -791,7 +794,7 @@ export default function GradeSection({
                         <GradeInput
                           value={s.finalScore}
                           onChange={val => onUpdateSubject(s.id, { finalScore: val })}
-                          className="bg-slate-950 border border-white/30 focus:border-white rounded-xl px-1 py-1 text-xs text-slate-200 text-center w-full focus:outline-none font-mono transition-colors"
+                          className="bg-[#FAF8F5] border border-[#E7E1D7] focus:border-[#2E6930] rounded-xl px-1 py-1 text-xs text-[#2C2825] text-center w-full focus:outline-none font-mono transition-colors"
                           placeholder="0,0"
                         />
                       </td>
@@ -800,21 +803,21 @@ export default function GradeSection({
                       <td className="py-1.5 px-2 text-center select-none font-bold">
                         {s.letterGrade ? (
                           <span className={`text-[9px] px-2 py-0.5 rounded-md border font-mono ${
-                            ['A+', 'A'].includes(s.letterGrade) ? 'bg-amber-400/10 text-amber-400 border-amber-400/20' :
-                            ['B+', 'B'].includes(s.letterGrade) ? 'bg-emerald-400/10 text-emerald-400 border-emerald-400/20' :
-                            ['C+', 'C'].includes(s.letterGrade) ? 'bg-blue-400/10 text-blue-400 border-blue-400/20' :
-                            s.letterGrade === 'F' ? 'bg-[#ef4444]/15 text-[#ef4444] border-[#ef4444]/25' :
-                            'bg-slate-800 text-slate-300 border-slate-800'
+                            ['A+', 'A'].includes(s.letterGrade) ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                            ['B+', 'B'].includes(s.letterGrade) ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                            ['C+', 'C'].includes(s.letterGrade) ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                            s.letterGrade === 'F' ? 'bg-rose-50 text-rose-700 border-rose-200' :
+                            'bg-stone-50 text-stone-700 border-stone-200'
                           }`}>
                             {s.letterGrade}
                           </span>
                         ) : (
-                          <span className="text-slate-600 font-mono">-</span>
+                          <span className="text-[#A8A29E] font-mono">-</span>
                         )}
                       </td>
                       
                       {/* Read-only Scale 4 score */}
-                      <td className="py-1.5 px-2 text-center select-none font-mono text-slate-400 font-bold">
+                      <td className="py-1.5 px-2 text-center select-none font-mono text-[#57534E] font-bold">
                         {s.gpaScale4 !== undefined && s.gpaScale4 !== null ? Number(s.gpaScale4).toFixed(1) : '-'}
                       </td>
                       
@@ -822,8 +825,8 @@ export default function GradeSection({
                       <td className="py-1.5 px-2 text-center">
                         <button
                           onClick={() => onDeleteSubject(s.id)}
-                          className="p-1 text-slate-500 hover:text-[#ef4444] rounded transition-colors cursor-pointer"
-                          title="Delete course"
+                          className="p-1 text-[#8C827A] hover:text-rose-600 rounded transition-colors cursor-pointer"
+                          title="Xóa môn học"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -840,10 +843,10 @@ export default function GradeSection({
         <div className="mt-4 flex justify-end">
           <button
             onClick={handleAddNewRow}
-            className="bg-slate-950 border-2 border-slate-950 text-[#fbbf24] hover:text-[#f59e0b] font-bold text-[10px] px-4 py-2 rounded-xl transition-colors cursor-pointer flex items-center gap-1 shadow-[2px_2px_0px_#000] active:translate-y-[2px] active:translate-x-[2px] active:shadow-none uppercase"
+            className="bg-[#2E6930] hover:bg-[#255527] text-white font-medium text-xs px-4 py-2.5 rounded-xl transition-colors cursor-pointer flex items-center gap-1.5 shadow-xs"
           >
-            <Plus className="w-4 h-4 stroke-[3]" />
-            Add New Course
+            <Plus className="w-4 h-4 stroke-[2.5]" />
+            Thêm học phần mới
           </button>
         </div>
       </div>

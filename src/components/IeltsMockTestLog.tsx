@@ -278,7 +278,7 @@ export default function IeltsMockTestLog({
     onUpdateLog(updatedLog);
     onAddExp(50, 20); // Reward for successful completion
     
-    alert(`🎉 SUBMISSION SUCCESS!\n\nYou completed the essay meeting the required word count (${words} words) on time.\nReceived +50 Exp and +20 Spirit Stones!`);
+    alert(`🎉 NỘP BÀI THÀNH CÔNG!\n\nBạn đã hoàn thành bài viết đạt độ dài yêu cầu (${words} từ) đúng thời gian quy định.`);
     setActiveEssayLog(null);
   };
 
@@ -294,7 +294,7 @@ export default function IeltsMockTestLog({
       notes: selfReview
     };
     onUpdateLog(updatedLog);
-    alert('💾 Draft saved successfully!');
+    alert('💾 Đã lưu bản nháp thành công!');
   };
 
   // Auto-compress local image upload using canvas to prevent localStorage overflow
@@ -336,11 +336,11 @@ export default function IeltsMockTestLog({
     e.preventDefault();
     const num = parseInt(newCamBook);
     if (isNaN(num) || num <= 0 || num > 99) {
-      alert('⚠️ Cambridge book number must be a valid integer (1 - 99)!');
+      alert('⚠️ Số tập Cambridge phải là số nguyên hợp lệ (1 - 99)!');
       return;
     }
     if (camBooks.includes(num)) {
-      alert(`⚠️ Cambridge book ${num} already exists in the matrix!`);
+      alert(`⚠️ Cambridge tập ${num} đã tồn tại trong ma trận!`);
       return;
     }
     const updatedList = [...camBooks, num].sort((a, b) => b - a);
@@ -349,7 +349,7 @@ export default function IeltsMockTestLog({
   };
 
   const handleDeleteCamBook = (book: number) => {
-    if (confirm(`Are you sure you want to hide Cambridge ${book} from the matrix? Your test scores below will still be preserved.`)) {
+    if (confirm(`Bạn có chắc muốn ẩn Cambridge tập ${book} khỏi ma trận? Các điểm số ghi nhận bên dưới vẫn được giữ nguyên.`)) {
       const updatedList = camBooks.filter(b => b !== book);
       onUpdateCamBooks(updatedList);
     }
@@ -377,11 +377,11 @@ export default function IeltsMockTestLog({
 
   // Color mapping based on score
   const getScoreColorClass = (score?: number) => {
-    if (score === undefined) return 'bg-[#0b0f19] border-slate-900/80 text-slate-600 hover:border-amber-500/30 hover:text-slate-300';
-    if (score >= 7.5) return 'bg-amber-950/20 border-amber-500/40 text-amber-300';
-    if (score >= 6.5) return 'bg-emerald-950/20 border-emerald-500/40 text-emerald-300';
-    if (score >= 5.5) return 'bg-blue-950/20 border-blue-500/40 text-blue-300';
-    return 'bg-rose-950/20 border-rose-500/40 text-rose-300';
+    if (score === undefined) return 'bg-[#FAF8F5] border-[#E7E1D7] text-[#A8A29E] hover:border-[#2E6930] hover:text-[#2C2825]';
+    if (score >= 7.5) return 'bg-amber-50 border-amber-300 text-amber-800';
+    if (score >= 6.5) return 'bg-emerald-50 border-emerald-300 text-emerald-800';
+    if (score >= 5.5) return 'bg-sky-50 border-sky-300 text-sky-800';
+    return 'bg-rose-50 border-rose-300 text-rose-800';
   };
 
   // Format seconds to mm:ss
@@ -463,68 +463,64 @@ export default function IeltsMockTestLog({
       {/* 1. Upper Grid: Target Score & Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
         {/* Target vs Current Average Band Card */}
-        <div className="bg-gradient-to-br from-indigo-950/40 to-slate-950/40 border border-indigo-800/30 rounded-2xl p-5 shadow-xl col-span-2 relative overflow-hidden flex flex-col justify-between h-44">
-          <div className="absolute right-0 bottom-0 translate-x-2 translate-y-2 opacity-5 font-mono text-5xl font-black">
-            IELTS
-          </div>
-          
+        <div className="bg-white border border-[#E7E1D7] rounded-2xl p-5 shadow-xs col-span-2 relative overflow-hidden flex flex-col justify-between h-44">
           <div className="space-y-1 z-10">
             <div className="flex justify-between items-center">
-              <span className="text-[9px] text-indigo-400 uppercase font-black tracking-widest font-mono">IELTS TARGET BAND</span>
+              <span className="text-[10px] text-[#2E6930] uppercase font-bold tracking-wider">MỤC TIÊU IELTS BAND</span>
               <button
                 onClick={() => setIsEditingTargets(!isEditingTargets)}
-                className="text-[9.5px] text-slate-400 hover:text-amber-400 font-bold underline cursor-pointer flex items-center gap-1"
+                className="text-xs text-[#2E6930] hover:underline font-medium cursor-pointer flex items-center gap-1"
               >
-                <Edit3 className="w-3 h-3" /> {isEditingTargets ? 'Editing' : 'Set Targets'}
+                <Edit3 className="w-3 h-3" /> {isEditingTargets ? 'Đang sửa' : 'Đặt mục tiêu'}
               </button>
             </div>
             
             {isEditingTargets ? (
-              <div className="grid grid-cols-4 gap-1.5 pt-2 text-[10px] font-mono">
+              <div className="grid grid-cols-4 gap-1.5 pt-2 text-xs font-mono">
                 <div>
-                  <label className="text-[7.5px] text-slate-500 block">LIST</label>
-                  <select value={targetListening} onChange={e => setTargetListening(parseFloat(e.target.value))} className="w-full bg-slate-900 border border-slate-800 rounded p-1 text-[10px]">
+                  <label className="text-[9px] text-[#7A7268] block">LIST</label>
+                  <select value={targetListening} onChange={e => setTargetListening(parseFloat(e.target.value))} className="w-full bg-[#FAF8F5] border border-[#E7E1D7] rounded-lg p-1 text-xs text-[#2C2825]">
                     {ieltsBands.map(b => <option key={b} value={b}>{b.toFixed(1)}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="text-[7.5px] text-slate-500 block">READ</label>
-                  <select value={targetReading} onChange={e => setTargetReading(parseFloat(e.target.value))} className="w-full bg-slate-900 border border-slate-800 rounded p-1 text-[10px]">
+                  <label className="text-[9px] text-[#7A7268] block">READ</label>
+                  <select value={targetReading} onChange={e => setTargetReading(parseFloat(e.target.value))} className="w-full bg-[#FAF8F5] border border-[#E7E1D7] rounded-lg p-1 text-xs text-[#2C2825]">
                     {ieltsBands.map(b => <option key={b} value={b}>{b.toFixed(1)}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="text-[7.5px] text-slate-500 block">WRIT</label>
-                  <select value={targetWriting} onChange={e => setTargetWriting(parseFloat(e.target.value))} className="w-full bg-slate-900 border border-slate-800 rounded p-1 text-[10px]">
+                  <label className="text-[9px] text-[#7A7268] block">WRIT</label>
+                  <select value={targetWriting} onChange={e => setTargetWriting(parseFloat(e.target.value))} className="w-full bg-[#FAF8F5] border border-[#E7E1D7] rounded-lg p-1 text-xs text-[#2C2825]">
                     {ieltsBands.map(b => <option key={b} value={b}>{b.toFixed(1)}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="text-[7.5px] text-slate-500 block">SPEA</label>
-                  <select value={targetSpeaking} onChange={e => setTargetSpeaking(parseFloat(e.target.value))} className="w-full bg-slate-900 border border-slate-800 rounded p-1 text-[10px]">
+                  <label className="text-[9px] text-[#7A7268] block">SPEA</label>
+                  <select value={targetSpeaking} onChange={e => setTargetSpeaking(parseFloat(e.target.value))} className="w-full bg-[#FAF8F5] border border-[#E7E1D7] rounded-lg p-1 text-xs text-[#2C2825]">
                     {ieltsBands.map(b => <option key={b} value={b}>{b.toFixed(1)}</option>)}
                   </select>
                 </div>
                 <button
                   type="button"
                   onClick={handleSaveTargets}
-                  className="col-span-4 mt-1 bg-indigo-600 hover:bg-indigo-700 text-slate-100 py-1.5 rounded-lg text-[9px] font-bold tracking-wider cursor-pointer"
+                  className="col-span-4 mt-2 bg-[#2E6930] hover:bg-[#255527] text-white py-1.5 rounded-xl text-xs font-medium cursor-pointer shadow-xs"
                 >
-                  CONFIRM TARGETS
+                  LƯU MỤC TIÊU
                 </button>
               </div>
             ) : (
               <div className="flex items-end justify-between pt-2">
                 <div className="space-y-1">
-                  <span className="text-[10px] text-slate-400 block font-sans">Target Band:</span>
-                  <h4 className="text-3xl font-extrabold text-indigo-300 font-mono">
-                    {targets.overall.toFixed(1)} <span className="text-[10px] text-slate-500 font-normal">Band</span>
+                  <span className="text-xs text-[#7A7268] block">Mục tiêu:</span>
+                  <h4 className="text-3xl font-extrabold text-[#2E6930] font-mono">
+                    {targets.overall.toFixed(1)} <span className="text-xs text-[#7A7268] font-normal">Band</span>
                   </h4>
                 </div>
                 
                 <div className="text-right">
-                  <span className="text-[10px] text-slate-400 block font-sans">Current Average:</span>
-                  <h4 className="text-xl font-bold text-amber-400 font-mono">
+                  <span className="text-xs text-[#7A7268] block">Trung bình hiện tại:</span>
+                  <h4 className="text-2xl font-bold text-[#B85D38] font-mono">
                     {avgs.overall > 0 ? avgs.overall.toFixed(1) : '0.0'}
                   </h4>
                 </div>
@@ -533,17 +529,17 @@ export default function IeltsMockTestLog({
           </div>
 
           {!isEditingTargets && (
-            <div className="mt-2.5 pt-2 border-t border-slate-900 flex justify-between items-center text-[10px]">
-              <span className="text-slate-500 font-sans">Gap to Target:</span>
+            <div className="mt-2.5 pt-2 border-t border-[#EFECE6] flex justify-between items-center text-xs">
+              <span className="text-[#7A7268]">Khoảng cách tới mục tiêu:</span>
               {avgs.overall === 0 ? (
-                <span className="text-slate-400 italic">No tests recorded</span>
+                <span className="text-[#8C827A] italic">Chưa có bài thi</span>
               ) : avgs.overall >= targets.overall ? (
-                <span className="text-emerald-400 font-black flex items-center gap-0.5">
-                  🎉 TARGET REACHED
+                <span className="text-emerald-700 font-semibold flex items-center gap-0.5">
+                  🎉 ĐÃ ĐẠT MỤC TIÊU
                 </span>
               ) : (
-                <span className="text-amber-500 font-mono font-bold">
-                  Missing {(targets.overall - avgs.overall).toFixed(1)} band
+                <span className="text-[#B85D38] font-mono font-semibold">
+                  Còn thiếu {(targets.overall - avgs.overall).toFixed(1)} band
                 </span>
               )}
             </div>
@@ -553,80 +549,80 @@ export default function IeltsMockTestLog({
         {/* Individual Skills Averages & Progress Indicators */}
         <div className="grid grid-cols-2 md:grid-cols-4 col-span-4 gap-3">
           {/* Listening */}
-          <div className="bg-[#0f141c]/50 border border-slate-900 rounded-xl p-3 flex flex-col justify-between h-20">
+          <div className="bg-white border border-[#E7E1D7] rounded-xl p-3 flex flex-col justify-between h-20 shadow-xs">
             <div className="flex justify-between items-start">
-              <span className="text-[8.5px] text-slate-500 font-bold uppercase tracking-wider font-mono">🎧 Listening</span>
-              <span className="text-[8.5px] text-slate-400 font-mono">Target: {targets.listening.toFixed(1)}</span>
+              <span className="text-[10px] text-[#7A7268] font-semibold uppercase tracking-wider font-mono">🎧 Listening</span>
+              <span className="text-[10px] text-[#8C827A] font-mono">Mục tiêu: {targets.listening.toFixed(1)}</span>
             </div>
             <div className="flex justify-between items-end mt-1">
-              <h5 className="text-lg font-black text-slate-100 font-mono">
+              <h5 className="text-lg font-bold text-[#2C2825] font-mono">
                 {avgs.listening > 0 ? avgs.listening.toFixed(2) : '0.00'}
               </h5>
               {avgs.listening > 0 && (
-                <span className={`text-[8.5px] font-bold font-mono px-1 rounded ${
-                  avgs.listening >= targets.listening ? 'bg-emerald-950 text-emerald-400' : 'bg-amber-950 text-amber-500'
+                <span className={`text-[10px] font-semibold font-mono px-1.5 py-0.5 rounded-md ${
+                  avgs.listening >= targets.listening ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
                 }`}>
-                  {avgs.listening >= targets.listening ? '✓ Met' : `-${(targets.listening - avgs.listening).toFixed(1)}`}
+                  {avgs.listening >= targets.listening ? '✓ Đạt' : `-${(targets.listening - avgs.listening).toFixed(1)}`}
                 </span>
               )}
             </div>
           </div>
 
           {/* Reading */}
-          <div className="bg-[#0f141c]/50 border border-slate-900 rounded-xl p-3 flex flex-col justify-between h-20">
+          <div className="bg-white border border-[#E7E1D7] rounded-xl p-3 flex flex-col justify-between h-20 shadow-xs">
             <div className="flex justify-between items-start">
-              <span className="text-[8.5px] text-slate-500 font-bold uppercase tracking-wider font-mono">📖 Reading</span>
-              <span className="text-[8.5px] text-slate-400 font-mono">Target: {targets.reading.toFixed(1)}</span>
+              <span className="text-[10px] text-[#7A7268] font-semibold uppercase tracking-wider font-mono">📖 Reading</span>
+              <span className="text-[10px] text-[#8C827A] font-mono">Mục tiêu: {targets.reading.toFixed(1)}</span>
             </div>
             <div className="flex justify-between items-end mt-1">
-              <h5 className="text-lg font-black text-slate-100 font-mono">
+              <h5 className="text-lg font-bold text-[#2C2825] font-mono">
                 {avgs.reading > 0 ? avgs.reading.toFixed(2) : '0.00'}
               </h5>
               {avgs.reading > 0 && (
-                <span className={`text-[8.5px] font-bold font-mono px-1 rounded ${
-                  avgs.reading >= targets.reading ? 'bg-emerald-950 text-emerald-400' : 'bg-amber-950 text-amber-500'
+                <span className={`text-[10px] font-semibold font-mono px-1.5 py-0.5 rounded-md ${
+                  avgs.reading >= targets.reading ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
                 }`}>
-                  {avgs.reading >= targets.reading ? '✓ Met' : `-${(targets.reading - avgs.reading).toFixed(1)}`}
+                  {avgs.reading >= targets.reading ? '✓ Đạt' : `-${(targets.reading - avgs.reading).toFixed(1)}`}
                 </span>
               )}
             </div>
           </div>
 
           {/* Writing */}
-          <div className="bg-[#0f141c]/50 border border-slate-900 rounded-xl p-3 flex flex-col justify-between h-20">
+          <div className="bg-white border border-[#E7E1D7] rounded-xl p-3 flex flex-col justify-between h-20 shadow-xs">
             <div className="flex justify-between items-start">
-              <span className="text-[8.5px] text-slate-500 font-bold uppercase tracking-wider font-mono">✍️ Writing</span>
-              <span className="text-[8.5px] text-slate-400 font-mono">Target: {targets.writing.toFixed(1)}</span>
+              <span className="text-[10px] text-[#7A7268] font-semibold uppercase tracking-wider font-mono">✍️ Writing</span>
+              <span className="text-[10px] text-[#8C827A] font-mono">Mục tiêu: {targets.writing.toFixed(1)}</span>
             </div>
             <div className="flex justify-between items-end mt-1">
-              <h5 className="text-lg font-black text-slate-100 font-mono">
+              <h5 className="text-lg font-bold text-[#2C2825] font-mono">
                 {avgs.writing > 0 ? avgs.writing.toFixed(2) : '0.00'}
               </h5>
               {avgs.writing > 0 && (
-                <span className={`text-[8.5px] font-bold font-mono px-1 rounded ${
-                  avgs.writing >= targets.writing ? 'bg-emerald-950 text-emerald-400' : 'bg-amber-950 text-amber-500'
+                <span className={`text-[10px] font-semibold font-mono px-1.5 py-0.5 rounded-md ${
+                  avgs.writing >= targets.writing ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
                 }`}>
-                  {avgs.writing >= targets.writing ? '✓ Met' : `-${(targets.writing - avgs.writing).toFixed(1)}`}
+                  {avgs.writing >= targets.writing ? '✓ Đạt' : `-${(targets.writing - avgs.writing).toFixed(1)}`}
                 </span>
               )}
             </div>
           </div>
 
           {/* Speaking */}
-          <div className="bg-[#0f141c]/50 border border-slate-900 rounded-xl p-3 flex flex-col justify-between h-20">
+          <div className="bg-white border border-[#E7E1D7] rounded-xl p-3 flex flex-col justify-between h-20 shadow-xs">
             <div className="flex justify-between items-start">
-              <span className="text-[8.5px] text-slate-500 font-bold uppercase tracking-wider font-mono">🗣️ Speaking</span>
-              <span className="text-[8.5px] text-slate-400 font-mono">Target: {targets.speaking.toFixed(1)}</span>
+              <span className="text-[10px] text-[#7A7268] font-semibold uppercase tracking-wider font-mono">🗣️ Speaking</span>
+              <span className="text-[10px] text-[#8C827A] font-mono">Mục tiêu: {targets.speaking.toFixed(1)}</span>
             </div>
             <div className="flex justify-between items-end mt-1">
-              <h5 className="text-lg font-black text-slate-100 font-mono">
+              <h5 className="text-lg font-bold text-[#2C2825] font-mono">
                 {avgs.speaking > 0 ? avgs.speaking.toFixed(2) : '0.00'}
               </h5>
               {avgs.speaking > 0 && (
-                <span className={`text-[8.5px] font-bold font-mono px-1 rounded ${
-                  avgs.speaking >= targets.speaking ? 'bg-emerald-950 text-emerald-400' : 'bg-amber-950 text-amber-500'
+                <span className={`text-[10px] font-semibold font-mono px-1.5 py-0.5 rounded-md ${
+                  avgs.speaking >= targets.speaking ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
                 }`}>
-                  {avgs.speaking >= targets.speaking ? '✓ Met' : `-${(targets.speaking - avgs.speaking).toFixed(1)}`}
+                  {avgs.speaking >= targets.speaking ? '✓ Đạt' : `-${(targets.speaking - avgs.speaking).toFixed(1)}`}
                 </span>
               )}
             </div>
@@ -635,57 +631,57 @@ export default function IeltsMockTestLog({
       </div>
 
       {/* 2. CAMBRIDGE MATRIX QUEST GRID */}
-      <div className="bg-[#0f141c]/60 border border-slate-800/80 p-5 rounded-2xl shadow-xl space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-900 pb-3 gap-3">
+      <div className="bg-white border border-[#E7E1D7] p-5 rounded-2xl shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#EFECE6] pb-3 gap-3">
           <div className="flex items-center gap-2">
-            <Grid className="w-4 h-4 text-emerald-500" />
+            <Grid className="w-4 h-4 text-[#2E6930]" />
             <div>
-              <h4 className="text-xs font-bold text-slate-100 uppercase tracking-wider">Cambridge Mock-Test Matrix</h4>
-              <p className="text-[9px] text-slate-500">Conquer Cambridge practice tests to build proficiency. Click an empty slot to quick-add a test!</p>
+              <h4 className="text-xs font-bold text-[#2C2825] uppercase tracking-wider">Ma trận luyện đề Cambridge</h4>
+              <p className="text-xs text-[#7A7268]">Theo dõi tiến độ làm đề Cambridge. Nhấn vào ô bài thi để ghi điểm hoặc viết bài luận!</p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
             {/* Add Cam Book form */}
-            <form onSubmit={handleAddCamBook} className="flex items-center gap-1 shrink-0 bg-slate-950/50 p-1 border border-slate-900 rounded-lg">
+            <form onSubmit={handleAddCamBook} className="flex items-center gap-1.5 shrink-0 bg-[#FAF8F5] p-1 border border-[#E7E1D7] rounded-xl">
               <input
                 type="number"
                 min="1"
                 max="99"
-                placeholder="Book #"
+                placeholder="Tập #"
                 value={newCamBook}
                 onChange={(e) => setNewCamBook(e.target.value)}
-                className="w-12 bg-slate-900 border border-slate-800 rounded px-1.5 py-0.5 text-[9px] text-slate-300 focus:outline-none font-mono text-center"
+                className="w-14 bg-white border border-[#E7E1D7] rounded-lg px-2 py-1 text-xs text-[#2C2825] focus:outline-none focus:border-[#2E6930] font-mono text-center"
               />
               <button
                 type="submit"
-                className="bg-emerald-600 hover:bg-emerald-700 text-slate-100 font-bold text-[8.5px] px-2 py-0.5 rounded transition-colors cursor-pointer"
+                className="bg-[#2E6930] hover:bg-[#255527] text-white font-medium text-xs px-2.5 py-1 rounded-lg transition-colors cursor-pointer shadow-xs"
               >
-                + Add
+                + Thêm
               </button>
             </form>
 
             {/* Score color indicators legend */}
-            <div className="hidden sm:flex gap-2.5 text-[8px] font-mono text-slate-500">
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded bg-amber-500/20 border border-amber-500/40"></span> &gt;= 7.5</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded bg-emerald-500/20 border border-emerald-500/40"></span> &gt;= 6.5</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded bg-blue-500/20 border border-blue-500/40"></span> &gt;= 5.5</span>
-              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded bg-rose-500/20 border border-rose-500/40"></span> &lt; 5.5</span>
+            <div className="hidden sm:flex gap-3 text-[10px] font-mono text-[#7A7268]">
+              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-amber-100 border border-amber-300"></span> &gt;= 7.5</span>
+              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-emerald-100 border border-emerald-300"></span> &gt;= 6.5</span>
+              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-sky-100 border border-sky-300"></span> &gt;= 5.5</span>
+              <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-rose-100 border border-rose-300"></span> &lt; 5.5</span>
             </div>
           </div>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
           {camBooks.map(book => (
-            <div key={book} className="bg-slate-950/40 border border-slate-900 rounded-xl p-3.5 space-y-2 relative group/card">
-              <div className="flex justify-between items-center border-b border-slate-900/60 pb-1">
-                <span className="text-[10px] font-black text-indigo-400 font-mono uppercase tracking-widest">
+            <div key={book} className="bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl p-3.5 space-y-2 relative group/card">
+              <div className="flex justify-between items-center border-b border-[#EFECE6] pb-1.5">
+                <span className="text-xs font-bold text-[#2C2825] font-mono uppercase tracking-wider">
                   CAMBRIDGE {book}
                 </span>
                 <button
                   onClick={() => handleDeleteCamBook(book)}
-                  className="opacity-0 group-hover/card:opacity-100 text-slate-500 hover:text-rose-400 font-bold text-xs transition-opacity cursor-pointer leading-none"
-                  title={`Hide Cambridge ${book}`}
+                  className="opacity-0 group-hover/card:opacity-100 text-[#8C827A] hover:text-rose-600 font-bold text-sm transition-opacity cursor-pointer leading-none"
+                  title={`Ẩn Cambridge ${book}`}
                 >
                   &times;
                 </button>
@@ -707,11 +703,11 @@ export default function IeltsMockTestLog({
                           handleOpenEssayEditor(log);
                         }
                       }}
-                      className={`h-9 rounded-lg border text-center flex flex-col items-center justify-center font-mono transition-all cursor-pointer ${colorClass}`}
-                      title={log ? `${log.testName} (Overall: ${log.overall.toFixed(1)})` : `Click to start Cambridge ${book} Test ${test}`}
+                      className={`h-9 rounded-lg border text-center flex flex-col items-center justify-center font-mono transition-all cursor-pointer shadow-xs ${colorClass}`}
+                      title={log ? `${log.testName} (Overall: ${log.overall.toFixed(1)})` : `Nhấn để tạo bài làm Cambridge ${book} Test ${test}`}
                     >
-                      <span className="text-[8px] text-slate-500 font-bold">T{test}</span>
-                      <span className="text-[9.5px] font-black">{score !== undefined ? score.toFixed(1) : '—'}</span>
+                      <span className="text-[9px] text-[#7A7268] font-medium">T{test}</span>
+                      <span className="text-xs font-bold">{score !== undefined ? score.toFixed(1) : '—'}</span>
                     </button>
                   );
                 })}
@@ -722,35 +718,35 @@ export default function IeltsMockTestLog({
       </div>
 
       {/* 3. SPREADSHEET-STYLE SCORE MATRIX TABLE */}
-      <div className="bg-[#0f141c]/80 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-900 pb-3">
+      <div className="bg-white border border-[#E7E1D7] rounded-2xl p-5 shadow-xs space-y-4">
+        <div className="flex items-center justify-between border-b border-[#EFECE6] pb-3">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-amber-950/40 border border-amber-900/60 rounded-lg text-amber-500">
+            <div className="p-1.5 bg-[#FAF8F5] border border-[#E7E1D7] rounded-lg text-[#2E6930]">
               <AwardIcon className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-100">
-                IELTS Test History & Essay Log
+              <h3 className="text-sm font-bold text-[#2C2825]">
+                Lịch sử thi thử & Bài viết IELTS
               </h3>
-              <p className="text-[10px] text-slate-500">Record mock test scores and compose exam essays</p>
+              <p className="text-xs text-[#7A7268]">Ghi nhận điểm thi từng kỹ năng và luyện viết bài luận</p>
             </div>
           </div>
         </div>
 
         {warning && (
-          <div className="p-3 bg-rose-950/40 border border-rose-900 text-rose-400 rounded-xl text-xs flex items-center gap-2">
+          <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{warning}</span>
           </div>
         )}
 
         {/* The spreadsheet entry grid form */}
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto border border-[#E7E1D7] rounded-xl bg-white shadow-xs">
           <table className="w-full text-left border-collapse min-w-[700px]">
             <thead>
-              <tr className="border-b border-slate-900 text-slate-500 text-[10px] font-bold uppercase tracking-wider font-mono select-none">
+              <tr className="bg-[#FAF8F5] text-[#7A7268] text-[10px] font-semibold uppercase tracking-wider font-mono border-b border-[#E7E1D7] select-none">
                 <th 
-                  className="py-2.5 px-3 w-1/4 cursor-pointer hover:text-amber-500 transition-colors"
+                  className="py-2.5 px-3 w-1/4 cursor-pointer hover:text-[#2C2825] transition-colors"
                   onClick={() => {
                     if (sortBy === 'name') {
                       setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
@@ -760,10 +756,10 @@ export default function IeltsMockTestLog({
                     }
                   }}
                 >
-                  Test / Practice Name {sortBy === 'name' ? (sortOrder === 'asc' ? '▲' : '▼') : '↕'}
+                  Tên đề thi / Bài luyện {sortBy === 'name' ? (sortOrder === 'asc' ? '▲' : '▼') : '↕'}
                 </th>
                 <th 
-                  className="py-2.5 px-3 w-1/6 cursor-pointer hover:text-amber-500 transition-colors"
+                  className="py-2.5 px-3 w-1/6 cursor-pointer hover:text-[#2C2825] transition-colors"
                   onClick={() => {
                     if (sortBy === 'date') {
                       setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
@@ -773,28 +769,28 @@ export default function IeltsMockTestLog({
                     }
                   }}
                 >
-                  Test Date {sortBy === 'date' ? (sortOrder === 'asc' ? '▲' : '▼') : '↕'}
+                  Ngày thi {sortBy === 'date' ? (sortOrder === 'asc' ? '▲' : '▼') : '↕'}
                 </th>
                 <th className="py-2.5 px-3 text-center">Listening</th>
                 <th className="py-2.5 px-3 text-center">Reading</th>
                 <th className="py-2.5 px-3 text-center">Writing</th>
                 <th className="py-2.5 px-3 text-center">Speaking</th>
                 <th className="py-2.5 px-3 text-center">Overall</th>
-                <th className="py-2.5 px-3 w-1/5">Notes</th>
-                <th className="py-2.5 px-3 text-center">Actions</th>
+                <th className="py-2.5 px-3 w-1/5">Ghi chú</th>
+                <th className="py-2.5 px-3 text-center">Thao tác</th>
               </tr>
             </thead>
             <tbody>
               {/* Permanent inputs row */}
-              <tr className="bg-slate-950/50 border-b border-slate-900/80">
+              <tr className="bg-[#FAF8F5]/80 border-b border-[#E7E1D7]">
                 <td className="py-3 px-2">
                   <input
                     type="text"
                     required
-                    placeholder="E.g., Cambridge 19 Test 2"
+                    placeholder="VD: Cambridge 19 Test 2"
                     value={testName}
                     onChange={(e) => setTestName(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-900 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500 font-semibold"
+                    className="w-full bg-white border border-[#E7E1D7] rounded-lg px-2.5 py-1.5 text-xs text-[#2C2825] focus:outline-none focus:border-[#2E6930] font-semibold"
                   />
                 </td>
                 <td className="py-3 px-2">
@@ -803,14 +799,14 @@ export default function IeltsMockTestLog({
                     required
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-900 rounded-lg px-2 py-1.5 text-xs text-slate-300 focus:outline-none"
+                    className="w-full bg-white border border-[#E7E1D7] rounded-lg px-2 py-1.5 text-xs text-[#2C2825] focus:outline-none focus:border-[#2E6930]"
                   />
                 </td>
                 <td className="py-3 px-2 text-center">
                   <select
                     value={listening}
                     onChange={(e) => setListening(parseFloat(e.target.value))}
-                    className="bg-slate-950 border border-slate-900 rounded-lg p-1.5 text-xs text-blue-400 font-bold focus:outline-none font-mono mx-auto block cursor-pointer"
+                    className="bg-white border border-[#E7E1D7] rounded-lg p-1.5 text-xs text-blue-700 font-bold focus:outline-none font-mono mx-auto block cursor-pointer"
                   >
                     {ieltsBands.map(b => <option key={b} value={b}>{b.toFixed(1)}</option>)}
                   </select>
@@ -819,7 +815,7 @@ export default function IeltsMockTestLog({
                   <select
                     value={reading}
                     onChange={(e) => setReading(parseFloat(e.target.value))}
-                    className="bg-slate-950 border border-slate-900 rounded-lg p-1.5 text-xs text-emerald-400 font-bold focus:outline-none font-mono mx-auto block cursor-pointer"
+                    className="bg-white border border-[#E7E1D7] rounded-lg p-1.5 text-xs text-emerald-700 font-bold focus:outline-none font-mono mx-auto block cursor-pointer"
                   >
                     {ieltsBands.map(b => <option key={b} value={b}>{b.toFixed(1)}</option>)}
                   </select>
@@ -828,7 +824,7 @@ export default function IeltsMockTestLog({
                   <select
                     value={writing}
                     onChange={(e) => setWriting(parseFloat(e.target.value))}
-                    className="bg-slate-950 border border-slate-900 rounded-lg p-1.5 text-xs text-purple-400 font-bold focus:outline-none font-mono mx-auto block cursor-pointer"
+                    className="bg-white border border-[#E7E1D7] rounded-lg p-1.5 text-xs text-purple-700 font-bold focus:outline-none font-mono mx-auto block cursor-pointer"
                   >
                     {ieltsBands.map(b => <option key={b} value={b}>{b.toFixed(1)}</option>)}
                   </select>
@@ -837,32 +833,32 @@ export default function IeltsMockTestLog({
                   <select
                     value={speaking}
                     onChange={(e) => setSpeaking(parseFloat(e.target.value))}
-                    className="bg-slate-950 border border-slate-900 rounded-lg p-1.5 text-xs text-amber-500 font-bold focus:outline-none font-mono mx-auto block cursor-pointer"
+                    className="bg-white border border-[#E7E1D7] rounded-lg p-1.5 text-xs text-amber-700 font-bold focus:outline-none font-mono mx-auto block cursor-pointer"
                   >
                     {ieltsBands.map(b => <option key={b} value={b}>{b.toFixed(1)}</option>)}
                   </select>
                 </td>
                 <td className="py-3 px-2 text-center">
-                  <span className="text-xs font-black text-slate-100 bg-amber-950/60 border border-amber-900/60 px-2.5 py-1 rounded-lg font-mono">
+                  <span className="text-xs font-bold text-[#B85D38] bg-white border border-[#E7E1D7] px-2.5 py-1 rounded-lg font-mono">
                     {currentOverallLive.toFixed(1)}
                   </span>
                 </td>
                 <td className="py-3 px-2">
                   <input
                     type="text"
-                    placeholder="E.g., Made mistakes in Map, Writing..."
+                    placeholder="VD: Sai phần Map, thiếu từ..."
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-900 rounded-lg px-2.5 py-1.5 text-xs text-slate-300 focus:outline-none"
+                    className="w-full bg-white border border-[#E7E1D7] rounded-lg px-2.5 py-1.5 text-xs text-[#2C2825] focus:outline-none focus:border-[#2E6930]"
                   />
                 </td>
                 <td className="py-3 px-2 text-center">
                   <button
                     type="button"
                     onClick={handleQuickAdd}
-                    className="bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold text-xs px-3 py-1.5 rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1 mx-auto"
+                    className="bg-[#2E6930] hover:bg-[#255527] text-white font-medium text-xs px-3 py-1.5 rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1 mx-auto shadow-xs"
                   >
-                    <Plus className="w-3.5 h-3.5" /> Add
+                    <Plus className="w-3.5 h-3.5" /> Thêm
                   </button>
                 </td>
               </tr>
@@ -872,12 +868,12 @@ export default function IeltsMockTestLog({
                 sortedLogs.map((log) => (
                   <tr
                     key={log.id}
-                    className="border-b border-slate-900/80 hover:bg-slate-950/20 transition-colors text-xs font-medium text-slate-300"
+                    className="border-b border-[#EFECE6] hover:bg-[#FAF8F5] transition-colors text-xs font-medium text-[#2C2825]"
                   >
-                    <td className="py-2.5 px-3 text-slate-200 font-semibold truncate max-w-[200px]">
+                    <td className="py-2.5 px-3 font-semibold truncate max-w-[200px]">
                       {log.testName}
                     </td>
-                    <td className="py-2.5 px-3 text-slate-400 font-mono">
+                    <td className="py-2.5 px-3 text-[#7A7268] font-mono">
                       {log.date}
                     </td>
                     <td className="py-1 px-2 text-center">
@@ -888,9 +884,9 @@ export default function IeltsMockTestLog({
                           const overall = calculateIeltsOverall(val, log.reading, log.writing, log.speaking);
                           onUpdateLog({ ...log, listening: val, overall });
                         }}
-                        className="bg-slate-950 border border-slate-900 rounded p-1 text-xs text-blue-400 font-bold focus:outline-none font-mono mx-auto block cursor-pointer"
+                        className="bg-[#FAF8F5] border border-[#E7E1D7] rounded p-1 text-xs text-blue-700 font-bold focus:outline-none font-mono mx-auto block cursor-pointer"
                       >
-                        {ieltsBands.map(b => <option key={b} value={b} className="bg-slate-950 text-slate-300">{b.toFixed(1)}</option>)}
+                        {ieltsBands.map(b => <option key={b} value={b} className="bg-white text-[#2C2825]">{b.toFixed(1)}</option>)}
                       </select>
                     </td>
                     <td className="py-1 px-2 text-center">
@@ -901,9 +897,9 @@ export default function IeltsMockTestLog({
                           const overall = calculateIeltsOverall(log.listening, val, log.writing, log.speaking);
                           onUpdateLog({ ...log, reading: val, overall });
                         }}
-                        className="bg-slate-950 border border-slate-900 rounded p-1 text-xs text-emerald-400 font-bold focus:outline-none font-mono mx-auto block cursor-pointer"
+                        className="bg-[#FAF8F5] border border-[#E7E1D7] rounded p-1 text-xs text-emerald-700 font-bold focus:outline-none font-mono mx-auto block cursor-pointer"
                       >
-                        {ieltsBands.map(b => <option key={b} value={b} className="bg-slate-950 text-slate-300">{b.toFixed(1)}</option>)}
+                        {ieltsBands.map(b => <option key={b} value={b} className="bg-white text-[#2C2825]">{b.toFixed(1)}</option>)}
                       </select>
                     </td>
                     <td className="py-1 px-2 text-center">
@@ -914,9 +910,9 @@ export default function IeltsMockTestLog({
                           const overall = calculateIeltsOverall(log.listening, log.reading, val, log.speaking);
                           onUpdateLog({ ...log, writing: val, overall });
                         }}
-                        className="bg-slate-950 border border-slate-900 rounded p-1 text-xs text-purple-400 font-bold focus:outline-none font-mono mx-auto block cursor-pointer"
+                        className="bg-[#FAF8F5] border border-[#E7E1D7] rounded p-1 text-xs text-purple-700 font-bold focus:outline-none font-mono mx-auto block cursor-pointer"
                       >
-                        {ieltsBands.map(b => <option key={b} value={b} className="bg-slate-950 text-slate-300">{b.toFixed(1)}</option>)}
+                        {ieltsBands.map(b => <option key={b} value={b} className="bg-white text-[#2C2825]">{b.toFixed(1)}</option>)}
                       </select>
                     </td>
                     <td className="py-1 px-2 text-center">
@@ -927,33 +923,33 @@ export default function IeltsMockTestLog({
                           const overall = calculateIeltsOverall(log.listening, log.reading, log.writing, val);
                           onUpdateLog({ ...log, speaking: val, overall });
                         }}
-                        className="bg-slate-950 border border-slate-900 rounded p-1 text-xs text-amber-500 font-bold focus:outline-none font-mono mx-auto block cursor-pointer"
+                        className="bg-[#FAF8F5] border border-[#E7E1D7] rounded p-1 text-xs text-amber-700 font-bold focus:outline-none font-mono mx-auto block cursor-pointer"
                       >
-                        {ieltsBands.map(b => <option key={b} value={b} className="bg-slate-950 text-slate-300">{b.toFixed(1)}</option>)}
+                        {ieltsBands.map(b => <option key={b} value={b} className="bg-white text-[#2C2825]">{b.toFixed(1)}</option>)}
                       </select>
                     </td>
                     <td className="py-2.5 px-3 text-center">
-                      <span className="text-xs bg-amber-950/30 text-amber-400 border border-amber-900 px-2 py-0.5 rounded font-black font-mono">
+                      <span className="text-xs bg-amber-50 text-amber-800 border border-amber-300 px-2 py-0.5 rounded-md font-bold font-mono">
                         {log.overall.toFixed(1)}
                       </span>
                     </td>
-                    <td className="py-2.5 px-3 text-slate-400 italic truncate max-w-[160px]" title={log.notes}>
+                    <td className="py-2.5 px-3 text-[#7A7268] italic truncate max-w-[160px]" title={log.notes}>
                       {log.notes || '—'}
                     </td>
                     <td className="py-2.5 px-3 text-center">
                       <div className="flex items-center justify-center gap-1.5 mx-auto">
                         <button
                           onClick={() => handleOpenEssayEditor(log)}
-                          className="bg-slate-950 text-slate-400 hover:text-amber-400 hover:border-amber-500/30 border border-slate-900 px-2.5 py-1 rounded-lg text-[9px] font-bold transition-all cursor-pointer flex items-center gap-1 shadow-md"
+                          className="bg-[#FAF8F5] text-[#2C2825] hover:bg-[#F2EFE9] border border-[#E7E1D7] px-2.5 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer flex items-center gap-1 shadow-xs"
                         >
-                          <FileText className="w-2.5 h-2.5 text-amber-500" />
-                          Essay
+                          <FileText className="w-3 h-3 text-[#2E6930]" />
+                          Bài viết
                         </button>
                         
                         <button
                           onClick={() => onDeleteLog(log.id)}
-                          className="p-1.5 text-slate-600 hover:text-rose-400 hover:bg-slate-950 rounded transition-colors cursor-pointer"
-                          title="Delete test"
+                          className="p-1 text-[#8C827A] hover:text-rose-600 rounded transition-colors cursor-pointer"
+                          title="Xóa bài thi"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -963,8 +959,8 @@ export default function IeltsMockTestLog({
                 ))
               ) : (
                 <tr>
-                  <td colSpan={9} className="py-12 text-center text-slate-500 italic">
-                    No mock tests recorded yet. Fill the row above or click the Cambridge matrix to get started!
+                  <td colSpan={9} className="py-12 text-center text-[#8C827A] italic">
+                    Chưa có bài thi thử nào được ghi nhận. Nhập vào hàng trên hoặc chọn từ ma trận Cambridge!
                   </td>
                 </tr>
               )}
@@ -976,37 +972,37 @@ export default function IeltsMockTestLog({
       {/* 4. Visual Chart & Analysis Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         {/* Chart Column (2/3 span) */}
-        <div className="lg:col-span-2 bg-[#0f141c]/80 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+        <div className="lg:col-span-2 bg-white border border-[#E7E1D7] rounded-2xl p-5 shadow-xs space-y-4">
           <div>
-            <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-amber-500" />
-              Band Score Progression
+            <h3 className="text-sm font-bold text-[#2C2825] flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-[#2E6930]" />
+              Tiến trình Band điểm theo thời gian
             </h3>
-            <p className="text-[10px] text-slate-500">Visual representation of your IELTS band scores over time</p>
+            <p className="text-xs text-[#7A7268]">Biểu đồ thể hiện sự tiến bộ các kỹ năng IELTS qua các bài mock test</p>
           </div>
 
           <div className="h-64 w-full text-xs font-mono">
             {logs.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" opacity={0.3} />
-                  <XAxis dataKey="formattedDate" stroke="#64748b" />
-                  <YAxis domain={[4.0, 9.0]} stroke="#64748b" ticks={[4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0]} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#EFECE6" />
+                  <XAxis dataKey="formattedDate" stroke="#A8A29E" />
+                  <YAxis domain={[4.0, 9.0]} stroke="#A8A29E" ticks={[4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0]} />
                   <Tooltip
-                    contentStyle={{ backgroundColor: '#0a0d14', borderColor: '#1e293b', borderRadius: '12px' }}
-                    labelStyle={{ fontWeight: 'bold', color: '#94a3b8' }}
+                    contentStyle={{ backgroundColor: '#FFFFFF', borderColor: '#E7E1D7', borderRadius: '12px', color: '#2C2825', boxShadow: '0 4px 12px rgba(0,0,0,0.06)' }}
+                    labelStyle={{ fontWeight: 'bold', color: '#2C2825' }}
                   />
                   <Legend iconSize={8} />
-                  <Line type="monotone" dataKey="listening" name="Listening" stroke="#3b82f6" strokeWidth={2} activeDot={{ r: 6 }} />
+                  <Line type="monotone" dataKey="listening" name="Listening" stroke="#3b82f6" strokeWidth={2} activeDot={{ r: 5 }} />
                   <Line type="monotone" dataKey="reading" name="Reading" stroke="#10b981" strokeWidth={2} />
                   <Line type="monotone" dataKey="writing" name="Writing" stroke="#a855f7" strokeWidth={2} />
                   <Line type="monotone" dataKey="speaking" name="Speaking" stroke="#f59e0b" strokeWidth={2} />
                 </LineChart>
               </ResponsiveContainer>
             ) : (
-              <div className="h-full flex flex-col items-center justify-center text-slate-500 gap-1.5 border border-dashed border-slate-800 rounded-xl">
-                <BookOpen className="w-8 h-8 text-slate-600 animate-pulse" />
-                <span>No test data recorded yet to render progression graph!</span>
+              <div className="h-full flex flex-col items-center justify-center text-[#8C827A] gap-1.5 border border-dashed border-[#E7E1D7] rounded-xl bg-[#FAF8F5]">
+                <BookOpen className="w-8 h-8 text-[#A8A29E]" />
+                <span>Chưa có dữ liệu bài thi để hiển thị biểu đồ tiến trình!</span>
               </div>
             )}
           </div>
@@ -1015,78 +1011,77 @@ export default function IeltsMockTestLog({
         {/* Advice Column (1/3 span) */}
         <div>
           {analysis ? (
-            <div className="bg-slate-950/40 border border-slate-900 rounded-2xl p-5 space-y-4">
-              <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4 text-yellow-400" />
-                Mentor's Feedback (Strengths & Weaknesses Analysis)
+            <div className="bg-white border border-[#E7E1D7] rounded-2xl p-5 space-y-4 shadow-xs">
+              <h4 className="text-xs font-bold text-[#2C2825] uppercase tracking-wider flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4 text-[#B85D38]" />
+                Phân tích điểm mạnh & điểm yếu
               </h4>
 
               <div className="space-y-4">
                 {/* Strength */}
-                <div className="bg-[#0c1613] border border-emerald-900/40 p-4 rounded-xl space-y-2">
+                <div className="bg-emerald-50/60 border border-emerald-200 p-4 rounded-xl space-y-2">
                   <div className="flex items-center gap-2">
                     <span className="text-xl">{analysis.strongest.icon}</span>
                     <div>
-                      <p className="text-[9px] text-emerald-500 font-mono uppercase tracking-widest font-bold">TOP SKILL</p>
-                      <h5 className="text-xs font-bold text-slate-200">{analysis.strongest.name}</h5>
+                      <p className="text-[10px] text-emerald-800 font-mono uppercase tracking-wider font-bold">KỸ NĂNG MẠNH NHẤT</p>
+                      <h5 className="text-xs font-bold text-[#2C2825]">{analysis.strongest.name}</h5>
                     </div>
                   </div>
-                  <div className="text-[11px] text-slate-400 leading-relaxed pt-1.5 border-t border-emerald-950">
-                    Outstanding proficiency with an average of <strong className="text-emerald-400 font-mono">{analysis.strongest.score}</strong>. This skill is your solid foundation; keep maintaining and refining it!
+                  <div className="text-xs text-[#57534E] leading-relaxed pt-1.5 border-t border-emerald-200">
+                    Điểm số ấn tượng với trung bình <strong className="text-emerald-800 font-mono">{analysis.strongest.score}</strong>. Đây là nền tảng vững chắc của bạn; hãy tiếp tục duy trì!
                   </div>
                 </div>
 
                 {/* Weakness */}
-                <div className="bg-[#1a1012] border border-rose-950/40 p-4 rounded-xl space-y-2">
+                <div className="bg-rose-50/60 border border-rose-200 p-4 rounded-xl space-y-2">
                   <div className="flex items-center gap-2">
                     <span className="text-xl">{analysis.weakest.icon}</span>
                     <div>
-                      <p className="text-[9px] text-rose-500 font-mono uppercase tracking-widest font-bold">AREAS FOR IMPROVEMENT</p>
-                      <h5 className="text-xs font-bold text-slate-200">{analysis.weakest.name}</h5>
+                      <p className="text-[10px] text-rose-800 font-mono uppercase tracking-wider font-bold">CẦN CẢI THIỆN</p>
+                      <h5 className="text-xs font-bold text-[#2C2825]">{analysis.weakest.name}</h5>
                     </div>
                   </div>
-                  <div className="text-[11px] text-slate-400 leading-relaxed pt-1.5 border-t border-rose-950">
-                    Bottleneck at <strong className="text-rose-400 font-mono">{analysis.weakest.score}</strong>. Needs dedicated focus:
-                    {analysis.weakest.name.includes('Writing') && ' Focus on complex sentence variety, coherent Task 2 argumentation, and timing.'}
-                    {analysis.weakest.name.includes('Speaking') && ' Record speaking practice, correct pronunciation, and train fast Part 2/3 responses.'}
-                    {analysis.weakest.name.includes('Listening') && ' Practice dictation and passive listening, paying close attention to transitions and word stress.'}
-                    {analysis.weakest.name.includes('Reading') && ' Apply Skimming & Scanning, and expand your Academic vocabulary daily.'}
+                  <div className="text-xs text-[#57534E] leading-relaxed pt-1.5 border-t border-rose-200">
+                    Điểm trung bình ở mức <strong className="text-rose-800 font-mono">{analysis.weakest.score}</strong>. Cần chú trọng rèn luyện thêm:
+                    {analysis.weakest.name.includes('Writing') && ' Tập trung đa dạng cấu trúc câu, phát triển luận điểm Task 2 logic và kiểm soát thời gian.'}
+                    {analysis.weakest.name.includes('Speaking') && ' Ghi âm bài nói, sửa phát âm và luyện phản xạ nhanh cho Part 2/3.'}
+                    {analysis.weakest.name.includes('Listening') && ' Luyện nghe chép chính tả và nghe thụ động, chú ý các từ chuyển ý và trọng âm.'}
+                    {analysis.weakest.name.includes('Reading') && ' Áp dụng kỹ thuật Skimming & Scanning, đồng thời mở rộng vốn từ Academic mỗi ngày.'}
                   </div>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="bg-slate-950/40 border border-slate-900 rounded-2xl p-6 text-center text-xs text-slate-500 space-y-2">
-              <FileText className="w-8 h-8 text-slate-700 mx-auto" />
-              <p>Not enough data for analysis. Record at least 1 mock test to unlock personalized mentor insights!</p>
+            <div className="bg-white border border-[#E7E1D7] rounded-2xl p-6 text-center text-xs text-[#8C827A] space-y-2 shadow-xs">
+              <FileText className="w-8 h-8 text-[#A8A29E] mx-auto" />
+              <p>Chưa đủ dữ liệu để phân tích. Hãy ghi nhận ít nhất 1 bài thi để mở khóa nhận xét chuyên sâu!</p>
             </div>
           )}
         </div>
       </div>
 
-      {/* FULL-SCREEN IMMERSIVE IELTScdt WRITING WORKSPACE MODAL */}
+      {/* FULL-SCREEN IMMERSIVE IELTS WRITING WORKSPACE MODAL */}
       {activeEssayLog && (
-        <div className="fixed inset-0 z-50 bg-[#0c0e14] flex flex-col font-sans text-slate-200 select-none">
+        <div className="fixed inset-0 z-50 bg-[#FAF8F5] flex flex-col font-sans text-[#2C2825] select-none">
           {/* Header Bar */}
-          <div className="bg-[#181c26] border-b border-slate-800 px-6 py-3 flex items-center justify-between shrink-0">
+          <div className="bg-white border-b border-[#E7E1D7] px-6 py-3 flex items-center justify-between shrink-0 shadow-xs">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => {
                   if (isExamStarted) {
-                    if (!confirm('⚠️ You are currently in a timed exam! Exiting now will count as an incomplete exam and penalize -10 Exp. Do you still wish to exit?')) {
+                    if (!confirm('⚠️ Bạn đang trong thời gian làm bài thi! Thoát ra bây giờ sẽ huỷ bài thi này. Bạn có chắc muốn thoát?')) {
                       return;
                     }
-                    onAddExp(-10, 0);
                   }
                   setActiveEssayLog(null);
                 }}
-                className="text-slate-400 hover:text-slate-200 transition-colors cursor-pointer flex items-center gap-1 text-xs font-bold"
+                className="text-[#7A7268] hover:text-[#2C2825] transition-colors cursor-pointer flex items-center gap-1 text-xs font-semibold"
               >
-                <ArrowLeft className="w-4 h-4" /> EXIT
+                <ArrowLeft className="w-4 h-4" /> THOÁT
               </button>
-              <div className="h-4 w-px bg-slate-700"></div>
-              <span className="text-[11px] font-black tracking-widest text-amber-500 uppercase">
-                📖 EXAM WORKSPACE: {activeEssayLog.testName}
+              <div className="h-4 w-px bg-[#E7E1D7]"></div>
+              <span className="text-xs font-bold text-[#2C2825] uppercase">
+                📖 KHÔNG GIAN BÀI VIẾT: {activeEssayLog.testName}
               </span>
             </div>
 
@@ -1094,25 +1089,25 @@ export default function IeltsMockTestLog({
             <div className="flex items-center gap-4">
               {!isExamStarted ? (
                 <div className="flex items-center gap-2 text-xs">
-                  <div className="flex bg-[#0f121a] border border-slate-800 rounded-lg p-0.5">
+                  <div className="flex bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl p-0.5">
                     <button
                       onClick={() => setExamMode('FREE')}
-                      className={`px-3 py-1 rounded text-[10px] font-bold transition-all cursor-pointer ${
-                        examMode === 'FREE' ? 'bg-indigo-600 text-slate-100' : 'text-slate-500 hover:text-slate-300'
+                      className={`px-3 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                        examMode === 'FREE' ? 'bg-[#2E6930] text-white shadow-xs' : 'text-[#7A7268] hover:text-[#2C2825]'
                       }`}
                     >
-                      Free Practice
+                      Luyện tự do
                     </button>
                     <button
                       onClick={() => {
                         setExamMode('TIMED');
                         setExamDuration(activeTask === 1 ? 20 : 40);
                       }}
-                      className={`px-3 py-1 rounded text-[10px] font-bold transition-all cursor-pointer ${
-                        examMode === 'TIMED' ? 'bg-indigo-600 text-slate-100' : 'text-slate-500 hover:text-slate-300'
+                      className={`px-3 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
+                        examMode === 'TIMED' ? 'bg-[#2E6930] text-white shadow-xs' : 'text-[#7A7268] hover:text-[#2C2825]'
                       }`}
                     >
-                      Timed Exam
+                      Bấm giờ thi
                     </button>
                   </div>
 
@@ -1120,13 +1115,13 @@ export default function IeltsMockTestLog({
                     <select
                       value={examDuration}
                       onChange={(e) => setExamDuration(parseInt(e.target.value))}
-                      className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-[10px] text-slate-300 focus:outline-none"
+                      className="bg-[#FAF8F5] border border-[#E7E1D7] rounded-lg px-2 py-1 text-xs text-[#2C2825] focus:outline-none"
                     >
-                      <option value={1}>1 min (Quick test)</option>
-                      <option value={10}>10 mins</option>
-                      <option value={20}>20 mins (Standard Task 1)</option>
-                      <option value={40}>40 mins (Standard Task 2)</option>
-                      <option value={60}>60 mins (Both Tasks)</option>
+                      <option value={1}>1 phút (Thử nhanh)</option>
+                      <option value={10}>10 phút</option>
+                      <option value={20}>20 phút (Chuẩn Task 1)</option>
+                      <option value={40}>40 phút (Chuẩn Task 2)</option>
+                      <option value={60}>60 phút (Cả 2 Task)</option>
                     </select>
                   )}
 
@@ -1137,9 +1132,9 @@ export default function IeltsMockTestLog({
                         setTimeLeft(examDuration * 60);
                       }
                     }}
-                    className="bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 font-black px-4.5 py-1.5 rounded-lg flex items-center gap-1 hover:from-amber-600 hover:to-yellow-600 cursor-pointer shadow-lg tracking-wider"
+                    className="bg-[#2E6930] hover:bg-[#255527] text-white font-medium px-4 py-1.5 rounded-xl flex items-center gap-1.5 cursor-pointer shadow-xs"
                   >
-                    <Play className="w-3.5 h-3.5 fill-current" /> START EXAM
+                    <Play className="w-3.5 h-3.5 fill-current" /> BẮT ĐẦU LÀM BÀI
                   </button>
                 </div>
               ) : (
@@ -1148,28 +1143,28 @@ export default function IeltsMockTestLog({
                   {examMode === 'TIMED' ? (
                     <div className={`px-4 py-1.5 border rounded-xl flex items-center gap-2 font-mono font-bold text-sm tracking-wider ${
                       timeLeft < 300 
-                        ? 'border-rose-600 bg-rose-950/20 text-rose-400 animate-pulse' 
-                        : 'border-slate-800 bg-[#0f121a] text-slate-300'
+                        ? 'border-rose-300 bg-rose-50 text-rose-700 animate-pulse' 
+                        : 'border-[#E7E1D7] bg-[#FAF8F5] text-[#2C2825]'
                     }`}>
-                      <Clock className={`w-4 h-4 ${timeLeft < 300 ? 'text-rose-400' : 'text-indigo-400'}`} />
+                      <Clock className={`w-4 h-4 ${timeLeft < 300 ? 'text-rose-600' : 'text-[#2E6930]'}`} />
                       <span>{formatTime(timeLeft)}</span>
                     </div>
                   ) : (
-                    <span className="text-[10px] text-slate-500 uppercase tracking-widest font-black font-mono">Mode: Free Practice</span>
+                    <span className="text-xs text-[#7A7268] uppercase font-semibold font-mono">Chế độ: Luyện tự do</span>
                   )}
 
                   <button
                     onClick={handleSaveDraft}
-                    className="bg-[#0f121a] border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-slate-100 px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-all"
+                    className="bg-[#FAF8F5] border border-[#E7E1D7] hover:bg-[#F2EFE9] text-[#2C2825] px-3 py-1.5 rounded-xl text-xs font-medium cursor-pointer transition-all"
                   >
-                    Save Draft
+                    Lưu bản nháp
                   </button>
 
                   <button
                     onClick={handleManualSubmit}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-slate-100 font-bold px-4 py-1.5 rounded-lg text-xs shadow-md transition-all cursor-pointer"
+                    className="bg-[#2E6930] hover:bg-[#255527] text-white font-medium px-4 py-1.5 rounded-xl text-xs shadow-xs transition-all cursor-pointer"
                   >
-                    SUBMIT EXAM
+                    NỘP BÀI THI
                   </button>
                 </div>
               )}
@@ -1178,46 +1173,46 @@ export default function IeltsMockTestLog({
 
           {/* Main Workspace Split Body */}
           <div className="flex-1 flex overflow-hidden min-h-0">
-            {/* Left Panel: Prompt Questions & Prompt Image (Academic Chart) */}
-            <div className="w-[42%] bg-[#0e1017] border-r border-slate-900 flex flex-col overflow-y-auto p-6 space-y-5">
+            {/* Left Panel: Prompt Questions & Prompt Image */}
+            <div className="w-[42%] bg-white border-r border-[#E7E1D7] flex flex-col overflow-y-auto p-6 space-y-5 text-[#2C2825]">
               <div className="space-y-1">
-                <span className="text-[9px] text-indigo-400 font-black tracking-widest uppercase font-mono block">EXAM PROMPT</span>
-                <h4 className="text-sm font-bold text-slate-200 uppercase tracking-wider">{activeEssayLog.testName}</h4>
+                <span className="text-[10px] text-[#2E6930] font-bold tracking-wider uppercase font-mono block">ĐỀ BÀI THI</span>
+                <h4 className="text-sm font-bold text-[#2C2825] uppercase tracking-wider">{activeEssayLog.testName}</h4>
               </div>
 
               {/* Prompt Text / Notes Editor */}
               <div className="space-y-2">
-                <label className="text-[9px] text-slate-500 font-bold uppercase tracking-wider font-mono">Prompt details:</label>
+                <label className="text-[10px] text-[#7A7268] font-semibold uppercase tracking-wider font-mono">Nội dung đề bài:</label>
                 <textarea
                   value={promptText}
                   onChange={(e) => setPromptText(e.target.value)}
-                  placeholder="Paste or type the writing prompt here..."
+                  placeholder="Dán hoặc gõ đề bài viết vào đây..."
                   disabled={isExamStarted && examMode === 'TIMED'}
-                  className="w-full bg-[#0a0d14] border border-slate-900 focus:border-slate-800 rounded-xl p-3.5 text-xs text-slate-300 font-sans focus:outline-none h-28 resize-none leading-relaxed"
+                  className="w-full bg-[#FAF8F5] border border-[#E7E1D7] focus:border-[#2E6930] rounded-xl p-3.5 text-xs text-[#2C2825] font-sans focus:outline-none h-28 resize-none leading-relaxed"
                 />
               </div>
 
               {/* Prompt Image Manager */}
-              <div className="space-y-3.5 border-t border-slate-900/60 pt-4">
+              <div className="space-y-3.5 border-t border-[#EFECE6] pt-4">
                 <div className="flex justify-between items-center">
-                  <label className="text-[9px] text-slate-500 font-bold uppercase tracking-wider font-mono flex items-center gap-1.5">
-                    <ImageIcon className="w-3.5 h-3.5 text-indigo-400" />
-                    Task 1 Prompt Image (Graph/Chart)
+                  <label className="text-[10px] text-[#7A7268] font-semibold uppercase tracking-wider font-mono flex items-center gap-1.5">
+                    <ImageIcon className="w-3.5 h-3.5 text-[#2E6930]" />
+                    Hình ảnh biểu đồ Task 1
                   </label>
                   {promptImgUrl && (
                     <button
                       onClick={() => {
-                        if (confirm('Delete current prompt image?')) setPromptImgUrl('');
+                        if (confirm('Xóa hình ảnh đề bài hiện tại?')) setPromptImgUrl('');
                       }}
-                      className="text-[9.5px] text-rose-500 hover:underline cursor-pointer"
+                      className="text-xs text-rose-600 hover:underline cursor-pointer"
                     >
-                      Delete image
+                      Xóa ảnh
                     </button>
                   )}
                 </div>
 
                 {promptImgUrl ? (
-                  <div className="border border-slate-900 bg-slate-950 p-2 rounded-2xl flex items-center justify-center relative overflow-hidden group/image max-h-[220px]">
+                  <div className="border border-[#E7E1D7] bg-[#FAF8F5] p-2 rounded-2xl flex items-center justify-center relative overflow-hidden group/image max-h-[220px]">
                     <img 
                       src={promptImgUrl} 
                       alt="Prompt Diagram" 
@@ -1225,7 +1220,7 @@ export default function IeltsMockTestLog({
                     />
                   </div>
                 ) : (
-                  <div className="border-2 border-dashed border-slate-900 bg-slate-950/20 hover:bg-slate-950/40 rounded-2xl p-5 text-center flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors relative">
+                  <div className="border-2 border-dashed border-[#E7E1D7] bg-[#FAF8F5] hover:bg-[#F2EFE9] rounded-2xl p-5 text-center flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors relative">
                     <input
                       type="file"
                       accept="image/*"
@@ -1233,10 +1228,10 @@ export default function IeltsMockTestLog({
                       disabled={isExamStarted && examMode === 'TIMED'}
                       className="absolute inset-0 opacity-0 cursor-pointer"
                     />
-                    <Upload className="w-6 h-6 text-slate-600" />
+                    <Upload className="w-6 h-6 text-[#8C827A]" />
                     <div>
-                      <span className="text-[10px] text-slate-400 font-bold block">Upload chart/graph image file</span>
-                      <span className="text-[8.5px] text-slate-600 block mt-0.5">System will automatically compress image size before saving</span>
+                      <span className="text-xs text-[#2C2825] font-semibold block">Tải lên hình ảnh biểu đồ / đồ thị</span>
+                      <span className="text-[10px] text-[#8C827A] block mt-0.5">Hệ thống sẽ tự động tối ưu hóa kích thước ảnh</span>
                     </div>
                   </div>
                 )}
@@ -1246,79 +1241,79 @@ export default function IeltsMockTestLog({
                   <div className="flex gap-1.5">
                     <input
                       type="text"
-                      placeholder="Or paste direct image URL from internet..."
+                      placeholder="Hoặc dán link ảnh trực tiếp từ internet..."
                       value={promptImgUrl}
                       onChange={(e) => setPromptImgUrl(e.target.value)}
                       disabled={isExamStarted && examMode === 'TIMED'}
-                      className="flex-1 bg-[#0a0d14] border border-slate-900 rounded-lg px-2.5 py-1.5 text-[9.5px] focus:outline-none"
+                      className="flex-1 bg-[#FAF8F5] border border-[#E7E1D7] rounded-lg px-2.5 py-1.5 text-xs text-[#2C2825] focus:outline-none focus:border-[#2E6930]"
                     />
                   </div>
                 )}
               </div>
 
               {/* Notes / Remarks */}
-              <div className="space-y-2 border-t border-slate-900/60 pt-4">
-                <label className="text-[9px] text-slate-500 font-bold uppercase tracking-wider font-mono flex items-center gap-1">
-                  📝 Notes, Teacher Feedback & Self-Review:
+              <div className="space-y-2 border-t border-[#EFECE6] pt-4">
+                <label className="text-[10px] text-[#7A7268] font-semibold uppercase tracking-wider font-mono flex items-center gap-1">
+                  📝 Nhận xét của giáo viên & Tự rút kinh nghiệm:
                 </label>
                 <textarea
                   value={selfReview}
                   onChange={(e) => setSelfReview(e.target.value)}
-                  placeholder="After finishing, record common mistakes (e.g. grammar errors, lack of development, repetitive vocabulary) or feedback from instructors here for later review..."
-                  className="w-full bg-[#0a0d14] border border-slate-900 focus:border-slate-800 rounded-xl p-3.5 text-xs text-slate-300 font-sans focus:outline-none h-28 resize-none leading-relaxed"
+                  placeholder="Sau khi làm xong, ghi lại lỗi hay mắc (ngữ pháp, từ vựng, cách diễn đạt) hoặc phản hồi từ thầy cô để ôn lại sau này..."
+                  className="w-full bg-[#FAF8F5] border border-[#E7E1D7] focus:border-[#2E6930] rounded-xl p-3.5 text-xs text-[#2C2825] font-sans focus:outline-none h-28 resize-none leading-relaxed"
                 />
               </div>
             </div>
 
             {/* Right Panel: Exam CDT Textarea Workspace */}
-            <div className="flex-1 bg-[#0f1118] flex flex-col overflow-hidden min-h-0">
+            <div className="flex-1 bg-[#FAF8F5] flex flex-col overflow-hidden min-h-0">
               {/* Task Tabs switcher */}
-              <div className="bg-[#12151d] border-b border-slate-900 flex justify-between items-center px-6 py-2 shrink-0">
+              <div className="bg-white border-b border-[#E7E1D7] flex justify-between items-center px-6 py-2 shrink-0">
                 <div className="flex gap-2">
                   <button
                     onClick={() => {
                       if (!isExamStarted) setActiveTask(1);
-                      else alert('⚠️ Cannot switch tasks while a timed exam is running!');
+                      else alert('⚠️ Không thể chuyển task khi bài thi bấm giờ đang chạy!');
                     }}
-                    className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${
+                    className={`px-4 py-1.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
                       activeTask === 1
-                        ? 'bg-indigo-950/40 text-indigo-400 border border-indigo-900/40'
-                        : 'text-slate-500 hover:text-slate-300'
+                        ? 'bg-[#2E6930] text-white shadow-xs'
+                        : 'text-[#7A7268] hover:text-[#2C2825]'
                     }`}
                   >
-                    Task 1 (Report - 150 Words)
+                    Task 1 (Report - 150 từ)
                   </button>
                   <button
                     onClick={() => {
                       if (!isExamStarted) setActiveTask(2);
-                      else alert('⚠️ Cannot switch tasks while a timed exam is running!');
+                      else alert('⚠️ Không thể chuyển task khi bài thi bấm giờ đang chạy!');
                     }}
-                    className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${
+                    className={`px-4 py-1.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all cursor-pointer ${
                       activeTask === 2
-                        ? 'bg-indigo-950/40 text-indigo-400 border border-indigo-900/40'
-                        : 'text-slate-500 hover:text-slate-300'
+                        ? 'bg-[#2E6930] text-white shadow-xs'
+                        : 'text-[#7A7268] hover:text-[#2C2825]'
                     }`}
                   >
-                    Task 2 (Essay - 250 Words)
+                    Task 2 (Essay - 250 từ)
                   </button>
                 </div>
 
-                <div className="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-widest">
-                  Standard CDT: QWERTY Keyboard
+                <div className="text-xs font-mono text-[#8C827A] font-medium">
+                  Chuẩn CDT: Bàn phím QWERTY
                 </div>
               </div>
 
               {/* Textarea Workspace */}
               <div className="flex-1 p-6 flex flex-col min-h-0 relative">
                 {!isExamStarted && (
-                  <div className="absolute inset-0 bg-[#0f1118]/90 backdrop-blur-sm z-10 flex flex-col items-center justify-center text-center p-6 space-y-4">
-                    <div className="w-14 h-14 rounded-full bg-indigo-950/50 border border-indigo-900/40 flex items-center justify-center text-indigo-400 animate-pulse">
+                  <div className="absolute inset-0 bg-[#FAF8F5]/80 backdrop-blur-xs z-10 flex flex-col items-center justify-center text-center p-6 space-y-4">
+                    <div className="w-14 h-14 rounded-full bg-white border border-[#E7E1D7] flex items-center justify-center text-[#2E6930] shadow-xs">
                       <Bookmark className="w-7 h-7" />
                     </div>
                     <div className="space-y-1.5 max-w-sm">
-                      <h4 className="text-xs font-bold text-slate-200 uppercase tracking-widest">Exam Workspace Not Started</h4>
-                      <p className="text-[10px] text-slate-500 leading-relaxed font-sans">
-                        Choose your mode (Free practice or Timed test) on the top bar, then click **START EXAM** to begin writing!
+                      <h4 className="text-xs font-bold text-[#2C2825] uppercase tracking-wider">Không gian bài viết chưa bắt đầu</h4>
+                      <p className="text-xs text-[#7A7268] leading-relaxed font-sans">
+                        Chọn chế độ (Luyện tự do hoặc Bấm giờ thi) ở thanh trên, sau đó nhấn **BẮT ĐẦU LÀM BÀI**!
                       </p>
                     </div>
                   </div>
@@ -1329,36 +1324,36 @@ export default function IeltsMockTestLog({
                   onChange={(e) => activeTask === 1 ? setTask1Text(e.target.value) : setTask2Text(e.target.value)}
                   placeholder={
                     activeTask === 1
-                      ? "Write your Writing Task 1 essay here (Summarize visual information, describe data trend, flow charts, maps... Minimum 150 words)..."
-                      : "Write your Writing Task 2 essay here (Present your opinion on a social topic, explain reasons and examples... Minimum 250 words)..."
+                      ? "Viết bài Writing Task 1 tại đây (Tóm tắt thông tin đồ thị, xu hướng số liệu, bản đồ... Tối thiểu 150 từ)..."
+                      : "Viết bài Writing Task 2 tại đây (Trình bày quan điểm về chủ đề xã hội, nêu luận điểm và ví dụ... Tối thiểu 250 từ)..."
                   }
                   autoFocus
                   autoComplete="off"
                   autoCorrect="off"
                   spellCheck="false"
-                  className="w-full flex-1 bg-[#0a0c12] border border-slate-900/80 rounded-2xl p-5 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 font-mono resize-none leading-relaxed overflow-y-auto shadow-inner"
+                  className="w-full flex-1 bg-white border border-[#E7E1D7] rounded-2xl p-5 text-sm text-[#2C2825] focus:outline-none focus:border-[#2E6930] font-mono resize-none leading-relaxed overflow-y-auto shadow-xs"
                 />
               </div>
 
               {/* Progress & Live Word Count Footer */}
-              <div className="bg-[#12151d] border-t border-slate-900 px-6 py-4 space-y-2.5 shrink-0">
+              <div className="bg-white border-t border-[#E7E1D7] px-6 py-4 space-y-2.5 shrink-0">
                 <div className="flex justify-between items-center text-xs">
                   <div className="flex items-center gap-2">
-                    <span className="text-[9px] text-slate-500 uppercase tracking-widest font-black font-mono">Writing Progress:</span>
-                    <span className="text-[10.5px] font-sans text-slate-300">
+                    <span className="text-[10px] text-[#7A7268] uppercase tracking-wider font-semibold font-mono">Tiến độ bài viết:</span>
+                    <span className="text-xs font-sans text-[#2C2825]">
                       {wordProgress.statusText}
                     </span>
                   </div>
                   <div className="font-mono font-bold flex items-center gap-1.5">
-                    <span className="text-[9px] text-slate-500 uppercase">Word count:</span>
-                    <span className="text-slate-100 bg-slate-900 border border-slate-800 px-2 py-0.5 rounded text-xs">
-                      {activeTask === 1 ? countWords(task1Text) : countWords(task2Text)} words
+                    <span className="text-[10px] text-[#7A7268] uppercase">Số từ:</span>
+                    <span className="text-[#2C2825] bg-[#FAF8F5] border border-[#E7E1D7] px-2.5 py-0.5 rounded-lg text-xs">
+                      {activeTask === 1 ? countWords(task1Text) : countWords(task2Text)} từ
                     </span>
                   </div>
                 </div>
 
                 {/* Progress bar */}
-                <div className="w-full bg-[#0a0c12] rounded-full h-2.5 overflow-hidden border border-slate-900 shadow-inner">
+                <div className="w-full bg-[#FAF8F5] rounded-full h-2.5 overflow-hidden border border-[#E7E1D7]">
                   <div 
                     className={`h-full rounded-full transition-all duration-300 ${wordProgress.colorClass}`}
                     style={{ width: `${wordProgress.percent}%` }}

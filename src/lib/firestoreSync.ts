@@ -24,6 +24,8 @@ export interface CultivationSaveData {
   timeBlocks?: any[];
   calendarGroups?: any[];
   calendarEvents?: any[];
+  beaverProjects?: string[];
+  masterTasks?: any[];
   lastUpdated?: number;
 }
 

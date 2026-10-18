@@ -712,34 +712,34 @@ export default function ScheduleSection({
   return (
     <div className="space-y-6" id="schedule-weekly-root">
       
-      {/* ==================== TOP CONTROL AREA (Moved from Sidebar) ==================== */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 bg-[#0f141c] border-2 border-slate-950 p-5 rounded-2xl shadow-[4px_4px_0px_#000]">
+      {/* ==================== TOP CONTROL AREA ==================== */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 bg-white border border-[#E7E1D7] p-5 rounded-2xl shadow-xs">
         
         {/* Left Col: Mini Month Calendar with Nav Arrows */}
-        <div className="bg-slate-950/40 p-3 rounded-xl border border-slate-900/60">
+        <div className="bg-[#FAF8F5] p-3 rounded-xl border border-[#E7E1D7]">
           <div className="flex items-center justify-between mb-2">
-            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-mono select-none">
-              {miniCalendarDate.toLocaleString('en-US', { month: 'short', year: 'numeric' })}
+            <h4 className="text-[11px] font-bold text-[#7A7268] uppercase tracking-wider select-none">
+              {miniCalendarDate.toLocaleString('vi-VN', { month: 'short', year: 'numeric' })}
             </h4>
             <div className="flex gap-1">
               <button
                 onClick={prevMiniMonth}
-                className="p-1 bg-slate-900 hover:bg-slate-800 rounded border border-slate-950 text-slate-300 cursor-pointer"
+                className="p-1 bg-white hover:bg-[#F2EFE9] rounded border border-[#E7E1D7] text-[#7A7268] hover:text-[#2C2825] cursor-pointer transition-colors"
               >
-                <ChevronLeft className="w-3 h-3" />
+                <ChevronLeft className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={nextMiniMonth}
-                className="p-1 bg-slate-900 hover:bg-slate-800 rounded border border-slate-950 text-slate-300 cursor-pointer"
+                className="p-1 bg-white hover:bg-[#F2EFE9] rounded border border-[#E7E1D7] text-[#7A7268] hover:text-[#2C2825] cursor-pointer transition-colors"
               >
-                <ChevronRight className="w-3 h-3" />
+                <ChevronRight className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
           
           <div className="grid grid-cols-7 gap-1 text-center font-mono text-[9px]">
-            {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((h, i) => (
-              <span key={i} className="text-slate-650 font-bold py-0.5 select-none">{h}</span>
+            {['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map((h, i) => (
+              <span key={i} className="text-[#8C827A] font-semibold py-0.5 select-none">{h}</span>
             ))}
             {miniCalendarDays.map((c, idx) => {
               const isActive = getLocalDateString(c.date) === getLocalDateString(anchorDate);
@@ -754,18 +754,18 @@ export default function ScheduleSection({
                     setAnchorDate(c.date);
                     setMiniCalendarDate(c.date);
                   }}
-                  className={`w-6 h-5.5 rounded font-bold flex items-center justify-center transition-all cursor-pointer ${
+                  className={`w-6 h-5.5 rounded font-medium flex items-center justify-center transition-all cursor-pointer ${
                     isActive 
-                      ? 'bg-amber-400 text-slate-950 shadow-[0_0_8px_rgba(251,191,36,0.4)]' 
+                      ? 'bg-[#2E6930] text-white font-bold' 
                       : isToday 
-                      ? 'border border-amber-400 text-amber-400' 
+                      ? 'border border-[#2E6930] text-[#2E6930] font-bold bg-[#EEF5EE]' 
                       : hasExam
-                      ? 'bg-rose-950/70 border border-rose-800/80 text-rose-300 font-extrabold shadow-[0_0_6px_rgba(244,63,94,0.15)] hover:bg-rose-900'
+                      ? 'bg-rose-100 border border-rose-300 text-rose-700 font-bold'
                       : c.isCurrent 
-                      ? 'text-slate-350 hover:bg-slate-900' 
-                      : 'text-slate-650 opacity-40 hover:bg-slate-900'
+                      ? 'text-[#2C2825] hover:bg-[#EAE5DC]' 
+                      : 'text-[#B0A79E] opacity-50'
                   }`}
-                  title={hasExam ? 'Exam scheduled' : undefined}
+                  title={hasExam ? 'Có lịch thi' : undefined}
                 >
                   {c.day}
                 </button>
@@ -777,40 +777,40 @@ export default function ScheduleSection({
         {/* Center Col: My Calendars (Calendar Groups horizontal chips) */}
         <div className="flex flex-col justify-between space-y-3">
           <div>
-            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-mono mb-2 border-b border-slate-900 pb-1 flex justify-between items-center select-none">
-              <span>My Calendars</span>
+            <h4 className="text-[11px] font-bold text-[#7A7268] uppercase tracking-wider mb-2 border-b border-[#EFECE6] pb-1 flex justify-between items-center select-none">
+              <span>Danh mục lịch</span>
               <span 
-                className="cursor-pointer text-rose-400 hover:text-rose-300 font-bold tracking-wide" 
+                className="cursor-pointer text-[#B85D38] hover:underline font-medium text-xs normal-case" 
                 onClick={() => setShowExamModal(true)}
               >
-                + Exam Schedule
+                + Lịch thi học phần
               </span>
             </h4>
 
             {/* Horizontal Scrollable Badges for Calendar filters */}
-            <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto pr-1">
+            <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto pr-1 scrollbar-thin">
               {calendarGroups.map(group => (
                 <div 
                   key={group.id} 
-                  className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-900/60 hover:bg-slate-900 rounded-xl border border-slate-950 shadow-[1px_1px_0px_#000] group/chip"
+                  className="flex items-center gap-1.5 px-2.5 py-1 bg-[#FAF8F5] hover:bg-[#F5F2EC] rounded-xl border border-[#E7E1D7] shadow-xs group/chip"
                 >
                   <button
                     onClick={() => handleToggleGroup(group.id)}
-                    className="flex items-center gap-1.5 text-[10px] text-slate-300 font-bold cursor-pointer"
+                    className="flex items-center gap-1.5 text-xs text-[#2C2825] font-medium cursor-pointer"
                   >
                     <span 
                       style={{ backgroundColor: group.isSelected ? group.backgroundColor : 'transparent', borderColor: group.backgroundColor }} 
                       className="w-3 h-3 rounded-full border flex items-center justify-center transition-colors shrink-0"
                     >
-                      {group.isSelected && <Check className="w-2 h-2 text-slate-950 stroke-[3px]" />}
+                      {group.isSelected && <Check className="w-2 h-2 text-white stroke-[3px]" />}
                     </span>
-                    <span className="truncate max-w-[80px]">{group.summary}</span>
+                    <span className="truncate max-w-[90px]">{group.summary}</span>
                   </button>
 
                   {!group.isPrimary && (
                     <button
                       onClick={() => handleDeleteGroup(group.id)}
-                      className="opacity-0 group-hover/chip:opacity-100 p-0.5 text-slate-500 hover:text-rose-400 transition-all cursor-pointer shrink-0"
+                      className="opacity-0 group-hover/chip:opacity-100 p-0.5 text-[#8C827A] hover:text-rose-600 transition-all cursor-pointer shrink-0"
                     >
                       <X className="w-2.5 h-2.5" />
                     </button>
@@ -825,14 +825,14 @@ export default function ScheduleSection({
             <input
               type="text"
               required
-              placeholder="New calendar group..."
+              placeholder="Tên nhóm lịch mới..."
               value={newGroupTitle}
               onChange={(e) => setNewGroupTitle(e.target.value)}
-              className="flex-1 bg-slate-950 border border-slate-900 rounded-lg px-2.5 py-1 text-[10px] text-slate-200 focus:outline-none focus:border-amber-400"
+              className="flex-1 bg-[#FAF8F5] border border-[#E7E1D7] rounded-lg px-2.5 py-1 text-xs text-[#2C2825] focus:outline-none focus:border-[#2E6930]"
             />
             <button
               type="submit"
-              className="p-1 bg-slate-900 hover:bg-slate-800 border border-slate-950 rounded-lg text-slate-400 hover:text-amber-400 cursor-pointer shrink-0"
+              className="p-1.5 bg-[#FAF8F5] hover:bg-[#F2EFE9] border border-[#E7E1D7] rounded-lg text-[#7A7268] hover:text-[#2C2825] cursor-pointer shrink-0"
             >
               <Plus className="w-3.5 h-3.5" />
             </button>
@@ -840,45 +840,43 @@ export default function ScheduleSection({
         </div>
 
         {/* Right Col: Event Actions & Sync Controls */}
-        <div className="flex flex-col justify-center space-y-2.5 md:pl-4 md:border-l border-slate-900">
+        <div className="flex flex-col justify-center space-y-2.5 md:pl-4 md:border-l border-[#EFECE6]">
           {isLoggedIn ? (
-            <div className="flex items-center justify-between bg-slate-950 border border-slate-900 px-3 py-1.5 rounded-xl text-[10px] text-slate-350 shadow-[1px_1px_0px_#000]">
+            <div className="flex items-center justify-between bg-[#FAF8F5] border border-[#E7E1D7] px-3 py-1.5 rounded-xl text-xs text-[#2C2825]">
               <div className="flex items-center gap-1.5 truncate">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
-                <span className="font-mono font-bold truncate max-w-[110px]">{userProfile?.displayName || 'Connected'}</span>
+                <span className="w-2 h-2 rounded-full bg-[#2E6930] shrink-0" />
+                <span className="font-medium truncate max-w-[120px]">{userProfile?.displayName || 'Đã kết nối'}</span>
               </div>
               <button
                 type="button"
                 onClick={logout}
-                className="text-[9px] text-slate-550 hover:text-rose-450 font-bold cursor-pointer uppercase font-mono shrink-0 ml-1.5"
-                title="Disconnect Google"
+                className="text-[10px] text-[#8C827A] hover:text-rose-600 cursor-pointer ml-1.5"
+                title="Ngắt kết nối Google"
               >
-                Disconnect
+                Ngắt kết nối
               </button>
             </div>
           ) : (
-            <div className="text-center text-[9px] text-slate-500 italic bg-slate-950/40 py-1.5 rounded border border-dashed border-slate-900 select-none">
-              Not connected to Google Calendar
+            <div className="text-center text-xs text-[#8C827A] italic bg-[#FAF8F5] py-1.5 rounded-xl border border-dashed border-[#E7E1D7] select-none">
+              Chưa kết nối Google Calendar
             </div>
           )}
 
           <button
             onClick={() => openAddModalForTime(getLocalDateString(), 8)}
-            className="w-full py-2 bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black text-xs rounded-xl border-2 border-slate-950 uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-[2.5px_2.5px_0px_#000] active:translate-y-[1.5px] active:shadow-none cursor-pointer"
+            className="w-full py-2 bg-[#2E6930] hover:bg-[#255527] text-white font-medium text-xs rounded-xl flex items-center justify-center gap-1.5 transition-colors shadow-xs cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            Create Event
+            Tạo sự kiện
           </button>
           
           <button
             onClick={handleSyncGoogleCalendar}
             disabled={isSyncing}
-            className={`w-full py-2 text-slate-950 font-black text-xs rounded-xl border-2 border-slate-950 uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-[2.5px_2.5px_0px_#000] active:translate-y-[1.5px] active:shadow-none cursor-pointer ${
-              isSyncing ? 'bg-slate-700 opacity-50 cursor-not-allowed' : 'bg-amber-400 hover:bg-amber-300'
-            }`}
+            className="w-full py-2 bg-[#FAF8F5] hover:bg-[#F2EFE9] text-[#2C2825] border border-[#E7E1D7] font-medium text-xs rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
           >
-            <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
-            {isSyncing ? 'Syncing...' : 'Sync Google Calendar'}
+            <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin text-[#2E6930]' : 'text-[#7A7268]'}`} />
+            <span>{isSyncing ? 'Đang đồng bộ...' : 'Đồng bộ Google Calendar'}</span>
           </button>
         </div>
 
@@ -888,29 +886,29 @@ export default function ScheduleSection({
       <div className="flex flex-col min-w-0 w-full">
         
         {/* Controls header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[#0f141c] border-2 border-slate-950 p-4 rounded-2xl shadow-[4px_4px_0px_#000] mb-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white border border-[#E7E1D7] p-4 rounded-2xl shadow-xs mb-4">
           <div className="flex items-center gap-3">
             <button
               onClick={setToday}
-              className="px-3.5 py-1.5 bg-slate-900 border-2 border-slate-950 rounded-xl text-[10px] font-black text-slate-200 uppercase tracking-wider hover:bg-slate-800 transition-all cursor-pointer font-mono"
+              className="px-3.5 py-1.5 bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl text-xs font-semibold text-[#2C2825] uppercase tracking-wider hover:bg-[#F2EFE9] transition-all cursor-pointer"
             >
-              Today
+              Hôm nay
             </button>
             <div className="flex items-center gap-1">
               <button
                 onClick={prevWeek}
-                className="p-1.5 bg-slate-900 border border-slate-950 rounded-lg hover:bg-slate-800 text-slate-200 cursor-pointer"
+                className="p-1.5 bg-[#FAF8F5] border border-[#E7E1D7] rounded-lg hover:bg-[#F2EFE9] text-[#7A7268] hover:text-[#2C2825] cursor-pointer"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
               <button
                 onClick={nextWeek}
-                className="p-1.5 bg-slate-900 border border-slate-950 rounded-lg hover:bg-slate-800 text-slate-200 cursor-pointer"
+                className="p-1.5 bg-[#FAF8F5] border border-[#E7E1D7] rounded-lg hover:bg-[#F2EFE9] text-[#7A7268] hover:text-[#2C2825] cursor-pointer"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
             </div>
-            <h3 className="text-xs sm:text-sm font-black text-amber-400 font-mono tracking-wide uppercase">
+            <h3 className="text-xs sm:text-sm font-bold text-[#2C2825] tracking-wide">
               {headerDateText}
             </h3>
           </div>
@@ -918,42 +916,42 @@ export default function ScheduleSection({
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowExamModal(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-500 hover:bg-rose-400 text-slate-950 font-black text-[10px] rounded-xl border-2 border-slate-950 uppercase tracking-wider transition-all shadow-[2px_2px_0px_#000] cursor-pointer"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#FAF8F5] hover:bg-[#F2EFE9] text-[#B85D38] border border-[#E7E1D7] font-semibold text-xs rounded-xl transition-all shadow-xs cursor-pointer"
             >
-              <GraduationCap className="w-3.5 h-3.5" />
-              Exam Schedule
+              <GraduationCap className="w-3.5 h-3.5 text-[#B85D38]" />
+              Lịch thi học phần
             </button>
             <select
               disabled
               value="week"
-              className="bg-slate-900 border-2 border-slate-950 rounded-xl text-[10px] font-black text-slate-200 px-3 py-1.5 focus:outline-none cursor-not-allowed uppercase tracking-wider"
+              className="bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl text-xs font-semibold text-[#7A7268] px-3 py-1.5 focus:outline-none cursor-not-allowed"
             >
-              <option value="week">Week</option>
+              <option value="week">Tuần</option>
             </select>
           </div>
         </div>
 
         {/* Weekly Scheduler Table */}
-        <div className="bg-[#0f141c] border-2 border-slate-950 rounded-2xl overflow-hidden shadow-[5px_5px_0px_#000] flex flex-col flex-1 max-h-[750px]">
+        <div className="bg-white border border-[#E7E1D7] rounded-2xl overflow-hidden shadow-xs flex flex-col flex-1 max-h-[750px]">
           
           {/* Day Headers row */}
-          <div className="grid grid-cols-[60px_1fr] border-b-2 border-slate-950 bg-slate-950/40 divide-x divide-slate-950">
-            <div className="flex items-center justify-center text-[9px] font-bold text-slate-500 font-mono uppercase tracking-wider">
+          <div className="grid grid-cols-[60px_1fr] border-b border-[#E7E1D7] bg-[#FAF8F5] divide-x divide-[#EFECE6]">
+            <div className="flex items-center justify-center text-[10px] font-semibold text-[#8C827A] font-mono tracking-wider">
               GMT+7
             </div>
             
-            <div className="grid grid-cols-7 divide-x divide-slate-950">
+            <div className="grid grid-cols-7 divide-x divide-[#EFECE6]">
               {weekDates.map((date, idx) => {
                 const dateStr = getLocalDateString(date);
                 const isToday = dateStr === getLocalDateString();
                 const dayNum = date.getDate();
-                const dayLabel = date.toLocaleDateString('en-US', { weekday: 'short' });
+                const dayLabel = date.toLocaleDateString('vi-VN', { weekday: 'short' });
                 
                 return (
-                  <div key={idx} className={`py-2 text-center flex flex-col items-center justify-center ${isToday ? 'bg-amber-400/5' : ''}`}>
-                    <span className="text-[8px] font-bold text-slate-500 font-mono uppercase tracking-widest">{dayLabel}</span>
-                    <span className={`text-base font-black font-mono mt-0.5 rounded-full w-7 h-7 flex items-center justify-center ${
-                      isToday ? 'bg-amber-400 text-slate-950' : 'text-slate-200'
+                  <div key={idx} className={`py-2.5 text-center flex flex-col items-center justify-center ${isToday ? 'bg-[#2E6930]/5' : ''}`}>
+                    <span className="text-[10px] font-medium text-[#8C827A] uppercase tracking-wider">{dayLabel}</span>
+                    <span className={`text-sm font-bold mt-0.5 rounded-full w-7 h-7 flex items-center justify-center ${
+                      isToday ? 'bg-[#2E6930] text-white shadow-xs' : 'text-[#2C2825]'
                     }`}>
                       {dayNum}
                     </span>
@@ -965,15 +963,15 @@ export default function ScheduleSection({
 
           {/* Timeline Scroll Container */}
           <div className="flex-1 overflow-y-auto flex min-h-0 select-none">
-            <div className="grid grid-cols-[60px_1fr] divide-x divide-slate-950 w-full relative">
+            <div className="grid grid-cols-[60px_1fr] divide-x divide-[#EFECE6] w-full relative">
               
               {/* Hour Grid Indicators */}
-              <div className="flex flex-col bg-slate-950/10 font-mono text-[9px] font-bold text-slate-500 py-1.5">
+              <div className="flex flex-col bg-[#FAF8F5]/50 font-mono text-[9px] font-semibold text-[#8C827A] py-1.5">
                 {Array.from({ length: END_HOUR - START_HOUR + 1 }).map((_, i) => {
                   const hour = START_HOUR + i;
                   const label = hour > 12 ? `${hour - 12} PM` : hour === 12 ? '12 PM' : `${hour} AM`;
                   return (
-                    <div key={hour} style={{ height: `${HOUR_HEIGHT}px` }} className="text-center pt-1.5 pr-2 border-b border-slate-900/30">
+                    <div key={hour} style={{ height: `${HOUR_HEIGHT}px` }} className="text-center pt-1.5 pr-2 border-b border-[#F0EDE6]">
                       {label}
                     </div>
                   );
@@ -981,7 +979,7 @@ export default function ScheduleSection({
               </div>
 
               {/* Day Grid timeline columns */}
-              <div className="grid grid-cols-7 divide-x divide-slate-950 relative h-full bg-[#0f141c]">
+              <div className="grid grid-cols-7 divide-x divide-[#EFECE6] relative h-full bg-white">
                 
                 {/* Horizontal grid lines */}
                 <div className="absolute inset-0 flex flex-col pointer-events-none">
@@ -989,7 +987,7 @@ export default function ScheduleSection({
                     <div 
                       key={i} 
                       style={{ height: `${HOUR_HEIGHT}px` }} 
-                      className="border-b border-slate-900/40 w-full"
+                      className="border-b border-[#F0EDE6] w-full"
                     />
                   ))}
                 </div>
@@ -1016,7 +1014,7 @@ export default function ScheduleSection({
                       onMouseDown={(e) => handleColumnMouseDown(e, dateStr)}
                       onMouseMove={(e) => handleColumnMouseMove(e, dateStr)}
                       onMouseUp={handleColumnMouseUp}
-                      className={`relative h-full transition-colors group cursor-crosshair ${isToday ? 'bg-amber-400/[0.02]' : ''}`}
+                      className={`relative h-full transition-colors group cursor-crosshair ${isToday ? 'bg-[#2E6930]/[0.02]' : ''}`}
                     >
                       {/* Active drag range placeholder */}
                       {selectionActive && selectionActive.date === dateStr && isDraggingRange && (
@@ -1027,9 +1025,9 @@ export default function ScheduleSection({
                             left: '5%',
                             width: '90%'
                           }}
-                          className="absolute bg-amber-400/80 border-2 border-dashed border-slate-950 rounded-lg shadow-[2px_2px_0px_#000] p-1.5 z-30 flex flex-col justify-center pointer-events-none"
+                          className="absolute bg-[#2E6930]/20 border-2 border-dashed border-[#2E6930] rounded-lg p-1.5 z-30 flex flex-col justify-center pointer-events-none"
                         >
-                          <span className="text-[8px] font-black text-slate-950 font-mono text-center truncate">
+                          <span className="text-[9px] font-bold text-[#2E6930] font-mono text-center truncate">
                             {Math.floor(selectionActive.start / 60)}:{String(selectionActive.start % 60).padStart(2, '0')} - {Math.floor(selectionActive.end / 60)}:{String(selectionActive.end % 60).padStart(2, '0')}
                           </span>
                         </div>
@@ -1070,14 +1068,14 @@ export default function ScheduleSection({
                               width: `${width}%`,
                               backgroundColor: bg
                             }}
-                            className="absolute rounded-lg border border-slate-950 p-1.5 shadow-[1.5px_1.5px_0px_#000] text-slate-950 text-left select-none cursor-grab active:cursor-grabbing hover:shadow-[2.5px_2.5px_0px_#000] hover:-translate-y-[0.5px] transition-all overflow-hidden flex flex-col z-10 hover:z-20 event-card"
+                            className="absolute rounded-lg border border-black/15 p-1.5 shadow-xs text-white text-left select-none cursor-grab active:cursor-grabbing hover:shadow-sm hover:-translate-y-[0.5px] transition-all overflow-hidden flex flex-col z-10 hover:z-20 event-card"
                             title={`${event.summary}\n${startTimeStr} (${endMin - startMin}m)`}
                           >
-                            <span className="text-[11px] font-black leading-tight truncate">
+                            <span className="text-[11px] font-semibold leading-tight truncate drop-shadow-xs">
                               {event.summary}
                             </span>
                             {heightPx > 40 && (
-                              <span className="text-[9px] font-bold opacity-90 mt-0.5 font-mono">
+                              <span className="text-[9px] font-medium opacity-90 mt-0.5 font-mono drop-shadow-xs">
                                 {startTimeStr}
                               </span>
                             )}
@@ -1097,51 +1095,51 @@ export default function ScheduleSection({
 
       {/* ==================== ADD / EDIT EVENT MODAL ==================== */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-slate-950/80 flex items-center justify-center z-50 p-4 select-none animate-fadeIn">
-          <div className="bg-[#0f141c] border-2 border-slate-950 p-6 rounded-2xl w-full max-w-md shadow-[6px_6px_0px_#000] relative">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 select-none animate-fadeIn">
+          <div className="bg-white border border-[#E7E1D7] p-6 rounded-2xl w-full max-w-md shadow-xl relative text-[#2C2825]">
             <button
               onClick={() => setShowAddModal(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-slate-200 cursor-pointer"
+              className="absolute top-4 right-4 text-[#8C827A] hover:text-[#2C2825] cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
 
-            <h3 className="text-xs font-black text-slate-100 uppercase tracking-widest font-mono mb-4 flex items-center gap-2">
-              <Clock className="w-4.5 h-4.5 text-amber-400" />
-              {selectedEvent ? 'Event Details / Edit Schedule' : 'Create New Event'}
+            <h3 className="text-sm font-bold text-[#2C2825] mb-4 flex items-center gap-2">
+              <Clock className="w-4.5 h-4.5 text-[#2E6930]" />
+              {selectedEvent ? 'Chi tiết / Chỉnh sửa sự kiện' : 'Tạo sự kiện mới'}
             </h3>
 
             <form onSubmit={handleSaveEvent} className="space-y-4 text-xs">
               <div>
-                <label className="text-[10px] text-slate-500 font-bold uppercase font-mono block mb-1">Event Title:</label>
+                <label className="text-[10px] text-[#7A7268] font-semibold block mb-1">Tiêu đề sự kiện:</label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Study Kubernetes, Focus coding..."
+                  placeholder="Ví dụ: Học Kubernetes, Làm đồ án..."
                   value={formTitle}
                   onChange={(e) => setFormTitle(e.target.value)}
                   disabled={!!associatedTaskId}
-                  className="w-full bg-slate-950 border-2 border-slate-900 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-400 disabled:opacity-50"
+                  className="w-full bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl px-3 py-2 text-[#2C2825] focus:outline-none focus:border-[#2E6930] disabled:opacity-50"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] text-slate-500 font-bold uppercase font-mono block mb-1">Description (optional):</label>
+                <label className="text-[10px] text-[#7A7268] font-semibold block mb-1">Mô tả (tùy chọn):</label>
                 <textarea
-                  placeholder="Add event description..."
+                  placeholder="Thêm ghi chú cho sự kiện..."
                   value={formDescription}
                   onChange={(e) => setFormDescription(e.target.value)}
-                  className="w-full bg-slate-950 border-2 border-slate-900 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-400 h-16 resize-none"
+                  className="w-full bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl px-3 py-2 text-[#2C2825] focus:outline-none focus:border-[#2E6930] h-16 resize-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] text-slate-500 font-bold uppercase font-mono block mb-1">Calendar Group:</label>
+                  <label className="text-[10px] text-[#7A7268] font-semibold block mb-1">Nhóm lịch:</label>
                   <select
                     value={formCalendarId}
                     onChange={(e) => setFormCalendarId(e.target.value)}
-                    className="w-full bg-slate-950 border-2 border-slate-900 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-400 cursor-pointer"
+                    className="w-full bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl px-3 py-2 text-[#2C2825] focus:outline-none focus:border-[#2E6930] cursor-pointer"
                   >
                     {calendarGroups.map(g => (
                       <option key={g.id} value={g.id}>{g.summary}</option>
@@ -1150,13 +1148,13 @@ export default function ScheduleSection({
                 </div>
 
                 <div>
-                  <label className="text-[10px] text-slate-500 font-bold uppercase font-mono block mb-1">Date:</label>
+                  <label className="text-[10px] text-[#7A7268] font-semibold block mb-1">Ngày diễn ra:</label>
                   <input
                     type="date"
                     required
                     value={formDate}
                     onChange={(e) => setFormDate(e.target.value)}
-                    className="w-full bg-slate-950 border-2 border-slate-900 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-400 font-mono"
+                    className="w-full bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl px-3 py-2 text-[#2C2825] focus:outline-none focus:border-[#2E6930] font-mono"
                   />
                 </div>
               </div>
@@ -1168,18 +1166,18 @@ export default function ScheduleSection({
                   id="allDayCheck"
                   checked={formIsAllDay}
                   onChange={(e) => setFormIsAllDay(e.target.checked)}
-                  className="w-4 h-4 accent-amber-400 rounded cursor-pointer"
+                  className="w-4 h-4 accent-[#2E6930] rounded cursor-pointer"
                 />
-                <label htmlFor="allDayCheck" className="font-bold text-slate-350 cursor-pointer select-none">
-                  All-day event
+                <label htmlFor="allDayCheck" className="font-medium text-[#2C2825] cursor-pointer select-none">
+                  Cả ngày
                 </label>
               </div>
 
               {/* Start/End hours */}
               {!formIsAllDay && (
-                <div className="grid grid-cols-2 gap-3 bg-slate-950/20 p-2.5 border border-slate-900 rounded-xl">
+                <div className="grid grid-cols-2 gap-3 bg-[#FAF8F5] p-2.5 border border-[#E7E1D7] rounded-xl">
                   <div>
-                    <label className="text-[9px] text-slate-500 font-bold uppercase font-mono block mb-1">Start Time:</label>
+                    <label className="text-[9px] text-[#7A7268] font-semibold block mb-1">Bắt đầu:</label>
                     <div className="flex gap-1.5">
                       <input
                         type="number"
@@ -1188,13 +1186,13 @@ export default function ScheduleSection({
                         required
                         value={formStartHour}
                         onChange={(e) => setFormStartHour(Number(e.target.value))}
-                        className="w-14 bg-slate-950 border border-slate-900 rounded-lg p-1.5 text-center text-slate-200 font-mono"
+                        className="w-14 bg-white border border-[#E7E1D7] rounded-lg p-1.5 text-center text-[#2C2825] font-mono"
                       />
-                      <span className="self-center">:</span>
+                      <span className="self-center text-[#7A7268]">:</span>
                       <select
                         value={formStartMinute}
                         onChange={(e) => setFormStartMinute(Number(e.target.value))}
-                        className="bg-slate-950 border border-slate-900 rounded-lg p-1.5 text-slate-200 font-mono flex-1 cursor-pointer"
+                        className="bg-white border border-[#E7E1D7] rounded-lg p-1.5 text-[#2C2825] font-mono flex-1 cursor-pointer"
                       >
                         <option value={0}>00</option>
                         <option value={15}>15</option>
@@ -1205,7 +1203,7 @@ export default function ScheduleSection({
                   </div>
 
                   <div>
-                    <label className="text-[9px] text-slate-500 font-bold uppercase font-mono block mb-1">End Time:</label>
+                    <label className="text-[9px] text-[#7A7268] font-semibold block mb-1">Kết thúc:</label>
                     <div className="flex gap-1.5">
                       <input
                         type="number"
@@ -1214,13 +1212,13 @@ export default function ScheduleSection({
                         required
                         value={formEndHour}
                         onChange={(e) => setFormEndHour(Number(e.target.value))}
-                        className="w-14 bg-slate-950 border border-slate-900 rounded-lg p-1.5 text-center text-slate-200 font-mono"
+                        className="w-14 bg-white border border-[#E7E1D7] rounded-lg p-1.5 text-center text-[#2C2825] font-mono"
                       />
-                      <span className="self-center">:</span>
+                      <span className="self-center text-[#7A7268]">:</span>
                       <select
                         value={formEndMinute}
                         onChange={(e) => setFormEndMinute(Number(e.target.value))}
-                        className="bg-slate-950 border border-slate-900 rounded-lg p-1.5 text-slate-200 font-mono flex-1 cursor-pointer"
+                        className="bg-white border border-[#E7E1D7] rounded-lg p-1.5 text-[#2C2825] font-mono flex-1 cursor-pointer"
                       >
                         <option value={0}>00</option>
                         <option value={15}>15</option>
@@ -1235,7 +1233,7 @@ export default function ScheduleSection({
               {/* Task Association */}
               {!selectedEvent && (
                 <div>
-                  <label className="text-[10px] text-slate-500 font-bold uppercase font-mono block mb-1">Link to Quest / Task:</label>
+                  <label className="text-[10px] text-[#7A7268] font-semibold block mb-1">Liên kết với nhiệm vụ:</label>
                   <select
                     value={associatedTaskId}
                     onChange={(e) => {
@@ -1245,9 +1243,9 @@ export default function ScheduleSection({
                         if (found) setFormTitle(found.title);
                       }
                     }}
-                    className="w-full bg-slate-950 border-2 border-slate-900 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-400 cursor-pointer"
+                    className="w-full bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl px-3 py-2 text-[#2C2825] focus:outline-none focus:border-[#2E6930] cursor-pointer"
                   >
-                    <option value="">-- Free event (No linked task) --</option>
+                    <option value="">-- Sự kiện độc lập (Không liên kết task) --</option>
                     {todoItems.filter(t => !t.isCompleted).map(t => (
                       <option key={t.id} value={t.id}>{t.title}</option>
                     ))}
@@ -1260,16 +1258,16 @@ export default function ScheduleSection({
                   <button
                     type="button"
                     onClick={() => handleDeleteEvent(selectedEvent.id, selectedEvent.calendarId)}
-                    className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-500 text-slate-950 font-black rounded-xl border-2 border-slate-950 uppercase tracking-wider transition-all shadow-[2px_2px_0px_#000] active:translate-y-[1px] active:shadow-none cursor-pointer flex items-center justify-center gap-1"
+                    className="flex-1 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold rounded-xl border border-rose-200 transition-all cursor-pointer flex items-center justify-center gap-1"
                   >
-                    <Trash2 className="w-3.5 h-3.5" /> Delete Event
+                    <Trash2 className="w-3.5 h-3.5" /> Xóa sự kiện
                   </button>
                 )}
                 <button
                   type="submit"
-                  className="flex-2 py-2.5 bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black rounded-xl border-2 border-slate-950 uppercase tracking-wider transition-all shadow-[2px_2px_0px_#000] active:translate-y-[1px] active:shadow-none cursor-pointer flex items-center justify-center gap-1"
+                  className="flex-2 py-2.5 bg-[#2E6930] hover:bg-[#255527] text-white font-semibold rounded-xl transition-all shadow-xs cursor-pointer flex items-center justify-center gap-1"
                 >
-                  <Save className="w-3.5 h-3.5" /> Save Event
+                  <Save className="w-3.5 h-3.5" /> Lưu sự kiện
                 </button>
               </div>
             </form>
@@ -1279,21 +1277,21 @@ export default function ScheduleSection({
 
       {/* ==================== EXAM SCHEDULE MODAL ==================== */}
       {showExamModal && (
-        <div className="fixed inset-0 bg-slate-950/80 flex items-center justify-center z-50 p-4 select-none animate-fadeIn">
-          <div className="bg-[#0f141c] border-2 border-slate-950 p-6 rounded-2xl w-full max-w-lg shadow-[6px_6px_0px_#000] relative flex flex-col max-h-[85vh]">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 select-none animate-fadeIn">
+          <div className="bg-white border border-[#E7E1D7] p-6 rounded-2xl w-full max-w-lg shadow-xl relative flex flex-col max-h-[85vh] text-[#2C2825]">
             <button
               onClick={() => setShowExamModal(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-slate-200 cursor-pointer"
+              className="absolute top-4 right-4 text-[#8C827A] hover:text-[#2C2825] cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
 
             <div className="mb-4">
-              <h3 className="text-xs font-black text-slate-100 uppercase tracking-widest font-mono flex items-center gap-2 select-none">
-                <GraduationCap className="w-5 h-5 text-rose-500 animate-pulse" />
-                Course Exam Schedule Registration
+              <h3 className="text-sm font-bold text-[#2C2825] flex items-center gap-2 select-none">
+                <GraduationCap className="w-5 h-5 text-[#B85D38]" />
+                Đăng ký lịch thi học phần
               </h3>
-              <p className="text-[10px] text-slate-500 mt-1">Register exam dates for courses (displays all active & completed courses)</p>
+              <p className="text-xs text-[#7A7268] mt-1">Cài đặt ngày thi giữa kỳ và cuối kỳ cho các môn học đang theo dõi</p>
             </div>
 
             <div className="flex-1 overflow-y-auto pr-1 space-y-3 min-h-0">
@@ -1301,71 +1299,71 @@ export default function ScheduleSection({
                 manuals.map(manual => (
                   <div 
                     key={manual.id} 
-                    className="bg-slate-950/60 border-2 border-slate-950 p-3.5 rounded-xl flex flex-col gap-3 text-xs"
+                    className="bg-[#FAF8F5] border border-[#E7E1D7] p-3.5 rounded-xl flex flex-col gap-3 text-xs"
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-900/60 pb-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#EFECE6] pb-2">
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <h4 className="font-bold text-slate-200 truncate">{manual.name}</h4>
+                          <h4 className="font-bold text-[#2C2825] truncate">{manual.name}</h4>
                           {manual.status === 'DAI_VIEN_MAN' ? (
-                            <span className="text-[8px] bg-emerald-950 text-emerald-400 border border-emerald-900 px-1.5 py-0.2 rounded font-bold uppercase shrink-0">Mastered</span>
+                            <span className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-semibold shrink-0">Hoàn thành</span>
                           ) : manual.status === 'DANG_TU_LUYEN' ? (
-                            <span className="text-[8px] bg-purple-950 text-purple-400 border border-purple-900 px-1.5 py-0.2 rounded font-bold uppercase shrink-0">Studying</span>
+                            <span className="text-[10px] bg-sky-50 text-sky-700 border border-sky-200 px-2 py-0.5 rounded-full font-semibold shrink-0">Đang học</span>
                           ) : (
-                            <span className="text-[8px] bg-slate-900 text-slate-500 border border-slate-800 px-1.5 py-0.2 rounded font-bold uppercase shrink-0">Not Started</span>
+                            <span className="text-[10px] bg-stone-100 text-[#7A7268] border border-[#E7E1D7] px-2 py-0.5 rounded-full font-semibold shrink-0">Chưa bắt đầu</span>
                           )}
                         </div>
-                        <p className="text-[9px] text-slate-500 mt-0.5 uppercase tracking-wide">{manual.category || 'Uncategorized'}</p>
+                        <p className="text-[10px] text-[#8C827A] mt-0.5 uppercase tracking-wide">{manual.category || 'Học phần'}</p>
                       </div>
 
                       {/* Display midterm limit details */}
-                      <div className="text-[9px] text-slate-400 font-bold bg-slate-950/80 px-2 py-1 rounded border border-slate-900 shrink-0">
-                        📌 Midterm: {(() => {
+                      <div className="text-[10px] text-[#7A7268] font-medium bg-white px-2 py-1 rounded-lg border border-[#E7E1D7] shrink-0">
+                        📌 Giữa kỳ: {(() => {
                           const limitStage = manual.midtermLimitStageId ? manual.stages.find(s => s.id === manual.midtermLimitStageId) : null;
-                          return limitStage ? `Up to ${limitStage.title}` : 'Full curriculum';
+                          return limitStage ? `Đến ${limitStage.title}` : 'Toàn bộ nội dung';
                         })()}
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-[9px] text-rose-400/80 font-bold uppercase shrink-0">Midterm Exam:</span>
+                        <span className="text-[10px] text-[#B85D38] font-semibold shrink-0">Thi giữa kỳ:</span>
                         <input
                           type="date"
                           value={manual.midtermExamDate || ''}
                           onChange={(e) => handleMidtermExamDateChange(manual.id, e.target.value)}
-                          className="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1 text-[10.5px] text-slate-200 focus:outline-none focus:border-rose-500 font-mono w-28"
+                          className="bg-white border border-[#E7E1D7] rounded-lg px-2.5 py-1 text-xs text-[#2C2825] focus:outline-none focus:border-[#2E6930] font-mono w-32"
                         />
                       </div>
 
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-[9px] text-rose-450 font-bold uppercase shrink-0">Final Exam:</span>
+                        <span className="text-[10px] text-[#B85D38] font-semibold shrink-0">Thi cuối kỳ:</span>
                         <input
                           type="date"
                           value={manual.finalExamDate || ''}
                           onChange={(e) => handleFinalExamDateChange(manual.id, e.target.value)}
-                          className="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1 text-[10.5px] text-slate-200 focus:outline-none focus:border-rose-500 font-mono w-28"
+                          className="bg-white border border-[#E7E1D7] rounded-lg px-2.5 py-1 text-xs text-[#2C2825] focus:outline-none focus:border-[#2E6930] font-mono w-32"
                         />
                       </div>
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="text-center py-16 text-slate-650 text-xs flex flex-col items-center gap-2">
-                  <AlertCircle className="w-6 h-6 text-slate-700" />
-                  No suitable courses found. 
+                <div className="text-center py-12 text-[#8C827A] text-xs flex flex-col items-center gap-2">
+                  <AlertCircle className="w-6 h-6 text-[#A8A29E]" />
+                  Chưa có môn học nào được tạo.
                   <br />
-                  <span className="text-[10px] text-slate-550 italic">Please add courses in the "Immortal Roadmap" tab first!</span>
+                  <span className="text-[11px] text-[#A8A29E] italic">Vui lòng thêm môn học ở tab "Lộ trình học tập" trước!</span>
                 </div>
               )}
             </div>
 
-            <div className="pt-4 border-t border-slate-900 shrink-0">
+            <div className="pt-4 border-t border-[#EFECE6] shrink-0">
               <button
                 onClick={() => setShowExamModal(false)}
-                className="w-full py-2 bg-rose-500 hover:bg-rose-400 text-slate-950 font-black rounded-xl border-2 border-slate-950 uppercase tracking-wider text-[11px] transition-all shadow-[2px_2px_0px_#000] active:translate-y-[1px] active:shadow-none cursor-pointer"
+                className="w-full py-2.5 bg-[#2E6930] hover:bg-[#255527] text-white font-semibold rounded-xl text-xs transition-all shadow-xs cursor-pointer"
               >
-                Done & Sync to Calendar
+                Xong & Đồng bộ với Lịch biểu
               </button>
             </div>
           </div>

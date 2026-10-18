@@ -145,22 +145,6 @@ export interface Habit {
   history: Record<string, boolean>; // key: YYYY-MM-DD, value: boolean
 }
 
-export interface StoreItem {
-  id: string;
-  name: string;
-  description: string;
-  cost: number;
-  type: 'CONSUMABLE' | 'PERMANENT';
-  effectType: 'POMODORO_XP' | 'TASK_XP' | 'HABIT_XP' | 'INSTANT_XP' | 'COIN_BUFF' | 'SUCCESS_RATE';
-  effectValue: number;
-  icon: string;
-}
-
-export interface InventoryItem {
-  itemId: string;
-  quantity: number;
-}
-
 export interface WeeklyChallenge {
   id: string;
   title: string;
@@ -172,65 +156,20 @@ export interface WeeklyChallenge {
   isClaimed: boolean;
 }
 
-export interface BottleneckRequirement {
-  title: string;
-  minMeditationMinutes?: number;
-  minCompletedTasks?: number;
-  minStreakDays?: number;
-  requiredItemId?: string;
-  requiredItemName?: string;
-}
-
-export interface Achievement {
-  id: string;
-  category: 'MEDITATION' | 'TASKS' | 'STREAK' | 'ACADEMICS' | 'GARDEN' | 'WEALTH' | 'REALM' | 'SPECIAL';
-  title: string;
-  description: string;
-  icon: string;
-  targetType: 
-    | 'MEDITATION_MINUTES' 
-    | 'TASKS_COMPLETED' 
-    | 'STREAK_DAYS' 
-    | 'LINH_THACH' 
-    | 'SHOP_ITEMS' 
-    | 'BREAKTHROUGHS' 
-    | 'GARDEN_PLANTS' 
-    | 'LEVEL' 
-    | 'HABITS_COMPLETED' 
-    | 'NOTES_COUNT' 
-    | 'TIMEBLOCKS_COUNT' 
-    | 'MANUALS_COUNT' 
-    | 'CPA_SCORE' 
-    | 'ACHIEVEMENTS_COUNT';
-  targetValue: number;
-  rewardLinhThach: number;
-  titleToEquip: string;
-}
-
 export interface CultivationState {
   totalExp: number;
   currentExp: number;
-  level: number; // 1 to 100
+  level: number;
   linhThach: number;
   spiritStonesEarned: number;
   meditationMinutes: number;
   tasksCompletedCount: number;
   habitsCompletedCount: number;
   shieldActive: boolean;
-  inventory: InventoryItem[];
-  unlockedRealms: string[];
-  tamMaSuppressedDate?: string; // YYYY-MM-DD
-  tonThuongDanDienDate?: string; // YYYY-MM-DD
-  activeSpells?: string[];
+  inventory?: any[];
+  unlockedRealms?: string[];
   claimedAchievements?: string[];
   equippedTitle?: string;
-  breakthroughCount?: number;
-  itemsBoughtCount?: number;
-  bottleneckStartStats?: {
-    level: number;
-    meditationMinutes: number;
-    tasksCompletedCount: number;
-  };
 }
 
 export interface DailyLog {
@@ -239,16 +178,6 @@ export interface DailyLog {
   meditationMinutes: number;
   tasksCompleted: number;
   isStreakProtected?: boolean;
-}
-
-export interface StudocuDocument {
-  id: string;
-  url: string;
-  title: string;
-  pageCount: number;
-  pageImages: string[];
-  subjectTag: string;
-  savedAt: string;
 }
 
 export interface IeltsTestLog {
@@ -297,10 +226,20 @@ export interface TodoItem {
   tuViReward: number;
   linhThachReward: number;
   googleTaskId?: string;
+  googleTaskListId?: string;
+  googleTaskListName?: string;
   dueDate?: string; // YYYY-MM-DD
   isPriority?: boolean;
   estimatedMinutes?: number;
   difficulty?: Priority;
+  project?: string; // Associated project name (e.g. 'beaverplans', 'linear algebra', 'piano', 'HUSTFlow')
+}
+
+export interface ProjectItem {
+  id: string;
+  name: string;
+  color?: string;
+  createdAt?: string;
 }
 
 export interface CultivationNote {

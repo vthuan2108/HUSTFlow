@@ -143,46 +143,46 @@ export default function CultivationManualsSection({
     setEditStages(prev => prev.map(s => s.id === id ? { ...s, isCompleted: !s.isCompleted } : s));
   };
 
-  // Tier metadata mapping
+  // Tier metadata mapping (Cấp độ môn học/kỹ năng)
   const tierMeta: Record<ManualTier, { name: string; color: string; border: string; bg: string; text: string; reward: number }> = {
     HOANG: { 
-      name: 'Yellow Tier', 
-      color: 'from-slate-700 to-slate-800', 
-      border: 'border-slate-800', 
-      bg: 'bg-slate-950/40', 
-      text: 'text-slate-400',
+      name: 'Cơ bản', 
+      color: 'from-stone-500 to-stone-600', 
+      border: 'border-stone-200', 
+      bg: 'bg-stone-50', 
+      text: 'text-stone-700',
       reward: 10
     },
     HUYEN: { 
-      name: 'Mystic Tier', 
-      color: 'from-blue-900 to-indigo-950', 
-      border: 'border-blue-900/60', 
-      bg: 'bg-blue-950/10', 
-      text: 'text-blue-400',
+      name: 'Trung cấp', 
+      color: 'from-sky-500 to-sky-600', 
+      border: 'border-sky-200', 
+      bg: 'bg-sky-50', 
+      text: 'text-sky-700',
       reward: 15
     },
     DIA: { 
-      name: 'Earth Tier', 
-      color: 'from-purple-900 to-fuchsia-950', 
-      border: 'border-purple-800/40', 
-      bg: 'bg-purple-950/10', 
-      text: 'text-purple-400',
+      name: 'Nâng cao', 
+      color: 'from-indigo-500 to-indigo-600', 
+      border: 'border-indigo-200', 
+      bg: 'bg-indigo-50', 
+      text: 'text-indigo-700',
       reward: 25
     },
     THIEN: { 
-      name: 'Heaven Tier', 
-      color: 'from-amber-600 to-yellow-950', 
-      border: 'border-amber-500/30', 
-      bg: 'bg-amber-950/10', 
-      text: 'text-amber-400',
+      name: 'Chuyên sâu', 
+      color: 'from-amber-500 to-amber-600', 
+      border: 'border-amber-200', 
+      bg: 'bg-amber-50', 
+      text: 'text-amber-800',
       reward: 35
     },
     THAN: { 
-      name: 'Divine Tier (Peak)', 
-      color: 'from-rose-600 to-red-950', 
-      border: 'border-rose-500/40', 
-      bg: 'bg-rose-950/10', 
-      text: 'text-rose-400 font-bold',
+      name: 'Đỉnh cao', 
+      color: 'from-rose-500 to-rose-600', 
+      border: 'border-rose-200', 
+      bg: 'bg-rose-50', 
+      text: 'text-rose-700 font-bold',
       reward: 50
     }
   };
@@ -190,11 +190,11 @@ export default function CultivationManualsSection({
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
-      setFormError('Please enter a manual name!');
+      setFormError('Vui lòng nhập tên môn học hoặc kỹ năng!');
       return;
     }
     if (!stagesText.trim()) {
-      setFormError('Please enter at least one stage for your roadmap!');
+      setFormError('Vui lòng nhập ít nhất một giai đoạn cho lộ trình!');
       return;
     }
     setFormError('');
@@ -204,7 +204,7 @@ export default function CultivationManualsSection({
       .filter(l => l.length > 0);
 
     if (lines.length === 0) {
-      setFormError('Empty roadmap. Please enter a list of chapters or stages.');
+      setFormError('Lộ trình trống. Vui lòng nhập danh sách các chương hoặc giai đoạn.');
       return;
     }
 
@@ -219,7 +219,7 @@ export default function CultivationManualsSection({
     const newManual: CultivationManual = {
       id: `manual_${Date.now()}`,
       name: name.trim(),
-      category: category.trim() || 'Academics',
+      category: category.trim() || 'Học phần',
       tier,
       stages,
       status: 'DANG_TU_LUYEN',
@@ -249,21 +249,21 @@ export default function CultivationManualsSection({
 
   const handleLinkStageToTodo = (manual: CultivationManual, stage: CultivationStage) => {
     if (!onAddTodo) {
-      alert('⚠️ Daily Quests system not connected!');
+      alert('⚠️ Chưa kết nối hệ thống nhiệm vụ!');
       return;
     }
     
     const difficulty = mapTierToPriority(manual.tier);
-    const todoTitle = `[Roadmap] ${manual.name} - Practice: ${stage.title}`;
+    const todoTitle = `[Lộ trình] ${manual.name} - Học: ${stage.title}`;
     
     onAddTodo(todoTitle, difficulty, undefined, undefined);
     
-    alert(`⚔️ Quest inscribed successfully!\n\nAdded stage "${stage.title}" from manual "${manual.name}" to today's task list.`);
+    alert(`✅ Đã thêm giai đoạn "${stage.title}" từ môn "${manual.name}" vào danh sách công việc!`);
   };
 
   const handleDelete = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (confirm('Are you sure you want to delete this Cultivation Manual? All roadmap progress and uncomprehended rewards will be lost.')) {
+    if (confirm('Bạn có chắc muốn xóa lộ trình này? Mọi tiến độ học tập sẽ bị xóa.')) {
       const updated = manuals.filter(m => m.id !== id);
       onUpdateManuals(updated);
       if (expandedManualId === id) setExpandedManualId(null);
@@ -278,7 +278,6 @@ export default function CultivationManualsSection({
         if (s.id !== stageId) return s;
         if (s.isCompleted) return s; // already completed
         
-        // Award EXP/Tu Vi
         onAddExp(s.tuViReward, 0);
         return { ...s, isCompleted: true };
       });
@@ -288,16 +287,15 @@ export default function CultivationManualsSection({
       const nextStatus = allCompleted ? 'DAI_VIEN_MAN' : 'DANG_TU_LUYEN';
 
       if (nextStatus === 'DAI_VIEN_MAN' && prevStatus !== 'DAI_VIEN_MAN') {
-        // Grand mastery breakthrough bonus!
-        onAddExp(150, 50); // +150 Tu Vi, +50 Linh Thach
+        onAddExp(150, 50);
         setTimeout(() => {
-          alert(`🎉 GRAND MASTERY!\n\nCongratulations on completing 100% of the manual:\n👉 ${m.name}\n\nReceived breakthrough bonus: +150 Exp and +50 Spirit Stones!`);
+          alert(`🎉 XUẤT SẮC!\n\nChúc mừng bạn đã hoàn thành 100% lộ trình môn học:\n👉 ${m.name}`);
         }, 100);
       } else {
         const completedStage = m.stages.find(s => s.id === stageId);
         if (completedStage) {
           setTimeout(() => {
-            alert(`⚡ COMPREHENSION SUCCESS!\n\nMastered stage: ${completedStage.title}\nGained +${completedStage.tuViReward} Exp.`);
+            alert(`✅ Đã hoàn thành giai đoạn: ${completedStage.title}`);
           }, 50);
         }
       }
@@ -332,72 +330,72 @@ export default function CultivationManualsSection({
     <div className="space-y-6" id="cultivation-manuals">
       {/* Stats Dashboard */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-[#0f141c]/60 border border-slate-800/80 p-4 rounded-2xl flex items-center justify-between shadow-lg">
+        <div className="bg-white border border-[#E7E1D7] p-5 rounded-2xl flex items-center justify-between shadow-xs">
           <div>
-            <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">ACTIVE MANUALS</p>
-            <h4 className="text-xl font-black text-slate-100 font-mono mt-0.5">{activeManualsCount}</h4>
-            <p className="text-[8px] text-slate-400 mt-0.5">Manuals in progress</p>
+            <p className="text-[10px] text-[#7A7268] uppercase tracking-wider font-semibold font-mono">LỘ TRÌNH ĐANG HỌC</p>
+            <h4 className="text-2xl font-bold text-[#2C2825] font-mono mt-0.5">{activeManualsCount}</h4>
+            <p className="text-xs text-[#7A7268] mt-0.5">Lộ trình đang thực hiện</p>
           </div>
-          <div className="p-2 bg-blue-950/40 border border-blue-900/40 rounded-xl text-blue-400">
-            <BookOpen className="w-4 h-4" />
+          <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-xl text-[#2E6930]">
+            <BookOpen className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-[#0f141c]/60 border border-slate-800/80 p-4 rounded-2xl flex items-center justify-between shadow-lg">
+        <div className="bg-white border border-[#E7E1D7] p-5 rounded-2xl flex items-center justify-between shadow-xs">
           <div>
-            <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">GRAND MASTERY</p>
-            <h4 className="text-xl font-black text-slate-100 font-mono mt-0.5">{completedManualsCount}</h4>
-            <p className="text-[8px] text-slate-400 mt-0.5">100% completed manuals</p>
+            <p className="text-[10px] text-[#7A7268] uppercase tracking-wider font-semibold font-mono">HOÀN THÀNH XUẤT SẮC</p>
+            <h4 className="text-2xl font-bold text-[#2C2825] font-mono mt-0.5">{completedManualsCount}</h4>
+            <p className="text-xs text-[#7A7268] mt-0.5">Lộ trình hoàn thành 100%</p>
           </div>
-          <div className="p-2 bg-emerald-950/40 border border-emerald-900/40 rounded-xl text-emerald-400">
-            <Trophy className="w-4 h-4" />
+          <div className="p-3 bg-amber-50 border border-amber-100 rounded-xl text-[#B85D38]">
+            <Trophy className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-[#0f141c]/60 border border-slate-800/80 p-4 rounded-2xl flex items-center justify-between shadow-lg">
+        <div className="bg-white border border-[#E7E1D7] p-5 rounded-2xl flex items-center justify-between shadow-xs">
           <div>
-            <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">COMPREHENSION RATE</p>
-            <h4 className="text-xl font-black text-slate-100 font-mono mt-0.5">
+            <p className="text-[10px] text-[#7A7268] uppercase tracking-wider font-semibold font-mono">TỶ LỆ TIẾN ĐỘ</p>
+            <h4 className="text-2xl font-bold text-[#2C2825] font-mono mt-0.5">
               {comprehensionRate}%
             </h4>
-            <p className="text-[8px] text-slate-400 mt-0.5">Mastered {completedStagesCount}/{totalStagesCount} stages</p>
+            <p className="text-xs text-[#7A7268] mt-0.5">Đã nắm vững {completedStagesCount}/{totalStagesCount} giai đoạn</p>
           </div>
-          <div className="p-2 bg-amber-950/40 border border-amber-900/40 rounded-xl text-amber-500">
-            <Activity className="w-4 h-4 animate-pulse" />
+          <div className="p-3 bg-stone-100 border border-[#E7E1D7] rounded-xl text-[#2C2825]">
+            <Activity className="w-5 h-5" />
           </div>
         </div>
       </div>
 
       {/* Tab Header & Dashboard Banner */}
-      <div className="bg-[#0f141c]/60 border border-slate-800/80 p-5 rounded-2xl shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white border border-[#E7E1D7] p-5 rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-amber-950/40 border border-amber-900/60 rounded-xl text-amber-500">
+          <div className="p-2.5 bg-emerald-50 border border-emerald-100 rounded-xl text-[#2E6930]">
             <Scroll className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-slate-100 uppercase tracking-widest">Cultivation Roadmap & Skill Manuals</h2>
-            <p className="text-[10px] text-slate-500">Create skill manuals and break them down into stages to accumulate Exp and mastery.</p>
+            <h2 className="text-base font-bold text-[#2C2825] tracking-tight">Lộ trình học tập & Cây kỹ năng</h2>
+            <p className="text-xs text-[#7A7268]">Tạo lộ trình phát triển kỹ năng, chia nhỏ các chặng để theo dõi tiến độ học tập bài bản.</p>
           </div>
         </div>
 
         <button
           onClick={() => setIsCreating(!isCreating)}
-          className="bg-amber-600 hover:bg-amber-500 text-slate-950 font-black text-xs px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center gap-1.5 shadow-lg shadow-amber-950/20"
+          className="bg-[#2E6930] hover:bg-[#245226] text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-all cursor-pointer flex items-center gap-2 shadow-xs"
         >
-          <Plus className="w-4 h-4" /> {isCreating ? 'Drafting Manual' : 'Create New Manual'}
+          <Plus className="w-4 h-4" /> {isCreating ? 'Đang soạn thảo' : 'Thêm lộ trình mới'}
         </button>
       </div>
 
       {/* Creation Form Block */}
       {isCreating && (
-        <form onSubmit={handleCreate} className="bg-[#0f141c]/80 border border-indigo-900/30 p-5 rounded-2xl shadow-xl space-y-4 font-sans text-xs">
-          <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-900 pb-2">
-            <Sparkles className="w-4 h-4 text-amber-400" />
-            Draft New Cultivation Manual
+        <form onSubmit={handleCreate} className="bg-white border border-[#E7E1D7] p-6 rounded-2xl shadow-xs space-y-4 font-sans text-xs text-[#2C2825]">
+          <h3 className="text-sm font-bold text-[#2C2825] flex items-center gap-2 border-b border-[#F0EDE6] pb-3">
+            <Sparkles className="w-4 h-4 text-[#B85D38]" />
+            Thêm mới lộ trình học tập & kỹ năng
           </h3>
 
           {formError && (
-            <div className="p-3 bg-rose-950/40 border border-rose-900 text-rose-400 rounded-xl text-[11px] flex items-center gap-1.5">
+            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{formError}</span>
             </div>
@@ -405,52 +403,52 @@ export default function CultivationManualsSection({
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-1">
-              <label className="text-[10px] text-slate-500 font-bold uppercase font-mono">Manual Name (Skill / Subject):</label>
+              <label className="text-xs font-semibold text-[#7A7268]">Tên kỹ năng / Môn học:</label>
               <input
                 type="text"
-                placeholder="E.g., Nine Heavens Thunder - React Hooks"
+                placeholder="VD: Cấu trúc dữ liệu & Giải thuật"
                 value={name}
                 onChange={e => setName(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-900 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-amber-500"
+                className="w-full bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl px-3 py-2 text-xs text-[#2C2825] placeholder-[#7A7268]/60 focus:outline-none focus:border-[#2E6930] focus:bg-white transition-all"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-[10px] text-slate-500 font-bold uppercase font-mono">Category:</label>
+              <label className="text-xs font-semibold text-[#7A7268]">Phân loại / Lĩnh vực:</label>
               <input
                 type="text"
-                placeholder="E.g., Programming, Languages, Mindset..."
+                placeholder="VD: Lập trình, Ngoại ngữ, Kỹ năng mềm..."
                 value={category}
                 onChange={e => setCategory(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-900 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-amber-500"
+                className="w-full bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl px-3 py-2 text-xs text-[#2C2825] placeholder-[#7A7268]/60 focus:outline-none focus:border-[#2E6930] focus:bg-white transition-all"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-[10px] text-slate-500 font-bold uppercase font-mono">Manual Tier (Difficulty):</label>
+              <label className="text-xs font-semibold text-[#7A7268]">Cấp độ (Độ khó):</label>
               <select
                 value={tier}
                 onChange={e => setTier(e.target.value as ManualTier)}
-                className="w-full bg-slate-950 border border-slate-900 rounded-lg px-3 py-2 text-xs text-slate-300 focus:outline-none cursor-pointer"
+                className="w-full bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl px-3 py-2 text-xs text-[#2C2825] focus:outline-none focus:border-[#2E6930] focus:bg-white cursor-pointer transition-all"
               >
-                <option value="HOANG">Yellow Tier (+10 EXP/Stage)</option>
-                <option value="HUYEN">Mystic Tier (+15 EXP/Stage)</option>
-                <option value="DIA">Earth Tier (+25 EXP/Stage)</option>
-                <option value="THIEN">Heaven Tier (+35 EXP/Stage)</option>
-                <option value="THAN">Divine Tier (Peak) (+50 EXP/Stage)</option>
+                <option value="HOANG">Cơ bản (+10 EXP/chặng)</option>
+                <option value="HUYEN">Trung cấp (+15 EXP/chặng)</option>
+                <option value="DIA">Nâng cao (+25 EXP/chặng)</option>
+                <option value="THIEN">Chuyên sâu (+35 EXP/chặng)</option>
+                <option value="THAN">Đỉnh cao (+50 EXP/chặng)</option>
               </select>
             </div>
           </div>
 
           <div className="space-y-1">
-            <label className="text-[10px] text-slate-500 font-bold uppercase font-mono">
-              Stage Roadmap (Enter one stage per line):
+            <label className="text-xs font-semibold text-[#7A7268]">
+              Lộ trình các giai đoạn (Nhập mỗi giai đoạn trên một dòng):
             </label>
             <textarea
-              placeholder="E.g.:&#10;Stage 1: Understand useState and re-render mechanics&#10;Stage 2: Apply useEffect to manage side-effects&#10;Stage 3: Master useMemo and useCallback optimization"
+              placeholder="VD:&#10;Giai đoạn 1: Nắm vững mảng và danh sách liên kết&#10;Giai đoạn 2: Cài đặt và ứng dụng Stack, Queue&#10;Giai đoạn 3: Cây nhị phân tìm kiếm và Heap"
               value={stagesText}
               onChange={e => setStagesText(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-900 rounded-lg p-3 text-xs text-slate-200 focus:outline-none focus:border-amber-500 h-28 font-mono leading-relaxed"
+              className="w-full bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl p-3 text-xs text-[#2C2825] placeholder-[#7A7268]/60 focus:outline-none focus:border-[#2E6930] focus:bg-white h-28 leading-relaxed transition-all"
             />
           </div>
 
@@ -458,59 +456,59 @@ export default function CultivationManualsSection({
             <button
               type="button"
               onClick={() => setIsCreating(false)}
-              className="bg-slate-950 border border-slate-900 text-slate-400 hover:text-slate-200 px-4 py-2 rounded-xl text-xs font-bold cursor-pointer"
+              className="bg-white border border-[#E7E1D7] text-[#7A7268] hover:text-[#2C2825] hover:bg-[#FAF8F5] px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer transition-colors"
             >
-              CANCEL
+              Hủy
             </button>
             <button
               type="submit"
-              className="bg-amber-600 hover:bg-amber-500 text-slate-950 font-black px-5 py-2 rounded-xl text-xs cursor-pointer shadow-lg"
+              className="bg-[#2E6930] hover:bg-[#245226] text-white font-semibold px-5 py-2 rounded-xl text-xs cursor-pointer shadow-xs transition-colors"
             >
-              CREATE MANUAL
+              Tạo lộ trình
             </button>
           </div>
         </form>
       )}
 
       {/* Filtering & Searching Controls */}
-      <div className="bg-[#0f141c]/40 border border-slate-900/60 p-4 rounded-xl flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-semibold">
+      <div className="bg-white border border-[#E7E1D7] p-3 rounded-2xl shadow-xs flex flex-col md:flex-row items-center justify-between gap-3 text-xs">
         {/* Search */}
         <div className="relative w-full md:w-80">
-          <Search className="w-4 h-4 text-slate-600 absolute left-3 top-2.5" />
+          <Search className="w-4 h-4 text-[#7A7268] absolute left-3 top-2.5" />
           <input
             type="text"
-            placeholder="Search manuals, category..."
+            placeholder="Tìm kiếm môn học, phân loại..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="w-full bg-slate-950/80 border border-slate-900 rounded-lg pl-9 pr-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-amber-500"
+            className="w-full bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl pl-9 pr-3 py-2 text-xs text-[#2C2825] placeholder-[#7A7268]/60 focus:outline-none focus:border-[#2E6930] focus:bg-white transition-all"
           />
         </div>
 
         {/* Tab Filters */}
-        <div className="flex bg-slate-950 border border-slate-900 p-0.5 rounded-lg text-[10.5px]">
+        <div className="flex bg-[#FAF8F5] border border-[#E7E1D7] p-1 rounded-xl text-xs gap-1">
           <button
             onClick={() => setStatusFilter('ALL')}
-            className={`px-4 py-1.5 rounded-md transition-colors cursor-pointer ${
-              statusFilter === 'ALL' ? 'bg-slate-900 text-amber-500 font-bold' : 'text-slate-500 hover:text-slate-300'
+            className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
+              statusFilter === 'ALL' ? 'bg-white text-[#2C2825] font-semibold shadow-xs' : 'text-[#7A7268] hover:text-[#2C2825]'
             }`}
           >
-            All
+            Tất cả
           </button>
           <button
             onClick={() => setStatusFilter('DANG_TU_LUYEN')}
-            className={`px-4 py-1.5 rounded-md transition-colors cursor-pointer ${
-              statusFilter === 'DANG_TU_LUYEN' ? 'bg-slate-900 text-amber-500 font-bold' : 'text-slate-500 hover:text-slate-300'
+            className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
+              statusFilter === 'DANG_TU_LUYEN' ? 'bg-white text-[#2C2825] font-semibold shadow-xs' : 'text-[#7A7268] hover:text-[#2C2825]'
             }`}
           >
-            In Progress
+            Đang học
           </button>
           <button
             onClick={() => setStatusFilter('DAI_VIEN_MAN')}
-            className={`px-4 py-1.5 rounded-md transition-colors cursor-pointer ${
-              statusFilter === 'DAI_VIEN_MAN' ? 'bg-slate-900 text-amber-500 font-bold' : 'text-slate-500 hover:text-slate-300'
+            className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
+              statusFilter === 'DAI_VIEN_MAN' ? 'bg-white text-[#2C2825] font-semibold shadow-xs' : 'text-[#7A7268] hover:text-[#2C2825]'
             }`}
           >
-            Mastered 💮
+            Hoàn thành ✨
           </button>
         </div>
       </div>
@@ -529,31 +527,31 @@ export default function CultivationManualsSection({
               <div
                 key={manual.id}
                 onClick={() => setExpandedManualId(isExpanded ? null : manual.id)}
-                className={`bg-slate-950/40 border border-slate-900 rounded-2xl p-4.5 space-y-3 cursor-pointer hover:border-slate-800 transition-all relative overflow-hidden flex flex-col justify-between ${
-                  manual.status === 'DAI_VIEN_MAN' ? 'opacity-85 border-emerald-950/40' : ''
+                className={`bg-white border rounded-2xl p-5 space-y-3 cursor-pointer hover:border-[#2E6930]/40 hover:shadow-sm transition-all relative flex flex-col justify-between ${
+                  manual.status === 'DAI_VIEN_MAN' ? 'border-[#E7E1D7] bg-[#FAF8F5]/60' : 'border-[#E7E1D7]'
                 }`}
               >
                 <div className="space-y-2 z-10">
-                  {/* Category & Delete Icon */}
-                  <div className="flex justify-between items-center text-[9px] font-bold font-mono">
-                    <span className="bg-slate-900 border border-slate-800 px-2 py-0.5 rounded-md text-slate-500 uppercase tracking-widest">
+                  {/* Category & Action Icons */}
+                  <div className="flex justify-between items-center text-[10px] font-semibold font-mono">
+                    <span className="bg-[#FAF8F5] border border-[#E7E1D7] px-2 py-0.5 rounded-lg text-[#7A7268] uppercase tracking-wider">
                       📂 {manual.category}
                     </span>
                     <div className="flex items-center gap-1.5">
-                      <span className={`px-2 py-0.5 rounded-md border ${meta.border} ${meta.text}`}>
+                      <span className={`px-2 py-0.5 rounded-lg border text-[10px] font-semibold ${meta.border} ${meta.text} ${meta.bg}`}>
                         {meta.name}
                       </span>
                       <button
                         onClick={(e) => handleOpenEdit(manual, e)}
-                        className="text-slate-700 hover:text-amber-400 p-1 rounded hover:bg-slate-950/60 transition-colors cursor-pointer"
-                        title="Edit manual"
+                        className="text-[#7A7268] hover:text-[#2E6930] p-1.5 rounded-lg hover:bg-[#FAF8F5] transition-colors cursor-pointer"
+                        title="Chỉnh sửa lộ trình"
                       >
                         <Edit3 className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={(e) => handleDelete(manual.id, e)}
-                        className="text-slate-700 hover:text-rose-400 p-1 rounded hover:bg-slate-950/60 transition-colors cursor-pointer"
-                        title="Delete manual"
+                        className="text-[#7A7268] hover:text-rose-600 p-1.5 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
+                        title="Xóa lộ trình"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -562,29 +560,29 @@ export default function CultivationManualsSection({
 
                   {/* Manual Title */}
                   <div className="space-y-1">
-                    <h4 className="text-xs font-bold text-slate-100 tracking-wide line-clamp-2">
+                    <h4 className="text-sm font-bold text-[#2C2825] tracking-tight line-clamp-2">
                       {manual.name}
                     </h4>
-                    <span className="text-[9px] text-slate-500 font-mono block">
-                      Created on: {manual.createdAt}
+                    <span className="text-[10px] text-[#7A7268] font-mono block">
+                      Khởi tạo ngày: {manual.createdAt}
                     </span>
                   </div>
                 </div>
 
                 {/* Progress bar info */}
                 <div className="space-y-2 mt-2 z-10">
-                  <div className="flex justify-between items-center text-[10px] font-mono">
-                    <span className="text-slate-500">Mastery progress:</span>
-                    <span className={`font-bold ${manual.status === 'DAI_VIEN_MAN' ? 'text-emerald-400' : 'text-amber-400'}`}>
-                      {manual.status === 'DAI_VIEN_MAN' ? 'Grand Mastery' : `${completedCount}/${totalCount} Stages`}
+                  <div className="flex justify-between items-center text-xs font-mono">
+                    <span className="text-[#7A7268]">Tiến độ học tập:</span>
+                    <span className={`font-bold ${manual.status === 'DAI_VIEN_MAN' ? 'text-[#2E6930]' : 'text-[#B85D38]'}`}>
+                      {manual.status === 'DAI_VIEN_MAN' ? 'Đã hoàn thành' : `${completedCount}/${totalCount} Chặng`}
                     </span>
                   </div>
 
                   {/* Progress Line */}
-                  <div className="w-full bg-[#0a0c12] rounded-full h-1.5 overflow-hidden border border-slate-900 shadow-inner">
+                  <div className="w-full bg-[#FAF8F5] rounded-full h-2 overflow-hidden border border-[#E7E1D7]">
                     <div 
                       className={`h-full rounded-full transition-all duration-500 ${
-                        manual.status === 'DAI_VIEN_MAN' ? 'bg-emerald-500' : 'bg-amber-500'
+                        manual.status === 'DAI_VIEN_MAN' ? 'bg-[#2E6930]' : 'bg-[#B85D38]'
                       }`}
                       style={{ width: `${progressPercent}%` }}
                     />
@@ -593,9 +591,9 @@ export default function CultivationManualsSection({
                   {/* Expand Indicators */}
                   <div className="flex justify-center pt-1">
                     {isExpanded ? (
-                      <ChevronUp className="w-4 h-4 text-slate-600" />
+                      <ChevronUp className="w-4 h-4 text-[#7A7268]" />
                     ) : (
-                      <ChevronDown className="w-4 h-4 text-slate-600" />
+                      <ChevronDown className="w-4 h-4 text-[#7A7268]" />
                     )}
                   </div>
                 </div>
@@ -604,47 +602,47 @@ export default function CultivationManualsSection({
                 {isExpanded && (
                   <div 
                     onClick={(e) => e.stopPropagation()} 
-                    className="pt-3 border-t border-slate-900 mt-2 space-y-3.5 text-[10px] w-full text-left"
+                    className="pt-3 border-t border-[#F0EDE6] mt-2 space-y-3.5 text-xs w-full text-left"
                   >
                     {/* View mode toggle */}
-                    <div className="flex justify-between items-center border-b border-slate-900/60 pb-2">
-                      <p className="text-[9px] text-slate-500 uppercase tracking-widest font-black font-mono">Stages Roadmap List:</p>
-                      <div className="flex bg-slate-950 p-0.5 rounded-md border border-slate-900 text-[8px] font-bold">
+                    <div className="flex justify-between items-center border-b border-[#F0EDE6] pb-2">
+                      <p className="text-[10px] text-[#7A7268] uppercase tracking-wider font-semibold font-mono">Danh sách các chặng:</p>
+                      <div className="flex bg-[#FAF8F5] p-0.5 rounded-lg border border-[#E7E1D7] text-[10px] font-semibold">
                         <button
                           type="button"
                           onClick={() => setManualViewModes(prev => ({ ...prev, [manual.id]: 'LIST' }))}
-                          className={`px-2.5 py-0.5 rounded transition-colors cursor-pointer ${
+                          className={`px-2.5 py-1 rounded-md transition-colors cursor-pointer ${
                             (manualViewModes[manual.id] || 'LIST') === 'LIST'
-                              ? 'bg-amber-600 text-slate-950 font-extrabold'
-                              : 'text-slate-400 hover:text-slate-200'
+                              ? 'bg-white text-[#2C2825] font-bold shadow-xs'
+                              : 'text-[#7A7268] hover:text-[#2C2825]'
                           }`}
                         >
-                          📑 List View
+                          📑 Danh sách
                         </button>
                         <button
                           type="button"
                           onClick={() => setManualViewModes(prev => ({ ...prev, [manual.id]: 'FLOW' }))}
-                          className={`px-2.5 py-0.5 rounded transition-colors cursor-pointer ${
+                          className={`px-2.5 py-1 rounded-md transition-colors cursor-pointer ${
                             manualViewModes[manual.id] === 'FLOW'
-                              ? 'bg-amber-600 text-slate-950 font-extrabold'
-                              : 'text-slate-400 hover:text-slate-200'
+                              ? 'bg-white text-[#2C2825] font-bold shadow-xs'
+                              : 'text-[#7A7268] hover:text-[#2C2825]'
                           }`}
                         >
-                          🗺️ Stepper Flow
+                          🗺️ Dòng tiến độ
                         </button>
                       </div>
                     </div>
 
                     {(manualViewModes[manual.id] || 'LIST') === 'LIST' ? (
                       // 1. STANDARD LIST VIEW
-                      <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                      <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
                         {manual.stages.map((stage) => (
                           <div 
                             key={stage.id} 
-                            className="flex items-center justify-between p-2 bg-slate-950/60 border border-slate-900 rounded-lg hover:border-slate-800 transition-colors"
+                            className="flex items-center justify-between p-2.5 bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl hover:bg-white hover:border-[#D5CEBF] transition-colors"
                           >
-                            <span className={`font-semibold line-clamp-1 flex-1 pr-3 ${
-                              stage.isCompleted ? 'text-slate-500 line-through' : 'text-slate-300'
+                            <span className={`text-xs font-medium line-clamp-1 flex-1 pr-3 ${
+                              stage.isCompleted ? 'text-[#7A7268] line-through' : 'text-[#2C2825]'
                             }`}>
                               {stage.title}
                             </span>
@@ -652,36 +650,36 @@ export default function CultivationManualsSection({
                             {/* Midterm limit pin button */}
                             <button
                               onClick={() => handleToggleMidtermLimit(manual.id, stage.id)}
-                              className={`text-[8.5px] font-bold px-1.5 py-0.5 rounded border transition-colors cursor-pointer mr-1.5 flex items-center gap-0.5 shrink-0 ${
+                              className={`text-[9px] font-semibold px-2 py-0.5 rounded-lg border transition-colors cursor-pointer mr-1.5 flex items-center gap-1 shrink-0 ${
                                 manual.midtermLimitStageId === stage.id
-                                  ? 'bg-rose-950/60 border-rose-800/80 text-rose-300 font-extrabold shadow-[0_0_6px_rgba(244,63,94,0.15)]'
-                                  : 'bg-slate-900/60 border-slate-800/50 text-slate-500 hover:text-slate-350 hover:border-slate-700'
+                                  ? 'bg-rose-50 border-rose-300 text-rose-700 font-bold'
+                                  : 'bg-white border-[#E7E1D7] text-[#7A7268] hover:text-[#2C2825] hover:border-[#D5CEBF]'
                               }`}
-                              title={manual.midtermLimitStageId === stage.id ? 'Remove Midterm Exam Target' : 'Mark as Midterm Exam Target (study up to this stage)'}
+                              title={manual.midtermLimitStageId === stage.id ? 'Bỏ chọn mục tiêu giữa kỳ' : 'Đánh dấu mục tiêu ôn thi giữa kỳ'}
                             >
-                              📌 {manual.midtermLimitStageId === stage.id ? 'Midterm' : 'Set Midterm'}
+                              📌 {manual.midtermLimitStageId === stage.id ? 'Mục tiêu GK' : 'Chọn mốc GK'}
                             </button>
 
                             {stage.isCompleted ? (
-                              <span className="text-emerald-400 font-bold text-[9px] flex items-center gap-0.5 bg-emerald-950/20 border border-emerald-900/30 px-1.5 py-0.5 rounded-md shrink-0">
-                                <CheckCircle className="w-2.5 h-2.5" /> Mastered
+                              <span className="text-[#2E6930] font-semibold text-[10px] flex items-center gap-1 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-lg shrink-0">
+                                <CheckCircle className="w-3 h-3" /> Hoàn thành
                               </span>
                             ) : (
                               <div className="flex items-center gap-1.5 shrink-0">
                                 {onAddTodo && (
                                   <button
                                     onClick={() => handleLinkStageToTodo(manual, stage)}
-                                    className="bg-amber-950/40 hover:bg-amber-900 border border-amber-800/40 text-amber-300 font-bold text-[8.5px] px-2 py-0.5 rounded-md transition-colors cursor-pointer flex items-center gap-0.5 uppercase tracking-wider"
-                                    title="Add to today's quest list"
+                                    className="bg-amber-50 hover:bg-amber-100 border border-amber-200 text-[#B85D38] font-semibold text-[10px] px-2 py-0.5 rounded-lg transition-colors cursor-pointer flex items-center gap-1"
+                                    title="Thêm vào danh sách nhiệm vụ hôm nay"
                                   >
-                                    ⚔️ Practice
+                                    🎯 Ôn tập
                                   </button>
                                 )}
                                 <button
                                   onClick={() => handleComprehendStage(manual.id, stage.id)}
-                                  className="bg-indigo-950/60 hover:bg-indigo-900 border border-indigo-800/40 text-indigo-300 font-black text-[9px] px-2 py-0.5 rounded-md transition-colors cursor-pointer flex items-center gap-0.5"
+                                  className="bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-[#2E6930] font-semibold text-[10px] px-2 py-0.5 rounded-lg transition-colors cursor-pointer flex items-center gap-1"
                                 >
-                                  <Play className="w-2 h-2 fill-current" /> Comprehend
+                                  <Play className="w-2.5 h-2.5 fill-current" /> Hoàn thành
                                 </button>
                               </div>
                             )}
@@ -692,7 +690,7 @@ export default function CultivationManualsSection({
                       // 2. INTERACTIVE TIMELINE / STEPPER FLOW VIEW
                       <div className="space-y-1.5 max-h-72 overflow-y-auto pr-1 relative pl-6 py-2">
                         {/* Central vertical track line */}
-                        <div className="absolute left-2 top-0 bottom-0 w-0.5 bg-slate-900 rounded-full" />
+                        <div className="absolute left-2.5 top-0 bottom-0 w-0.5 bg-[#E7E1D7] rounded-full" />
                         
                         {/* Active path glowing track line overlay (covers completed parts) */}
                         {(() => {
@@ -705,7 +703,7 @@ export default function CultivationManualsSection({
                           const percent = Math.round((lastCompletedIdx / (manual.stages.length - 1)) * 100);
                           return (
                             <div 
-                              className="absolute left-2 top-0 w-0.5 bg-emerald-500 rounded-full shadow-[0_0_8px_#10b981]" 
+                              className="absolute left-2.5 top-0 w-0.5 bg-[#2E6930] rounded-full transition-all duration-500" 
                               style={{ height: `${percent}%` }}
                             />
                           );
@@ -722,41 +720,41 @@ export default function CultivationManualsSection({
                               {/* Node indicator */}
                               <div className="absolute -left-6 mt-1 z-10">
                                 {isCompleted ? (
-                                  <div className="w-3.5 h-3.5 rounded-full bg-emerald-950 border border-emerald-500 flex items-center justify-center text-emerald-400 shadow-[0_0_6px_#10b981]">
+                                  <div className="w-4 h-4 rounded-full bg-emerald-50 border-2 border-[#2E6930] flex items-center justify-center text-[#2E6930]">
                                     <CheckCircle className="w-2.5 h-2.5" />
                                   </div>
                                 ) : isActive ? (
-                                  <div className="w-3.5 h-3.5 rounded-full bg-amber-950 border border-amber-500 flex items-center justify-center text-amber-400 animate-pulse shadow-[0_0_8px_#f59e0b]">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                                  <div className="w-4 h-4 rounded-full bg-amber-50 border-2 border-[#B85D38] flex items-center justify-center text-[#B85D38]">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-[#B85D38]" />
                                   </div>
                                 ) : (
-                                  <div className="w-3.5 h-3.5 rounded-full bg-slate-950 border border-slate-800 flex items-center justify-center text-slate-650">
-                                    <Lock className="w-1.5 h-1.5" />
+                                  <div className="w-4 h-4 rounded-full bg-[#FAF8F5] border border-[#E7E1D7] flex items-center justify-center text-[#7A7268]">
+                                    <Lock className="w-2 h-2" />
                                   </div>
                                 )}
                               </div>
 
-                              <div className="flex-1 bg-slate-950/40 border border-slate-900/60 p-2.5 rounded-lg hover:border-slate-800 transition-colors flex items-center justify-between gap-3">
+                              <div className="flex-1 bg-white border border-[#E7E1D7] p-3 rounded-xl hover:border-[#D5CEBF] transition-colors flex items-center justify-between gap-3 shadow-xs">
                                 <div className="min-w-0 flex-1">
                                   <div className="flex items-center gap-1.5 flex-wrap">
-                                    <span className="text-[8px] text-slate-500 font-mono">STAGE {sIdx + 1}</span>
+                                    <span className="text-[9px] text-[#7A7268] font-mono font-semibold">CHẶNG {sIdx + 1}</span>
                                     {isCompleted && (
-                                      <span className="text-[6.5px] bg-emerald-950/20 border border-emerald-900/30 text-emerald-400 px-1 py-0.2 rounded font-bold uppercase tracking-wider">
-                                        MASTERED
+                                      <span className="text-[8px] bg-emerald-50 border border-emerald-200 text-[#2E6930] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wider">
+                                        HOÀN THÀNH
                                       </span>
                                     )}
                                     {isActive && (
-                                      <span className="text-[6.5px] bg-amber-950/20 border border-amber-900/30 text-amber-400 px-1 py-0.2 rounded font-bold uppercase tracking-wider animate-pulse">
-                                        IN PROGRESS
+                                      <span className="text-[8px] bg-amber-50 border border-amber-200 text-[#B85D38] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wider">
+                                        ĐANG HỌC
                                       </span>
                                     )}
                                     {isLocked && (
-                                      <span className="text-[6.5px] bg-slate-900 border border-slate-800 text-slate-600 px-1 py-0.2 rounded font-bold uppercase tracking-wider">
-                                        LOCKED
+                                      <span className="text-[8px] bg-stone-100 border border-[#E7E1D7] text-[#7A7268] px-1.5 py-0.5 rounded font-semibold uppercase tracking-wider">
+                                        CHƯA MỞ
                                       </span>
                                     )}
                                   </div>
-                                  <p className={`font-bold text-[10px] mt-0.5 ${isCompleted ? 'text-slate-500 line-through' : isActive ? 'text-amber-300 font-black' : 'text-slate-600'}`}>
+                                  <p className={`font-semibold text-xs mt-0.5 ${isCompleted ? 'text-[#7A7268] line-through' : isActive ? 'text-[#2C2825] font-bold' : 'text-[#7A7268]'}`}>
                                     {stage.title}
                                   </p>
                                 </div>
@@ -765,14 +763,14 @@ export default function CultivationManualsSection({
                                   {/* Midterm limit pin button */}
                                   <button
                                     onClick={() => handleToggleMidtermLimit(manual.id, stage.id)}
-                                    className={`text-[8.5px] font-bold px-1.5 py-0.5 rounded border transition-colors cursor-pointer flex items-center gap-0.5 ${
+                                    className={`text-[9px] font-semibold px-2 py-0.5 rounded-lg border transition-colors cursor-pointer flex items-center gap-1 ${
                                       manual.midtermLimitStageId === stage.id
-                                        ? 'bg-rose-950/60 border-rose-800/80 text-rose-300 font-extrabold shadow-[0_0_6px_rgba(244,63,94,0.15)]'
-                                        : 'bg-slate-900/60 border-slate-800/50 text-slate-500 hover:text-slate-350 hover:border-slate-700'
+                                        ? 'bg-rose-50 border-rose-300 text-rose-700 font-bold'
+                                        : 'bg-white border-[#E7E1D7] text-[#7A7268] hover:text-[#2C2825] hover:border-[#D5CEBF]'
                                     }`}
-                                    title={manual.midtermLimitStageId === stage.id ? 'Remove Midterm Exam Target' : 'Mark as Midterm Exam Target (study up to this stage)'}
+                                    title={manual.midtermLimitStageId === stage.id ? 'Bỏ chọn mốc giữa kỳ' : 'Đánh dấu mục tiêu thi giữa kỳ'}
                                   >
-                                    📌 {manual.midtermLimitStageId === stage.id ? 'Midterm' : 'Set Midterm'}
+                                    📌 {manual.midtermLimitStageId === stage.id ? 'Mục tiêu GK' : 'Chọn mốc GK'}
                                   </button>
 
                                   {isActive && (
@@ -781,26 +779,26 @@ export default function CultivationManualsSection({
                                         <button
                                           type="button"
                                           onClick={() => handleLinkStageToTodo(manual, stage)}
-                                          className="bg-amber-950/40 hover:bg-amber-900 border border-amber-800/40 text-amber-300 font-bold text-[8.5px] px-2.5 py-1 rounded-md transition-colors cursor-pointer flex items-center gap-0.5 uppercase tracking-wider"
-                                          title="Add to today's quest list"
+                                          className="bg-amber-50 hover:bg-amber-100 border border-amber-200 text-[#B85D38] font-semibold text-[10px] px-2.5 py-1 rounded-lg transition-colors cursor-pointer flex items-center gap-1"
+                                          title="Thêm vào danh sách nhiệm vụ hôm nay"
                                         >
-                                          ⚔️ Practice
+                                          🎯 Ôn tập
                                         </button>
                                       )}
                                       <button
                                         type="button"
                                         onClick={() => handleComprehendStage(manual.id, stage.id)}
-                                        className="bg-indigo-950/60 hover:bg-indigo-900 border border-indigo-800/40 text-indigo-300 font-black text-[9px] px-2.5 py-1 rounded-md transition-colors cursor-pointer flex items-center gap-0.5"
+                                        className="bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-[#2E6930] font-semibold text-[10px] px-2.5 py-1 rounded-lg transition-colors cursor-pointer flex items-center gap-1"
                                       >
-                                        <Play className="w-2.5 h-2.5 fill-current animate-bounce" /> Comprehend
+                                        <Play className="w-2.5 h-2.5 fill-current" /> Hoàn thành
                                       </button>
                                     </>
                                   )}
                                   {isLocked && (
-                                    <span className="text-[8px] text-slate-600 font-mono italic pr-1">Locked</span>
+                                    <span className="text-[9px] text-[#7A7268] font-mono italic pr-1">Chưa mở</span>
                                   )}
                                   {isCompleted && (
-                                    <span className="text-[8px] text-emerald-500 font-mono font-bold pr-1">+{stage.tuViReward} EXP</span>
+                                    <span className="text-[10px] text-[#2E6930] font-mono font-semibold pr-1">+{stage.tuViReward} EXP</span>
                                   )}
                                 </div>
                               </div>
@@ -816,12 +814,12 @@ export default function CultivationManualsSection({
           })}
         </div>
       ) : (
-        <div className="bg-slate-950/30 border border-dashed border-slate-900 rounded-2xl py-16 text-center space-y-3">
-          <BookOpen className="w-10 h-10 text-slate-700 mx-auto animate-pulse" />
+        <div className="bg-white border border-dashed border-[#E7E1D7] rounded-2xl py-16 text-center space-y-3">
+          <BookOpen className="w-10 h-10 text-[#7A7268] mx-auto opacity-40" />
           <div className="space-y-1">
-            <h4 className="text-xs font-bold text-slate-400 uppercase">Cultivation Roadmap is Empty</h4>
-            <p className="text-[10px] text-slate-600 max-w-xs mx-auto leading-normal">
-              No skill manuals created yet. Click "Create New Manual" above to build your progression roadmap!
+            <h4 className="text-sm font-bold text-[#2C2825]">Chưa có lộ trình học tập nào</h4>
+            <p className="text-xs text-[#7A7268] max-w-xs mx-auto leading-normal">
+              Chưa có lộ trình nào được tạo. Hãy bấm "Thêm lộ trình mới" ở trên để xây dựng lộ trình rèn luyện kỹ năng của bạn!
             </p>
           </div>
         </div>
@@ -829,17 +827,17 @@ export default function CultivationManualsSection({
 
       {/* EDIT MODAL OVERLAY */}
       {editingManual && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#0f141c] border border-slate-800 rounded-2xl w-full max-w-xl max-h-[85vh] flex flex-col shadow-2xl p-5 space-y-4 font-sans text-xs">
-            <div className="flex justify-between items-center border-b border-slate-900 pb-2">
-              <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
-                <Edit3 className="w-4 h-4 text-amber-500" />
-                Edit Roadmap: {editingManual.name}
+        <div className="fixed inset-0 z-50 bg-[#2C2825]/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white border border-[#E7E1D7] rounded-2xl w-full max-w-xl max-h-[85vh] flex flex-col shadow-xl p-6 space-y-4 font-sans text-xs text-[#2C2825]">
+            <div className="flex justify-between items-center border-b border-[#F0EDE6] pb-3">
+              <h3 className="text-sm font-bold text-[#2C2825] flex items-center gap-2">
+                <Edit3 className="w-4 h-4 text-[#2E6930]" />
+                Chỉnh sửa lộ trình: {editingManual.name}
               </h3>
               <button 
                 type="button" 
                 onClick={() => setEditingManual(null)}
-                className="text-slate-500 hover:text-slate-300 text-lg font-bold cursor-pointer"
+                className="text-[#7A7268] hover:text-[#2C2825] text-xl font-bold cursor-pointer transition-colors"
               >
                 &times;
               </button>
@@ -848,54 +846,54 @@ export default function CultivationManualsSection({
             <form onSubmit={handleSaveEdit} className="space-y-4 overflow-y-auto flex-1 pr-1.5 min-h-0">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
                 <div className="space-y-1">
-                  <label className="text-[9px] text-slate-500 font-bold uppercase font-mono">Manual Name:</label>
+                  <label className="text-xs font-semibold text-[#7A7268]">Tên lộ trình:</label>
                   <input
                     type="text"
                     value={editName}
                     onChange={e => setEditName(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-900 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500"
+                    className="w-full bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl px-3 py-2 text-xs text-[#2C2825] focus:outline-none focus:border-[#2E6930] focus:bg-white transition-all"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[9px] text-slate-500 font-bold uppercase font-mono">Category:</label>
+                  <label className="text-xs font-semibold text-[#7A7268]">Phân loại:</label>
                   <input
                     type="text"
                     value={editCategory}
                     onChange={e => setEditCategory(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-900 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500"
+                    className="w-full bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl px-3 py-2 text-xs text-[#2C2825] focus:outline-none focus:border-[#2E6930] focus:bg-white transition-all"
                   />
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[9px] text-slate-500 font-bold uppercase font-mono">Tier (Difficulty):</label>
+                  <label className="text-xs font-semibold text-[#7A7268]">Cấp độ (Độ khó):</label>
                   <select
                     value={editTier}
                     onChange={e => setEditTier(e.target.value as ManualTier)}
-                    className="w-full bg-slate-950 border border-slate-900 rounded-lg px-2.5 py-1.5 text-xs text-slate-300 focus:outline-none cursor-pointer"
+                    className="w-full bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl px-3 py-2 text-xs text-[#2C2825] focus:outline-none focus:border-[#2E6930] focus:bg-white cursor-pointer transition-all"
                   >
-                    <option value="HOANG">Yellow Tier (+10 EXP/Stage)</option>
-                    <option value="HUYEN">Mystic Tier (+15 EXP/Stage)</option>
-                    <option value="DIA">Earth Tier (+25 EXP/Stage)</option>
-                    <option value="THIEN">Heaven Tier (+35 EXP/Stage)</option>
-                    <option value="THAN">Divine Tier (Peak) (+50 EXP/Stage)</option>
+                    <option value="HOANG">Cơ bản (+10 EXP/chặng)</option>
+                    <option value="HUYEN">Trung cấp (+15 EXP/chặng)</option>
+                    <option value="DIA">Nâng cao (+25 EXP/chặng)</option>
+                    <option value="THIEN">Chuyên sâu (+35 EXP/chặng)</option>
+                    <option value="THAN">Đỉnh cao (+50 EXP/chặng)</option>
                   </select>
                 </div>
               </div>
 
               {/* Stages List Manager */}
               <div className="space-y-2">
-                <label className="text-[9px] text-slate-500 font-bold uppercase font-mono block">Manage Stages:</label>
-                <div className="space-y-1.5 max-h-56 overflow-y-auto border border-slate-900 p-2 bg-slate-950/20 rounded-xl pr-1.5">
+                <label className="text-xs font-semibold text-[#7A7268] block">Quản lý các giai đoạn:</label>
+                <div className="space-y-1.5 max-h-56 overflow-y-auto border border-[#E7E1D7] p-2.5 bg-[#FAF8F5] rounded-xl pr-1.5">
                   {editStages.map((stage) => (
-                    <div key={stage.id} className="flex items-center gap-2 bg-slate-950/50 border border-slate-900 rounded-lg p-1.5">
+                    <div key={stage.id} className="flex items-center gap-2 bg-white border border-[#E7E1D7] rounded-lg p-2 shadow-xs">
                       {/* Completion Checkbox */}
                       <input
                         type="checkbox"
                         checked={stage.isCompleted}
                         onChange={() => handleToggleEditStageComplete(stage.id)}
-                        className="w-3.5 h-3.5 rounded border-slate-800 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
-                        title="Toggle completed status"
+                        className="w-4 h-4 rounded border-[#E7E1D7] text-[#2E6930] focus:ring-[#2E6930] cursor-pointer"
+                        title="Đánh dấu trạng thái hoàn thành"
                       />
                       
                       {/* In-place title edit */}
@@ -903,36 +901,36 @@ export default function CultivationManualsSection({
                         type="text"
                         value={stage.title}
                         onChange={e => handleUpdateEditStageText(stage.id, e.target.value)}
-                        className="flex-1 bg-transparent border-none p-0 text-[11px] text-slate-300 focus:outline-none focus:ring-0"
+                        className="flex-1 bg-transparent border-none p-0 text-xs text-[#2C2825] focus:outline-none focus:ring-0"
                       />
 
                       {/* Remove stage button */}
                       <button
                         type="button"
                         onClick={() => handleRemoveEditStage(stage.id)}
-                        className="text-slate-600 hover:text-rose-500 p-0.5 rounded transition-colors"
-                        title="Delete this stage"
+                        className="text-[#7A7268] hover:text-rose-600 p-1 rounded transition-colors"
+                        title="Xóa giai đoạn này"
                       >
-                        <Trash2 className="w-3 h-3" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   ))}
                   {editStages.length === 0 && (
-                    <p className="text-center text-slate-600 italic py-4">No stages yet. Your roadmap is empty!</p>
+                    <p className="text-center text-[#7A7268] italic py-4">Chưa có giai đoạn nào. Lộ trình đang trống!</p>
                   )}
                 </div>
               </div>
 
               {/* Add Stage Form inline */}
-              <div className="space-y-1 bg-slate-950/30 p-2 border border-slate-900 rounded-xl">
-                <label className="text-[9px] text-slate-600 font-bold uppercase font-mono block">Add New Stage:</label>
+              <div className="space-y-1 bg-[#FAF8F5] p-3 border border-[#E7E1D7] rounded-xl">
+                <label className="text-xs font-semibold text-[#7A7268] block">Thêm giai đoạn mới:</label>
                 <div className="flex gap-2">
                   <input
                     type="text"
-                    placeholder="E.g., Stage 4: Comprehensive practice..."
+                    placeholder="VD: Giai đoạn 4: Thực hành bài tập tổng hợp..."
                     value={editNewStageTitle}
                     onChange={e => setEditNewStageTitle(e.target.value)}
-                    className="flex-1 bg-slate-950 border border-slate-900 rounded-lg px-2.5 py-1 text-[11px] focus:outline-none"
+                    className="flex-1 bg-white border border-[#E7E1D7] rounded-xl px-3 py-1.5 text-xs text-[#2C2825] focus:outline-none focus:border-[#2E6930]"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
@@ -943,27 +941,27 @@ export default function CultivationManualsSection({
                   <button
                     type="button"
                     onClick={handleAddEditStage}
-                    className="bg-indigo-600 hover:bg-indigo-500 text-slate-100 font-bold px-3 py-1 rounded-lg text-[10px] transition-colors cursor-pointer"
+                    className="bg-[#2E6930] hover:bg-[#245226] text-white font-semibold px-3 py-1.5 rounded-xl text-xs transition-colors cursor-pointer"
                   >
-                    + Add
+                    + Thêm
                   </button>
                 </div>
               </div>
 
               {/* Actions */}
-              <div className="flex justify-end gap-2.5 pt-3 border-t border-slate-900">
+              <div className="flex justify-end gap-2.5 pt-3 border-t border-[#F0EDE6]">
                 <button
                   type="button"
                   onClick={() => setEditingManual(null)}
-                  className="bg-slate-950 border border-slate-900 text-slate-400 hover:text-slate-200 px-4 py-2 rounded-xl text-xs font-bold cursor-pointer"
+                  className="bg-white border border-[#E7E1D7] text-[#7A7268] hover:text-[#2C2825] hover:bg-[#FAF8F5] px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer transition-colors"
                 >
-                  CANCEL
+                  HỦY
                 </button>
                 <button
                   type="submit"
-                  className="bg-emerald-600 hover:bg-emerald-500 text-slate-100 font-bold px-5 py-2 rounded-xl text-xs cursor-pointer shadow-lg"
+                  className="bg-[#2E6930] hover:bg-[#245226] text-white font-semibold px-5 py-2 rounded-xl text-xs cursor-pointer shadow-xs transition-colors"
                 >
-                  UPDATE
+                  LƯU THAY ĐỔI
                 </button>
               </div>
             </form>

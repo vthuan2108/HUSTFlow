@@ -7,6 +7,7 @@ import { TodoItem } from '../types';
 import { authenticatedGoogleFetch } from './firebase';
 
 const API_BASE = 'https://tasks.googleapis.com/tasks/v1';
+
 // Helper to make Google Tasks API requests
 async function apiCall(endpoint: string, token: string, options: RequestInit = {}) {
   const response = await authenticatedGoogleFetch(`${API_BASE}${endpoint}`, token, options);
@@ -51,51 +52,44 @@ export async function getDefaultTaskListId(token: string): Promise<string> {
 export const getOrCreateTaskList = getDefaultTaskListId;
 
 // Format date to RFC3339 UTC timestamp required by Google Tasks.
-// We use T12:00:00.000Z (noon UTC) so that in any timezone (like GMT+7),
-// the date does NOT lurch back to the previous day when displayed in Google Tasks UI.
-function formatToRFC3339(dateStr: string): string {
-  // dateStr is in YYYY-MM-DD
+function formatToRFC3339(dateStr?: string): string | undefined {
+  if (!dateStr || !dateStr.includes('-')) return undefined;
   return `${dateStr}T12:00:00.000Z`;
 }
 
-// Sync local todos with Google Tasks Default List (Fetches all tasks, completed & uncompleted)
+// Sync local todos with Google Tasks across ALL user task lists
 export async function syncGoogleTasks(
   token: string,
   localTodos: TodoItem[],
   deletedIds: string[] = []
 ): Promise<{ syncedTodos: TodoItem[]; addedCount: number; updatedCount: number }> {
   try {
-    const defaultListId = await getDefaultTaskListId(token);
+    // 1. Fetch all lists in the user's Google Tasks account
     const allLists = await getAllUserTaskLists(token);
-    
-    // Primary sync list is the default task list
-    const listIdsToSync = new Set<string>();
-    if (defaultListId) listIdsToSync.add(defaultListId);
-    
-    // Also inspect any legacy "Nhiệm Vụ Tông Môn" or "Tiên Lộ Ký - Đạo Tràng" lists so we can migrate existing tasks into default list
-    const legacyListIds = new Set<string>();
+    const defaultListId = await getDefaultTaskListId(token);
+
+    // Build the set of all list objects to sync
+    const listsMap = new Map<string, string>(); // listId -> listTitle
+    if (defaultListId) listsMap.set(defaultListId, 'My Tasks');
+
     allLists.forEach((l: any) => {
-      if (l.title === 'Nhiệm Vụ Tông Môn' || l.title === 'Tiên Lộ Ký - Đạo Tràng') {
-        if (l.id && l.id !== defaultListId) {
-          listIdsToSync.add(l.id);
-          legacyListIds.add(l.id);
-        }
+      if (l.id) {
+        listsMap.set(l.id, l.title || 'My Tasks');
       }
     });
 
-    // 1. Delete tasks on Google Tasks if they are in deletedIds list
+    // 2. Delete tasks on Google Tasks if they are in deletedIds list
     for (const gid of deletedIds) {
       try {
-        await deleteTaskOnGoogle(token, gid, defaultListId);
+        await deleteTaskOnGoogle(token, gid);
       } catch (err) {
         console.warn(`Failed to delete task ${gid} on Google during sync:`, err);
       }
     }
-    
-    // 2. Fetch tasks with full pagination (including all completed & uncompleted)
+
+    // 3. Fetch tasks across ALL lists with full pagination
     let rawGoogleTasks: any[] = [];
-    for (const listId of Array.from(listIdsToSync)) {
-      const isLegacy = legacyListIds.has(listId);
+    for (const [listId, listTitle] of Array.from(listsMap.entries())) {
       let pageToken: string | undefined = undefined;
       do {
         try {
@@ -110,19 +104,19 @@ export async function syncGoogleTasks(
             const items = googleData.items.map((item: any) => ({
               ...item,
               _listId: listId,
-              _isLegacy: isLegacy
+              _listTitle: listTitle
             }));
             rawGoogleTasks = rawGoogleTasks.concat(items);
           }
           pageToken = googleData ? googleData.nextPageToken : undefined;
         } catch (err) {
-          console.warn(`Failed to fetch tasks for list ${listId}:`, err);
+          console.warn(`Failed to fetch tasks for list ${listTitle} (${listId}):`, err);
           break;
         }
       } while (pageToken);
     }
-    
-    // Deduplicate by task ID
+
+    // 4. Deduplicate tasks by task ID and filter out deleted tasks
     const uniqueGoogleTasksMap = new Map<string, any>();
     rawGoogleTasks.forEach((gt: any) => {
       if (gt.id && !gt.deleted && !uniqueGoogleTasksMap.has(gt.id)) {
@@ -130,146 +124,145 @@ export async function syncGoogleTasks(
       }
     });
     const googleTasks = Array.from(uniqueGoogleTasksMap.values());
-    
+
     let addedCount = 0;
     let updatedCount = 0;
-    
-    // Map Google Tasks by ID and title for matching
+
+    // Index Google Tasks by ID and normalized Title
     const googleMapById = new Map<string, any>();
     const googleMapByTitle = new Map<string, any>();
-    
+
     googleTasks.forEach((gt: any) => {
       googleMapById.set(gt.id, gt);
-      if (!gt.parent) { // Avoid subtasks mismatch if any
-        googleMapByTitle.set(gt.title, gt);
+      const titleKey = (gt.title || '').trim().toLowerCase();
+      if (titleKey && !gt.parent) {
+        googleMapByTitle.set(titleKey, gt);
       }
     });
-    
-    // Step A: Sync local items that match Google Tasks, and filter out/delete those that don't match
+
+    // 5. Step A: Match local todos against Google Tasks
     const matchedLocalTodos: TodoItem[] = [];
-    
+
     for (let i = 0; i < localTodos.length; i++) {
-      const todo = { ...localTodos[i], type: 'DAY' as const }; // Ensure type is strictly DAY
-      
+      const todo = { ...localTodos[i], type: 'DAY' as const };
+
       let matchedGoogleTask = null;
       if (todo.googleTaskId && googleMapById.has(todo.googleTaskId)) {
         matchedGoogleTask = googleMapById.get(todo.googleTaskId);
-      } else if (googleMapByTitle.has(todo.title)) {
-        matchedGoogleTask = googleMapByTitle.get(todo.title);
-      }
-      
-      if (matchedGoogleTask) {
-        // Link them up if not already linked
-        todo.googleTaskId = matchedGoogleTask.id;
-        
-        // If the task was pulled from a legacy list, migrate it into the default list!
-        if (matchedGoogleTask._isLegacy) {
-          const newGId = await pushTaskToGoogle(token, todo);
-          if (newGId) {
-            todo.googleTaskId = newGId;
-            try {
-              await apiCall(`/lists/${matchedGoogleTask._listId}/tasks/${matchedGoogleTask.id}`, token, { method: 'DELETE' });
-            } catch (_) {}
-          }
+      } else {
+        const localTitleKey = (todo.title || '').trim().toLowerCase();
+        if (localTitleKey && googleMapByTitle.has(localTitleKey)) {
+          matchedGoogleTask = googleMapByTitle.get(localTitleKey);
         }
-        
-        // Sync status: If either is completed, we make both completed
+      }
+
+      if (matchedGoogleTask) {
+        // Link up IDs and List metadata
+        todo.googleTaskId = matchedGoogleTask.id;
+        todo.googleTaskListId = matchedGoogleTask._listId;
+        todo.googleTaskListName = matchedGoogleTask._listTitle;
+
+        // Sync completion status
         const isGoogleCompleted = matchedGoogleTask.status === 'completed';
         const isLocalCompleted = todo.isCompleted;
-        
+
         if (isGoogleCompleted !== isLocalCompleted) {
           if (isGoogleCompleted) {
-            // Completed on Google -> complete locally
             todo.isCompleted = true;
             todo.completedAt = matchedGoogleTask.completed || matchedGoogleTask.updated || new Date().toISOString();
             updatedCount++;
           } else {
-            // Completed locally -> complete on Google default list
-            const activeListId = matchedGoogleTask._isLegacy ? defaultListId : (matchedGoogleTask._listId || defaultListId);
-            await apiCall(`/lists/${activeListId}/tasks/${todo.googleTaskId}`, token, {
-              method: 'PATCH',
-              body: JSON.stringify({
-                status: 'completed',
-                completed: todo.completedAt || new Date().toISOString()
-              }),
-            });
+            // Local is completed, Google is not -> update Google
+            await patchTaskOnGoogle(
+              token,
+              todo.googleTaskId,
+              {
+                isCompleted: true,
+                completedAt: todo.completedAt || new Date().toISOString()
+              },
+              todo.googleTaskListId
+            );
             updatedCount++;
           }
         }
+
+        // Sync due date if Google has an explicit due date
+        if (matchedGoogleTask.due) {
+          const gDueDate = matchedGoogleTask.due.split('T')[0];
+          if (gDueDate && todo.dueDate !== gDueDate) {
+            todo.dueDate = gDueDate;
+            updatedCount++;
+          }
+        }
+
+        // Clean up legacy '[HUSTFlow] Tasks' label from Google Tasks notes if present
+        if (matchedGoogleTask.notes === '[HUSTFlow] Tasks') {
+          patchTaskOnGoogle(
+            token,
+            todo.googleTaskId,
+            { notes: null },
+            todo.googleTaskListId
+          ).catch(err => console.warn('Failed to clear legacy label from Google Task:', err));
+        }
+
         matchedLocalTodos.push(todo);
       } else {
         if (!todo.googleTaskId) {
-          // If it was created locally on web and was not found on Google,
-          // push it to Google Tasks Default list rather than deleting it.
+          // Task created locally on web, not yet on Google Tasks -> push to Google Tasks default list
           const pushedId = await pushTaskToGoogle(token, todo);
           if (pushedId) {
             todo.googleTaskId = pushedId;
+            todo.googleTaskListId = defaultListId;
+            todo.googleTaskListName = 'My Tasks';
             addedCount++;
           }
           matchedLocalTodos.push(todo);
         } else {
-          // It had a googleTaskId but wasn't found (deleted on Google Tasks).
-          // We delete it locally by not adding it to matchedLocalTodos.
+          // Task had a googleTaskId but is no longer on Google Tasks (deleted on Google)
+          // -> remove from local state by omitting it
         }
       }
     }
-    
-    // Step B: Pull items from Google Tasks that don't exist locally
+
+    // 6. Step B: Pull tasks from Google Tasks that do not exist locally
     const localGoogleIds = new Set(matchedLocalTodos.map(t => t.googleTaskId).filter(Boolean));
     const syncedTodos = [...matchedLocalTodos];
-    
+
     for (const gt of googleTasks) {
       if (!localGoogleIds.has(gt.id) && !deletedIds.includes(gt.id)) {
-        const type: 'DAY' = 'DAY';
-        const tuViReward = 15;
-        const linhThachReward = 5;
-        
-        // Parse accurate date: Priority: due -> completed -> updated -> today
-        let dueDate = new Date().toISOString().split('T')[0];
+        // If task has explicit due date on Google, use it.
+        // If NO due date on Google, leave dueDate as undefined so it sits in "Chưa xếp ngày" (Backlog)!
+        let dueDate: string | undefined = undefined;
         if (gt.due) {
           dueDate = gt.due.split('T')[0];
-        } else if (gt.completed) {
-          dueDate = gt.completed.split('T')[0];
-        } else if (gt.updated) {
-          dueDate = gt.updated.split('T')[0];
         }
-        
+
         const isCompleted = gt.status === 'completed';
         const completedAt = isCompleted ? (gt.completed || gt.updated || new Date().toISOString()) : undefined;
         const createdAt = gt.updated || (isCompleted ? completedAt : new Date().toISOString());
-        
-        let finalGoogleTaskId = gt.id;
-        
+
         const pulledTodo: TodoItem = {
-          id: `todo_pulled_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-          title: gt.title || 'Untitled Task',
-          type,
+          id: `todo_pulled_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+          title: (gt.title || '').trim() || (gt.notes ? gt.notes.split('\n')[0] : 'Nhiệm vụ không tên'),
+          type: 'DAY',
           isCompleted,
           createdAt: createdAt || new Date().toISOString(),
           completedAt,
-          tuViReward,
-          linhThachReward,
-          googleTaskId: finalGoogleTaskId,
+          tuViReward: 15,
+          linhThachReward: 5,
+          googleTaskId: gt.id,
+          googleTaskListId: gt._listId,
+          googleTaskListName: gt._listTitle,
           dueDate,
-          difficulty: 'SO_CAP'
+          difficulty: 'SO_CAP',
+          project: gt._listTitle || 'beaverplans'
         };
-        
-        // If from legacy list, migrate into default list!
-        if (gt._isLegacy) {
-          const newGId = await pushTaskToGoogle(token, pulledTodo);
-          if (newGId) {
-            pulledTodo.googleTaskId = newGId;
-            try {
-              await apiCall(`/lists/${gt._listId}/tasks/${gt.id}`, token, { method: 'DELETE' });
-            } catch (_) {}
-          }
-        }
-        
+
         syncedTodos.push(pulledTodo);
         addedCount++;
       }
     }
-    
+
     return { syncedTodos, addedCount, updatedCount };
   } catch (error) {
     console.error('syncGoogleTasks error:', error);
@@ -277,68 +270,85 @@ export async function syncGoogleTasks(
   }
 }
 
-// Single push/create to Google Tasks (Default List)
+// Single push/create to Google Tasks
 export async function pushTaskToGoogle(
   token: string,
-  todo: TodoItem
+  todo: TodoItem,
+  listId?: string
 ): Promise<string | null> {
   try {
-    const listId = await getDefaultTaskListId(token);
-    const dueDateStr = todo.dueDate || todo.createdAt.split('T')[0];
-    const notes = '[HUSTFlow] Daily Tasks';
-    
-    const createdGT = await apiCall(`/lists/${listId}/tasks`, token, {
+    const targetListId = listId || todo.googleTaskListId || await getDefaultTaskListId(token);
+
+    const body: any = {
+      title: todo.title,
+      status: todo.isCompleted ? 'completed' : 'needsAction',
+      ...(todo.isCompleted ? { completed: todo.completedAt || new Date().toISOString() } : {})
+    };
+
+    // Only set notes if an actual description exists
+    if ((todo as any).description && (todo as any).description.trim()) {
+      body.notes = (todo as any).description.trim();
+    }
+
+    if (todo.dueDate) {
+      const rfc = formatToRFC3339(todo.dueDate);
+      if (rfc) body.due = rfc;
+    }
+
+    const createdGT = await apiCall(`/lists/${targetListId}/tasks`, token, {
       method: 'POST',
-      body: JSON.stringify({
-        title: todo.title,
-        notes,
-        due: formatToRFC3339(dueDateStr),
-        status: todo.isCompleted ? 'completed' : 'needsAction',
-        ...(todo.isCompleted ? { completed: todo.completedAt || new Date().toISOString() } : {})
-      }),
+      body: JSON.stringify(body),
     });
-    
-    return createdGT.id;
+
+    return createdGT?.id || null;
   } catch (err) {
     console.error('pushTaskToGoogle error:', err);
     return null;
   }
 }
 
-// Single patch/update to Google Tasks (Default List)
+// Single patch/update to Google Tasks
 export async function patchTaskOnGoogle(
   token: string,
   googleTaskId: string,
-  updates: { title?: string; isCompleted?: boolean; completedAt?: string; dueDate?: string },
+  updates: { title?: string; isCompleted?: boolean; completedAt?: string; dueDate?: string; notes?: string | null },
   listId?: string
 ): Promise<boolean> {
   try {
     const targetListId = listId || await getDefaultTaskListId(token);
     const body: any = {};
-    
+
     if (updates.title !== undefined) {
       body.title = updates.title;
     }
 
-    if (updates.dueDate !== undefined) {
-      body.due = formatToRFC3339(updates.dueDate);
+    if (updates.notes !== undefined) {
+      body.notes = updates.notes;
     }
-    
+
+    if (updates.dueDate !== undefined) {
+      if (updates.dueDate && updates.dueDate.trim()) {
+        const rfc = formatToRFC3339(updates.dueDate);
+        if (rfc) body.due = rfc;
+      } else {
+        body.due = null; // Clear due date on Google Tasks
+      }
+    }
+
     if (updates.isCompleted !== undefined) {
       body.status = updates.isCompleted ? 'completed' : 'needsAction';
       if (updates.isCompleted) {
         body.completed = updates.completedAt || new Date().toISOString();
       } else {
-        // To uncomplete, status is needsAction, and we clear completed date
         body.completed = null;
       }
     }
-    
+
     await apiCall(`/lists/${targetListId}/tasks/${googleTaskId}`, token, {
       method: 'PATCH',
       body: JSON.stringify(body),
     });
-    
+
     return true;
   } catch (err) {
     console.error('patchTaskOnGoogle error:', err);
@@ -346,8 +356,12 @@ export async function patchTaskOnGoogle(
   }
 }
 
-// Single delete on Google Tasks (Default List)
-export async function deleteTaskOnGoogle(token: string, googleTaskId: string, listId?: string): Promise<boolean> {
+// Single delete on Google Tasks
+export async function deleteTaskOnGoogle(
+  token: string,
+  googleTaskId: string,
+  listId?: string
+): Promise<boolean> {
   try {
     const targetListId = listId || await getDefaultTaskListId(token);
     await apiCall(`/lists/${targetListId}/tasks/${googleTaskId}`, token, {

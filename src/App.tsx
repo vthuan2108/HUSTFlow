@@ -10,7 +10,6 @@ import { fetchGradesFromGoogle, saveGradesToGoogle } from './lib/googleSheets';
 import {
   Task,
   Habit,
-  StoreItem,
   WeeklyChallenge,
   CultivationState,
   DailyLog,
@@ -30,27 +29,16 @@ import {
   CalendarGroup,
   CalendarEvent
 } from './types';
-import { DEFAULT_CHALLENGES, getRealmInfo, STORE_ITEMS } from './data';
-import CultivationHeader from './components/CultivationHeader';
-import SidebarNavigation from './components/SidebarNavigation';
-import MeditationTimer from './components/MeditationTimer';
-import TaskSection from './components/TaskSection';
+import { DEFAULT_CHALLENGES } from './data';
+import ModernSidebar from './components/ModernSidebar';
 import HabitSection from './components/HabitSection';
-import TreasureStore from './components/TreasureStore';
 import PerformanceStats from './components/PerformanceStats';
 import IeltsMockTestLog from './components/IeltsMockTestLog';
-import StreakGrid from './components/StreakGrid';
 import TodoSection from './components/TodoSection';
 import ScheduleSection from './components/ScheduleSection';
-import ForbiddenNotes from './components/ForbiddenNotes';
-import DailyRituals from './components/DailyRituals';
-import DailyRitualsModal from './components/DailyRitualsModal';
 import CultivationManualsSection from './components/CultivationManualsSection';
-import TangKinhCacSection from './components/TangKinhCacSection';
-import SpiritualGarden from './components/SpiritualGarden';
-import FloatingLofiPlayer from './components/FloatingLofiPlayer';
-import UserGuideModal from './components/UserGuideModal';
-import { AchievementsModal } from './components/AchievementsModal';
+import WebBlockerModal from './components/WebBlockerModal';
+import StudocuModal from './components/StudocuModal';
 import { initAuth, googleSignIn, logout as firebaseLogout, getAccessToken, refreshGoogleAccessToken } from './lib/firebase';
 import { syncGoogleTasks, deleteTaskOnGoogle, patchTaskOnGoogle } from './lib/googleTasks';
 import { saveUserDataToCloud, loadUserDataFromCloud, fetchLeaderboardFromCloud } from './lib/firestoreSync';
@@ -60,7 +48,6 @@ import {
   LogOut,
   CheckCircle,
   Compass as CompassIcon,
-  HelpCircle,
   ListTodo,
   Sparkles,
   Lock,
@@ -74,11 +61,13 @@ import {
   ArrowUp,
   ArrowDown,
   X,
-  Music,
   Library,
   Sun,
   Moon,
-  Coffee
+  Coffee,
+  Shield,
+  FileText,
+  Play
 } from 'lucide-react';
 
 
@@ -117,6 +106,19 @@ function sanitizeLegacyBuggyLogs(logs: DailyLog[]): DailyLog[] {
     });
 }
 
+function getBeaverStorageData() {
+  try {
+    const p = localStorage.getItem('tlk_beaver_projects');
+    const m = localStorage.getItem('tlk_beaver_master_tasks');
+    return {
+      beaverProjects: p ? JSON.parse(p) : undefined,
+      masterTasks: m ? JSON.parse(m) : undefined,
+    };
+  } catch {
+    return {};
+  }
+}
+
 export default function App() {
   // --- STATE SYSTEM ---
   const [userName, setUserName] = useState<string>(() => {
@@ -132,12 +134,16 @@ export default function App() {
   });
 
   const [activeTab, setActiveTab] = useState<string>(() => {
-    return localStorage.getItem('tlk_active_tab') || 'MEDITATION';
+    const saved = localStorage.getItem('tlk_active_tab');
+    if (saved && ['TODOS', 'ANALYTICS', 'SCHEDULE', 'HABITS', 'GRADES', 'IELTS_ARENA', 'CULT_PATH'].includes(saved)) {
+      return saved;
+    }
+    return 'TODOS';
   });
 
   const [theme, setTheme] = useState<'dark' | 'cozy'>(() => {
     const saved = localStorage.getItem('tlk_theme');
-    return (saved === 'cozy' || saved === 'dark') ? saved : 'dark';
+    return (saved === 'dark' || saved === 'cozy') ? saved : 'cozy';
   });
 
   useEffect(() => {
@@ -179,11 +185,6 @@ export default function App() {
   });
   const [focusSelectedTaskId, setFocusSelectedTaskId] = useState<string>('');
   const [isPomodoroRunning, setIsPomodoroRunning] = useState<boolean>(false);
-  const [isUserGuideOpen, setIsUserGuideOpen] = useState<boolean>(false);
-
-  const [soundscape, setSoundscape] = useState<any>(() => {
-    return (localStorage.getItem('tlk_soundscape') as any) || 'NONE';
-  });
 
   const [todoItems, setTodoItems] = useState<TodoItem[]>(() => {
     const savedTodos = localStorage.getItem('tlk_todos');
@@ -478,75 +479,46 @@ export default function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isCloudSyncing, setIsCloudSyncing] = useState<boolean>(false);
   const [hasLoadedFromCloud, setHasLoadedFromCloud] = useState<boolean>(false);
-  const [showTabCustomizeModal, setShowTabCustomizeModal] = useState<boolean>(false);
-  const TARGET_DEFAULT_TAB_ORDER = ['MEDITATION', 'TODOS', 'SCHEDULE', 'GRADES', 'CULT_PATH', 'TANG_KINH_CAC', 'STORE', 'IELTS_ARENA', 'ANALYTICS'];
-  const [tabOrder, setTabOrder] = useState<string[]>(() => {
-    const saved = localStorage.getItem('tlk_tab_order');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          const filtered = parsed.filter(t => t !== 'CAM_DIA');
-          if (filtered.length === TARGET_DEFAULT_TAB_ORDER.length) {
-            return filtered;
-          }
-        }
-      } catch (e) {}
-    }
-    return TARGET_DEFAULT_TAB_ORDER;
+  const [isAIOpen, setIsAIOpen] = useState<boolean>(false);
+  const [isWebBlockerOpen, setIsWebBlockerOpen] = useState<boolean>(false);
+  const [isStudocuOpen, setIsStudocuOpen] = useState<boolean>(false);
+  const [isWebBlockerActive, setIsWebBlockerActive] = useState<boolean>(() => {
+    return localStorage.getItem('tlk_web_blocker_active') === 'true';
   });
 
+  const handleToggleWebBlocker = (enabled: boolean, domains: string[]) => {
+    setIsWebBlockerActive(enabled);
+    localStorage.setItem('tlk_web_blocker_active', String(enabled));
+
+    const payload = {
+      action: enabled ? 'START_BLOCKING' : 'STOP_BLOCKING',
+      blocklist: domains
+    };
+
+    window.postMessage({ type: 'TLK_BLOCKER_SYNC', detail: payload }, '*');
+    window.dispatchEvent(new CustomEvent('TLK_BLOCKER_SYNC', { detail: payload }));
+  };
+
+  // Re-sync blocker state on initial mount if it was previously active
   useEffect(() => {
-    localStorage.setItem('tlk_tab_order', JSON.stringify(tabOrder));
-  }, [tabOrder]);
+    if (isWebBlockerActive) {
+      let list = ['facebook.com', 'youtube.com', 'tiktok.com', 'instagram.com', 'x.com', 'reddit.com', 'netflix.com', 'bilibili.com'];
+      try {
+        const saved = localStorage.getItem('tlk_web_blocker_list');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) list = parsed;
+        }
+      } catch (e) {}
 
-  const getTabConfig = (id: string) => {
-    switch (id) {
-      case 'MEDITATION':
-        return { label: 'Pomodoro Focus', icon: <Flame className="w-3.5 h-3.5" />, colorClass: 'bg-amber-400 text-slate-950 shadow-[3px_3px_0px_#000]' };
-      case 'TODOS':
-        return { label: 'Sect Tasks', icon: <ListTodo className="w-3.5 h-3.5" />, colorClass: 'bg-emerald-400 text-slate-950 shadow-[3px_3px_0px_#000]' };
-      case 'SCHEDULE':
-        return { label: 'Timetable', icon: <Calendar className="w-3.5 h-3.5" />, colorClass: 'bg-amber-400 text-slate-950 shadow-[3px_3px_0px_#000]' };
-      case 'IELTS_ARENA':
-        return { label: 'IELTS Logs', icon: <BookOpen className="w-3.5 h-3.5" />, colorClass: 'bg-blue-400 text-slate-950 shadow-[3px_3px_0px_#000]' };
-      case 'CULT_PATH':
-        return { label: 'Manuals (Roadmaps)', icon: <Scroll className="w-3.5 h-3.5" />, colorClass: 'bg-purple-400 text-slate-950 shadow-[3px_3px_0px_#000]' };
-      case 'ANALYTICS':
-        return { label: 'Performance Stats', icon: <CompassIcon className="w-3.5 h-3.5" />, colorClass: 'bg-pink-400 text-slate-950 shadow-[3px_3px_0px_#000]' };
-      case 'GRADES':
-        return { label: 'Gradebook', icon: <GraduationCap className="w-3.5 h-3.5" />, colorClass: 'bg-blue-400 text-slate-950 shadow-[3px_3px_0px_#000]' };
-      case 'STORE':
-        return { label: 'Treasure Store', icon: <Sparkles className="w-3.5 h-3.5" />, colorClass: 'bg-rose-400 text-slate-950 shadow-[3px_3px_0px_#000]' };
-      case 'TANG_KINH_CAC':
-        return { label: 'Scripture Vault (Studocu)', icon: <Library className="w-3.5 h-3.5" />, colorClass: 'bg-indigo-400 text-slate-950 shadow-[3px_3px_0px_#000]' };
-      default:
-        return { label: '', icon: null, colorClass: '' };
-    }
-  };
-
-  // Focus mode task focus state
-  const [isAchievementsModalOpen, setIsAchievementsModalOpen] = useState<boolean>(false);
-  const [activeRitualModal, setActiveRitualModal] = useState<'NONE' | 'PLANNING' | 'REFLECTION'>('NONE');
-  const [dismissedAIBubbleDate, setDismissedAIBubbleDate] = useState<string>('');
-
-  const handleClaimAchievement = (achievementId: string, _rewardStones?: number) => {
-    setCultState(prev => {
-      const currentClaimed = prev.claimedAchievements || [];
-      if (currentClaimed.includes(achievementId)) return prev;
-      return {
-        ...prev,
-        claimedAchievements: [...currentClaimed, achievementId]
+      const payload = {
+        action: 'START_BLOCKING',
+        blocklist: list
       };
-    });
-  };
-
-  const handleEquipTitle = (title: string) => {
-    setCultState(prev => ({
-      ...prev,
-      equippedTitle: title
-    }));
-  };
+      window.postMessage({ type: 'TLK_BLOCKER_SYNC', detail: payload }, '*');
+      window.dispatchEvent(new CustomEvent('TLK_BLOCKER_SYNC', { detail: payload }));
+    }
+  }, []);
 
   // --- SAVE SYSTEM SYNC ---
   useEffect(() => {
@@ -742,6 +714,12 @@ export default function App() {
           localStorage.setItem('tlk_timeblocks', JSON.stringify(cloudData.timeBlocks || []));
           localStorage.setItem('tlk_calendar_groups', JSON.stringify(cloudData.calendarGroups || DEFAULT_CALENDAR_GROUPS));
           localStorage.setItem('tlk_calendar_events', JSON.stringify(cloudData.calendarEvents || []));
+          if (cloudData.beaverProjects) {
+            localStorage.setItem('tlk_beaver_projects', JSON.stringify(cloudData.beaverProjects));
+          }
+          if (cloudData.masterTasks) {
+            localStorage.setItem('tlk_beaver_master_tasks', JSON.stringify(cloudData.masterTasks));
+          }
           localStorage.setItem('tlk_last_updated', String(cloudLastUpdated));
 
           // Force immediate sync to Chrome Extension with fresh Firestore data
@@ -795,6 +773,7 @@ export default function App() {
             timeBlocks,
             calendarGroups,
             calendarEvents,
+            ...getBeaverStorageData(),
             lastUpdated: localLastUpdated,
           };
           await saveUserDataToCloud(user.uid, localData);
@@ -825,6 +804,7 @@ export default function App() {
           timeBlocks,
           calendarGroups,
           calendarEvents,
+          ...getBeaverStorageData(),
           lastUpdated: now,
         };
         await saveUserDataToCloud(user.uid, localData);
@@ -865,6 +845,7 @@ export default function App() {
             timeBlocks: cloudData ? (cloudData.timeBlocks || []) : timeBlocks,
             calendarGroups: cloudData ? (cloudData.calendarGroups || DEFAULT_CALENDAR_GROUPS) : calendarGroups,
             calendarEvents: cloudData ? (cloudData.calendarEvents || []) : calendarEvents,
+            ...getBeaverStorageData(),
             lastUpdated: now,
           };
           await saveUserDataToCloud(user.uid, updatedLocalData);
@@ -1141,6 +1122,7 @@ export default function App() {
           timeBlocks,
           calendarGroups,
           calendarEvents,
+          ...getBeaverStorageData(),
           lastUpdated: now,
         };
         await saveUserDataToCloud(currentUser.uid, dataToSave);
@@ -1175,70 +1157,14 @@ export default function App() {
 
   // --- CULTIVATION CORE ACTIONS ---
 
-  const checkTamMaActive = (): boolean => {
-    const today = getLocalDateString();
-    
-    // 1. Check if there are overdue tasks by 2 or more days
-    const hasOverdue2Days = todoItems.some(todo => {
-      if (todo.isCompleted) return false;
-      // Only check tasks that have an explicit dueDate — never use createdAt as fallback
-      if (!todo.dueDate) return false;
-
-      try {
-        const timeDiff = new Date(today).getTime() - new Date(todo.dueDate).getTime();
-        if (isNaN(timeDiff)) return false;
-        const daysDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-        return daysDiff >= 2;
-      } catch (e) {
-        return false;
-      }
-    });
-
-    if (hasOverdue2Days) return true;
-
-    // 2. Check if there has been no activity for 3 or more days
-    const activeLogs = dailyLogs.filter(log => log.meditationMinutes > 0 || log.tasksCompleted > 0 || !!log.isStreakProtected);
-    if (activeLogs.length > 0) {
-      const sortedActive = activeLogs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      const latestActiveDate = sortedActive[0].date;
-      const timeDiff = new Date(today).getTime() - new Date(latestActiveDate).getTime();
-      const daysSinceLastActive = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-      if (daysSinceLastActive >= 3) {
-        return true;
-      }
-    }
-    return false;
-  };
-
   const addExp = (amount: number, stones: number) => {
-    const today = getLocalDateString();
-    const isTamMa = checkTamMaActive() && cultState.tamMaSuppressedDate !== today;
-    
-    // Apply Tụ Khí Quyết active spell (+30% Tu Vi from meditation/actions)
-    const isSpellTuKhiActive = cultState.activeSpells?.includes('spell_tu_khi_quyet');
-    const xpMultiplier = isSpellTuKhiActive && amount > 0 ? 1.3 : 1.0;
-
-    // Apply Unlimited Streak Multiplier Buff (+x% Tu Vi with x = current streak days)
-    const currentStreak = getStreakFromLogs(dailyLogs);
-    const streakMultiplier = amount > 0 && currentStreak > 0 ? (1 + currentStreak / 100) : 1.0;
-
-    const adjustedAmount = isTamMa && amount > 0
-      ? Math.round(amount * 0.7 * xpMultiplier * streakMultiplier)
-      : Math.round(amount * xpMultiplier * streakMultiplier);
-
-    // Apply Tâm Ma Trảm active spell (Double Linh Thạch from all rewards)
-    const isSpellTamMaActive = cultState.activeSpells?.includes('spell_tam_ma_tram');
-    const stoneMultiplier = isSpellTamMaActive && stones > 0 ? 2.0 : 1.0;
-    const adjustedStones = Math.round(stones * stoneMultiplier);
-
     setCultState(prev => {
-      const newCurrentExp = Math.max(0, prev.currentExp + adjustedAmount);
-      const newTotalExp = Math.max(0, prev.totalExp + adjustedAmount);
-      const newLinhThach = Math.max(0, prev.linhThach + adjustedStones);
-      const newStonesEarned = Math.max(0, prev.spiritStonesEarned + adjustedStones);
+      const newCurrentExp = Math.max(0, (prev?.currentExp || 0) + amount);
+      const newTotalExp = Math.max(0, (prev?.totalExp || 0) + amount);
+      const newLinhThach = Math.max(0, (prev?.linhThach || 0) + stones);
+      const newStonesEarned = Math.max(0, (prev?.spiritStonesEarned || 0) + stones);
 
-      // Log stats inside daily logs
-      updateDailyLog(adjustedAmount, 0, 0);
+      updateDailyLog(amount, 0, 0);
 
       return {
         ...prev,
@@ -1253,7 +1179,7 @@ export default function App() {
   const updateDailyLog = (tuViGained: number, minutesMeditation: number, tasksDone: number) => {
     const today = getLocalDateString();
     setDailyLogs(prev => {
-      const existing = prev.find(l => l.date === today);
+      const existing = (prev || []).find(l => l.date === today);
       if (existing) {
         return prev.map(l => l.date === today ? {
           ...l,
@@ -1262,7 +1188,7 @@ export default function App() {
           tasksCompleted: Math.max(0, l.tasksCompleted + tasksDone)
         } : l);
       } else {
-        return [...prev, {
+        return [...(prev || []), {
           date: today,
           tuViGained: Math.max(0, tuViGained),
           meditationMinutes: Math.max(0, minutesMeditation),
@@ -1274,7 +1200,7 @@ export default function App() {
 
   const updateChallengeValue = (type: WeeklyChallenge['targetType'], increment: number) => {
     setChallenges(prev => {
-      return prev.map(ch => {
+      return (prev || []).map(ch => {
         if (ch.targetType === type && !ch.isClaimed) {
           return {
             ...ch,
@@ -1284,78 +1210,6 @@ export default function App() {
         return ch;
       });
     });
-  };
-
-  // Auto-record bottleneck start stats snapshot when tu si enters a bottleneck level
-  useEffect(() => {
-    const realmInfo = getRealmInfo(cultState.level);
-    if (realmInfo.bottleneck) {
-      if (!cultState.bottleneckStartStats || cultState.bottleneckStartStats.level !== cultState.level) {
-        setCultState(prev => ({
-          ...prev,
-          bottleneckStartStats: {
-            level: prev.level,
-            meditationMinutes: prev.meditationMinutes || 0,
-            tasksCompletedCount: prev.tasksCompletedCount || 0
-          }
-        }));
-      }
-    }
-  }, [cultState.level, cultState.meditationMinutes, cultState.tasksCompletedCount]);
-
-  // --- BREAKTHROUGH SYSTEM ---
-  const handleBreakthrough = (success: boolean) => {
-    const realmInfo = getRealmInfo(cultState.level);
-    const xpNeeded = realmInfo.xpNeeded;
-    const isBottleneck = !!realmInfo.bottleneck;
-
-    if (success) {
-      setCultState(prev => {
-        const nextLevel = Math.min(prev.level + 1, 100);
-        const remainingExp = Math.max(prev.currentExp - xpNeeded, 0);
-        const unlockedRealms = [...prev.unlockedRealms];
-        const nextRealmInfo = getRealmInfo(nextLevel);
-        
-        if (!unlockedRealms.includes(nextRealmInfo.name)) {
-          unlockedRealms.push(nextRealmInfo.name);
-        }
-
-        // Consume required bottleneck item if present
-        let newInventory = [...prev.inventory];
-        if (isBottleneck && realmInfo.bottleneck?.requiredItemId) {
-          const reqId = realmInfo.bottleneck.requiredItemId;
-          newInventory = newInventory.map(item =>
-            item.itemId === reqId ? { ...item, quantity: Math.max(0, item.quantity - 1) } : item
-          ).filter(item => item.quantity > 0);
-        }
-
-        return {
-          ...prev,
-          level: nextLevel,
-          currentExp: remainingExp,
-          inventory: newInventory,
-          breakthroughCount: (prev.breakthroughCount || 0) + 1,
-          unlockedRealms,
-          bottleneckStartStats: undefined // Clear snapshot for next bottleneck
-        };
-      });
-    } else {
-      // Failed breakthrough - Per user directive: wipe currentExp to 0, keep level/realm unchanged!
-      setCultState(prev => {
-        if (prev.shieldActive) {
-          // Protected by Ho Tam Kinh shield
-          return {
-            ...prev,
-            shieldActive: false // consume shield
-          };
-        } else {
-          return {
-            ...prev,
-            currentExp: 0
-          };
-        }
-      });
-    }
   };
 
   // --- COMPONENT HANDLERS ---
@@ -1433,48 +1287,6 @@ export default function App() {
     return streak;
   };
 
-  const healCultivationGaps = () => {
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(today.getDate() - 1);
-    const yesterdayStr = getLocalDateString(yesterday);
-
-    setDailyLogs(prev => {
-      const logs = [...(prev || [])];
-      const existing = logs.find(l => l.date === yesterdayStr);
-      if (!existing) {
-        logs.push({
-          date: yesterdayStr,
-          tuViGained: 0,
-          meditationMinutes: 0, // Dùng isStreakProtected để nối streak mà không làm sai lệch tổng phút bế quan
-          tasksCompleted: 0,
-          isStreakProtected: true
-        });
-      } else {
-        existing.isStreakProtected = true;
-      }
-      return logs;
-    });
-  };
-
-  const healHabitGaps = (h: Habit): Habit => {
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(today.getDate() - 1);
-    const yesterdayStr = getLocalDateString(yesterday);
-
-    const newHistory = { ...h.history };
-    newHistory[yesterdayStr] = true;
-    
-    const streak = calculateHabitStreak(newHistory);
-    
-    return {
-      ...h,
-      history: newHistory,
-      streak
-    };
-  };
-
   const handleToggleHabitDay = (id: string, date: string) => {
     setHabits(prev => {
       return prev.map(h => {
@@ -1482,18 +1294,16 @@ export default function App() {
           const isCompleted = !h.history[date];
           const newHistory = { ...h.history, [date]: isCompleted };
           const streak = calculateHabitStreak(newHistory);
-
-          const isSpellThanHanhActive = cultState.activeSpells?.includes('spell_than_hanh_bo');
-          const habitXp = isSpellThanHanhActive ? 22 : 15;
+          const habitXp = 15;
 
           if (isCompleted) {
-            addExp(habitXp, 5); // Constant 15 (or 22) XP and 5 Coins for habit ticking
+            addExp(habitXp, 5);
             updateChallengeValue('HABITS_COMPLETED', 1);
-            setCultState(c => ({ ...c, habitsCompletedCount: c.habitsCompletedCount + 1 }));
+            setCultState(c => ({ ...c, habitsCompletedCount: (c.habitsCompletedCount || 0) + 1 }));
           } else {
-            addExp(-habitXp, -5); // Deduct 15 (or 22) XP and 5 Coins when unchecking
+            addExp(-habitXp, -5);
             updateChallengeValue('HABITS_COMPLETED', -1);
-            setCultState(c => ({ ...c, habitsCompletedCount: Math.max(0, c.habitsCompletedCount - 1) }));
+            setCultState(c => ({ ...c, habitsCompletedCount: Math.max(0, (c.habitsCompletedCount || 0) - 1) }));
           }
 
           return {
@@ -1513,7 +1323,7 @@ export default function App() {
   };
 
   // --- TODO LIST HANDLERS ---
-  const handleAddTodo = (title: string, difficulty: Priority, dueDate?: string, googleTaskId?: string) => {
+  const handleAddTodo = (title: string, difficulty: Priority, dueDate?: string, googleTaskId?: string, project?: string) => {
     const normPriority = normalizePriority(difficulty);
     const { tuViReward, linhThachReward } = getPriorityRewards(normPriority);
 
@@ -1527,7 +1337,8 @@ export default function App() {
       linhThachReward,
       dueDate: dueDate || getLocalDateString(),
       googleTaskId,
-      difficulty: normPriority
+      difficulty: normPriority,
+      project: project?.trim() || 'HUSTFlow'
     };
     setTodoItems(prev => [newTodo, ...prev]);
   };
@@ -1632,116 +1443,6 @@ export default function App() {
     }
   };
 
-  // Shop & Consumables
-  const handleBuyItem = (item: StoreItem) => {
-    if (cultState.linhThach < item.cost) return;
-    setCultState(prev => {
-      const inventory = [...prev.inventory];
-      const existing = inventory.find(i => i.itemId === item.id);
-      
-      if (existing) {
-        existing.quantity += 1;
-      } else {
-        inventory.push({ itemId: item.id, quantity: 1 });
-      }
-
-      return {
-        ...prev,
-        linhThach: prev.linhThach - item.cost,
-        itemsBoughtCount: (prev.itemsBoughtCount || 0) + 1,
-        inventory
-      };
-    });
-  };
-
-  const handleUseConsumable = (itemId: string) => {
-    const hasItem = cultState.inventory.some(i => i.itemId === itemId && i.quantity > 0);
-    if (!hasItem) return;
-
-    const storeItem = STORE_ITEMS.find(s => s.id === itemId);
-    if (!storeItem) return;
-
-    if (storeItem.type === 'PERMANENT') {
-      // Toggle equip/unequip spell
-      setCultState(prev => {
-        const activeSpells = prev.activeSpells || [];
-        const isEquipped = activeSpells.includes(itemId);
-        let newSpells = [...activeSpells];
-        if (isEquipped) {
-          newSpells = newSpells.filter(id => id !== itemId);
-        } else {
-          if (newSpells.length >= 2) {
-            alert('Fellow Daoist, you can equip at most 2 active spells simultaneously!');
-            return prev;
-          }
-          newSpells.push(itemId);
-        }
-        return { ...prev, activeSpells: newSpells };
-      });
-      return;
-    }
-
-    if (itemId === 'linh_chi_duoc') {
-      // Consume, grant 100 Exp instantly
-      addExp(100, 0);
-      consumeItemFromInventory(itemId);
-    } else if (itemId === 'ho_tam_kinh') {
-      // Activate breakthrough safeguard shield
-      setCultState(prev => ({
-        ...prev,
-        shieldActive: true
-      }));
-      consumeItemFromInventory(itemId);
-    } else if (itemId === 'dao_tam_phu') {
-      const today = new Date();
-      const yesterday = new Date(today);
-      yesterday.setDate(today.getDate() - 1);
-      const yesterdayStr = getLocalDateString(yesterday);
-
-      const yesterdayLog = dailyLogs.find(l => l.date === yesterdayStr);
-      const yesterdayActive = yesterdayLog && (yesterdayLog.meditationMinutes > 0 || yesterdayLog.tasksCompleted > 0 || !!yesterdayLog.isStreakProtected);
-
-      if (yesterdayActive) {
-        alert('⚡ Your Dao Heart remains steadfast! Cultivation was completed yesterday and your streak is unbroken; no need to use the Dao Heart Talisman.');
-        return;
-      }
-
-      // Heal cultivation gaps and habit gaps to restore streaks
-      healCultivationGaps();
-      setHabits(prev => prev.map(h => healHabitGaps(h)));
-      alert('⚡ Dao Heart Talisman activated! Spiritual energy has restored yesterday, recovering your Cultivation and Habit streaks!');
-      consumeItemFromInventory(itemId);
-    } else if (itemId === 'thanh_tam_phu') {
-      // Activate Tam Ma suppression
-      setCultState(prev => ({
-        ...prev,
-        tamMaSuppressedDate: getLocalDateString()
-      }));
-      consumeItemFromInventory(itemId);
-      alert('☯️ Pure Heart Talisman activated! Your mind is purified, inner demons dissipated, restoring 100% Cultivation absorption today.');
-    } else if (itemId === 'tu_khi_dan' || itemId === 'tu_linh_tran') {
-      // Activating passive arrays/pills is done automatically during pomodoro when owned!
-      // Display advice or let them use it to get instant message confirmation
-      alert(`${itemId === 'tu_khi_dan' ? 'Qi Gathering Pill' : 'Spirit Gathering Array'} is in your domain. Passive bonus will automatically apply during Pomodoro meditation!`);
-    }
-  };
-
-  const consumeItemFromInventory = (itemId: string) => {
-    setCultState(prev => {
-      const inventory = prev.inventory.map(i => {
-        if (i.itemId === itemId) {
-          return { ...i, quantity: i.quantity - 1 };
-        }
-        return i;
-      }).filter(i => i.quantity > 0);
-
-      return {
-        ...prev,
-        inventory
-      };
-    });
-  };
-
   // Challenges
   const handleAddChallenge = (title: string, targetValue: number, tuViReward: number, linhThachReward: number) => {
     const newChallenge: WeeklyChallenge = {
@@ -1798,59 +1499,6 @@ export default function App() {
     }
   };
 
-  // Meditation Complete callback
-  const handleMeditationComplete = (
-    minutes: number,
-    xpGained = 50,
-    linhThachGained = 30,
-    plantName?: string,
-    plantStatus?: 'HARVESTED' | 'WITHERED'
-  ) => {
-    // If withered plant, just add to garden and return (no rewards)
-    if (plantStatus === 'WITHERED') {
-      const newPlant: GardenPlant = {
-        id: `plant_${Date.now()}`,
-        name: plantName || 'Jade Lingzhi',
-        duration: 25,
-        status: 'WITHERED',
-        harvestedAt: getLocalDateString(),
-        xpGained: 0,
-        linhThachGained: 0
-      };
-      setGardenPlants(prev => [newPlant, ...prev]);
-      return;
-    }
-
-    addExp(xpGained, linhThachGained);
-    updateDailyLog(0, minutes, 0);
-    updateChallengeValue('MEDITATION_MINUTES', minutes);
-    setCultState(prev => ({ ...prev, meditationMinutes: prev.meditationMinutes + minutes }));
-
-    // Consume Tu Khi Dan pill if active
-    const pillActive = cultState.inventory.some(i => i.itemId === 'tu_khi_dan');
-    if (pillActive) {
-      consumeItemFromInventory('tu_khi_dan');
-    }
-
-    // Add harvested plant to garden list
-    if (plantName) {
-      const newPlant: GardenPlant = {
-        id: `plant_${Date.now()}`,
-        name: plantName,
-        duration: minutes,
-        status: 'HARVESTED',
-        harvestedAt: getLocalDateString(),
-        xpGained,
-        linhThachGained
-      };
-      setGardenPlants(prev => [newPlant, ...prev]);
-    }
-  };
-
-  // Passive Qi Meditation Tick
-  const handlePassiveQiTick = (tuViGained: number) => {
-    addExp(tuViGained, 0);
-  };
 
   // --- IELTS MOCK TEST SCORE LOGGER ---
   const handleAddIeltsLog = (
@@ -1987,406 +1635,89 @@ export default function App() {
   const isNightTime = currentHour >= 18 || currentHour < 6;
 
   return (
-    <div className="min-h-screen text-slate-300 relative selection:bg-amber-500/20 selection:text-amber-300" id="main-applet-container">
-      {/* ── Dynamic Galaxy Nebulae, Full-Screen Starfield & Meteor Shower Background ── */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-20">
-        {/* Deep Galaxy Space Background Base */}
-        <div className="absolute inset-0 bg-[#05080e]" />
+    <div className="min-h-screen bg-[#FBF8F2] text-[#2C2825] relative selection:bg-[#2E6930]/15 selection:text-[#2E6930]" id="main-applet-container">
+      {/* MAIN HUB VIEW LAYOUT WITH MODERN SIDEBAR */}
+      <div className="flex h-screen overflow-hidden bg-[#FBF8F2] text-[#2C2825]">
+        {/* Modern Left Sidebar Navigation (DeepFocus style) */}
+        <ModernSidebar
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          currentUser={currentUser}
+          onGoogleSignIn={handleGoogleSignIn}
+          onGoogleSignOut={async () => {
+            if (confirm('Bạn có chắc chắn muốn đăng xuất tài khoản Google?')) {
+              await firebaseLogout();
+            }
+          }}
+          isCloudSyncing={isCloudSyncing}
+          onOpenAI={() => setIsAIOpen(prev => !prev)}
+          isAIOpen={isAIOpen}
+          todoCount={(todoItems || []).filter(t => !t.isCompleted && (t.dueDate || (t.createdAt ? t.createdAt.split('T')[0] : '')) === getLocalDateString()).length}
+        />
 
-        {/* VIVID GALAXY NEBULAE (Khối Tinh Vân Galaxy Rực Rỡ) */}
-        <div className="absolute -top-32 -left-32 w-[750px] h-[750px] bg-gradient-to-br from-purple-600/35 via-fuchsia-800/25 to-transparent rounded-full blur-[110px] animate-vivid-nebula-1" />
-        <div className="absolute -bottom-40 -right-40 w-[850px] h-[850px] bg-gradient-to-tl from-cyan-500/30 via-indigo-900/25 to-transparent rounded-full blur-[120px] animate-vivid-nebula-2" />
-        <div className="absolute top-[25%] left-[20%] w-[600px] h-[600px] bg-gradient-to-tr from-amber-500/25 via-yellow-900/20 to-transparent rounded-full blur-[130px] animate-vivid-nebula-1" />
+        {/* Right Active Content Workspace */}
+        <div className="flex-1 flex flex-col h-screen overflow-hidden">
+          {/* Topbar */}
+          <header className="h-14 bg-[#FBF8F2] border-b border-[#E7E1D7] px-6 flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-2 text-xs text-[#7A7268]">
+              <span className="text-[#9C948A]">Không gian làm việc</span>
+              <span className="text-[#C5BEB3]">/</span>
+              <span className="font-medium text-[#2C2825]">
+                {activeTab === 'TODOS' && 'Kế hoạch tuần'}
+                {activeTab === 'ANALYTICS' && 'Thống kê & Hiệu suất'}
+                {activeTab === 'SCHEDULE' && 'Thời khóa biểu & Lịch'}
+                {activeTab === 'HABITS' && 'Thói quen rèn luyện'}
+                {activeTab === 'GRADES' && 'Bảng điểm & Tín chỉ HUST'}
+                {activeTab === 'IELTS_ARENA' && 'IELTS Tracker'}
+                {activeTab === 'CULT_PATH' && 'Lộ trình học tập'}
+              </span>
+            </div>
 
-        {/* PERMANENT FULL-SCREEN TWINKLING STARFIELD (Hệ Thống 60 Ngôi Sao Phát Sáng Trải Đều Màn Hình) */}
-        <div className="absolute inset-0">
-          {Array.from({ length: 60 }).map((_, i) => {
-            const top = (i * 1.65) % 100;
-            const left = (i * 13.7) % 100;
-            const size = 1 + (i % 3) * 0.8;
-            const delay = (i * 0.25) % 4;
-            return (
-              <div
-                key={`galaxy-star-${i}`}
-                className="absolute bg-white rounded-full animate-twinkle"
-                style={{
-                  top: `${top}%`,
-                  left: `${left}%`,
-                  width: `${size}px`,
-                  height: `${size}px`,
-                  animationDelay: `${delay}s`,
-                  boxShadow: '0 0 5px rgba(255, 255, 255, 0.9)',
-                }}
-              />
-            );
-          })}
-        </div>
-
-        {/* METEOR SHOWER (Mưa Sao Băng Đa Sắc Trải Đều Khắp Màn Hình - Negative Delay Instant Flight) */}
-        {Array.from({ length: 22 }).map((_, i) => {
-          // Spread meteors evenly across top & right coordinates so they fall everywhere on screen!
-          const top = -15 + ((i % 6) * 20) + (Math.floor(i / 6) * 5);
-          const right = -15 + (Math.floor(i / 3) * 15) + ((i % 3) * 10);
-          const duration = 2.4 + (i % 5) * 0.5;
-          // Negative delay makes animation start immediately in mid-flight on page load without any initial pause!
-          const negativeDelay = -((i * 0.75) % duration).toFixed(2);
-          const width = 110 + (i % 4) * 35;
-          const colorClass = i % 3 === 0 ? 'shooting-star-cyan' : (i % 3 === 1 ? 'shooting-star-violet' : 'shooting-star-emerald');
-          return (
-            <div
-              key={`meteor-${i}`}
-              className={`shooting-star-item ${colorClass}`}
-              style={{
-                top: `${top}%`,
-                right: `${right}%`,
-                width: `${width}px`,
-                animationDelay: `${negativeDelay}s`,
-                animationDuration: `${duration}s`
-              }}
-            />
-          );
-        })}
-
-        {/* Subtle Sacred Geometry Bagua Array Watermark Center */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[900px] rounded-full border border-dashed border-amber-500/10 animate-spin-slow pointer-events-none flex items-center justify-center">
-          <div className="w-[600px] h-[600px] rounded-full border border-purple-500/10 border-dashed" />
-        </div>
-      </div>
-
-      {/* ── Dynamic Weather Overlays ── */}
-
-      {/* Rain falling particles */}
-      {(soundscape === 'RAIN' || soundscape === 'THUNDER') && (
-        <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10">
-          {Array.from({ length: 40 }).map((_, i) => {
-            const left = Math.random() * 100;
-            const delay = Math.random() * 2;
-            const duration = 0.6 + Math.random() * 0.5;
-            return (
-              <div
-                key={`rain-${i}`}
-                className="absolute w-[1px] h-[35px] bg-sky-300/20 animate-rain"
-                style={{
-                  left: `${left}%`,
-                  top: `-40px`,
-                  animationDelay: `${delay}s`,
-                  animationDuration: `${duration}s`,
-                }}
-              />
-            );
-          })}
-        </div>
-      )}
-
-      {/* Campfire ember rising particles */}
-      {soundscape === 'CAMPFIRE' && (
-        <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10">
-          {Array.from({ length: 25 }).map((_, i) => {
-            const left = 10 + Math.random() * 80;
-            const delay = Math.random() * 4;
-            const duration = 3.5 + Math.random() * 2.0;
-            const size = 2 + Math.random() * 3;
-            return (
-              <div
-                key={`ember-${i}`}
-                className="absolute bg-amber-500/40 rounded-full animate-ember"
-                style={{
-                  left: `${left}%`,
-                  bottom: `-10px`,
-                  width: `${size}px`,
-                  height: `${size}px`,
-                  animationDelay: `${delay}s`,
-                  animationDuration: `${duration}s`,
-                  boxShadow: '0 0 6px rgba(245, 158, 11, 0.7)',
-                }}
-              />
-            );
-          })}
-        </div>
-      )}
-
-      {/* Lightning Flash overlay */}
-      {soundscape === 'THUNDER' && (
-        <div className="fixed inset-0 bg-white pointer-events-none animate-lightning z-50 mix-blend-screen" />
-      )}
-
-      {/* Immersive background stars pattern */}
-      <div className="absolute inset-0 bg-[#070a0f]/80 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px] opacity-25 -z-10" />
-
-      {/* Immersive purple vignette tà khí overlay if Tam Ma is active */}
-      {checkTamMaActive() && cultState.tamMaSuppressedDate !== getLocalDateString() && (
-        <div className="fixed inset-0 pointer-events-none shadow-[inset_0_0_80px_rgba(168,85,247,0.18)] z-50 animate-pulse border-2 border-purple-500/10" />
-      )}
-
-      {/* MAIN HUB VIEW LAYOUT WITH SIDEBAR */}
-      <div className="flex flex-col h-screen overflow-hidden">
-        {/* Top Header */}
-        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#0a0d14] border-b-2 border-slate-950 px-5 py-2.5 shrink-0 z-30 shadow-[0_2px_10px_rgba(0,0,0,0.5)]">
-          <div className="flex items-center gap-2">
-            <CompassIcon className="w-5 h-5 text-amber-500 animate-spin-slow" />
-            <h1 className="text-sm font-extrabold uppercase tracking-widest text-slate-100 font-sans flex items-center">
-              HUSTFlow <span className="text-[9px] bg-amber-400 text-slate-950 px-2 py-0.5 rounded border-2 border-slate-950 font-bold ml-1.5 pixel-label">v1.1</span>
-            </h1>
-
-            {/* LOFI STREAM toggle button right next to title (Original Neo-Brutalist design) */}
-            <button
-              type="button"
-              onClick={() => setSoundscape(soundscape === 'LOFI_YT' ? 'NONE' : 'LOFI_YT')}
-              className="ml-3 bg-[#0e131d] hover:bg-[#141a27] border-2 border-slate-950 text-rose-400 font-black text-[10px] font-mono px-3 py-1.5 rounded-xl shadow-[2px_2px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer flex items-center gap-2 select-none group transition-all"
-              title="Toggle Lofi stream overlay on cultivation banner"
-            >
-              <span className={`w-2 h-2 rounded-full ${soundscape === 'LOFI_YT' ? 'bg-rose-500 animate-ping' : 'bg-slate-600'}`} />
-              <Music className="w-3.5 h-3.5 text-rose-400 group-hover:rotate-12 transition-transform" />
-              <span>🔴 LOFI STREAM</span>
-            </button>
-          </div>
-
-          {/* Header Right Action Area: Theme Toggle + User Guide + Google Login / Cloud Profile Widget */}
-          <div className="flex items-center gap-2">
-            {/* THEME TOGGLE BUTTON (Dark Cultivator vs Cozy Paper Minimalist) */}
-            <button
-              type="button"
-              onClick={toggleTheme}
-              className={`flex items-center gap-1.5 px-3 py-1.5 font-bold text-[9px] rounded-lg border-2 uppercase tracking-wider transition-all cursor-pointer shadow-[2px_2px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#000] ${
-                theme === 'cozy'
-                  ? 'bg-[#E1EBE2] hover:bg-[#D4E2D6] text-[#2E2823] border-[#507D58]'
-                  : 'bg-[#121722] hover:bg-[#1a2130] text-emerald-400 hover:text-emerald-300 border-slate-950'
-              }`}
-              title="Change theme"
-            >
-              {theme === 'dark' ? (
-                <Sun className="w-3.5 h-3.5 text-amber-400 stroke-[2.5]" />
-              ) : (
-                <Moon className="w-3.5 h-3.5 text-[#507D58] stroke-[2.5]" />
-              )}
-              <span>Change theme</span>
-            </button>
-
-            {/* User Guide Button */}
-            <button
-              type="button"
-              onClick={() => setIsUserGuideOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#121722] hover:bg-[#192131] text-amber-400 hover:text-amber-300 font-extrabold text-[9px] rounded-lg border-2 border-slate-950 uppercase tracking-wider transition-all cursor-pointer shadow-[2px_2px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#000]"
-              title="Open User Guide"
-            >
-              <HelpCircle className="w-3.5 h-3.5 stroke-[2.5] text-amber-400" />
-              <span>User Guide</span>
-            </button>
-
-            {/* Google Sign-in / Cloud Status Profile Widget */}
-            {currentUser ? (
-              <div className="flex items-center gap-2 bg-slate-950 border-2 border-slate-950 p-1.5 rounded-lg text-[10px] font-sans shadow-[1px_1px_0px_#000]">
-                {/* User Google Avatar */}
-                {currentUser.photoURL ? (
-                  <img 
-                    src={currentUser.photoURL} 
-                    alt={currentUser.displayName || 'Avatar'} 
-                    className="w-4 h-4 rounded-full border border-amber-500/50" 
-                    referrerPolicy="no-referrer"
-                  />
-                ) : (
-                  <div className="w-4 h-4 rounded-full bg-amber-500 text-slate-950 font-black text-[9px] flex items-center justify-center">
-                    {(currentUser.displayName || 'D').charAt(0).toUpperCase()}
-                  </div>
-                )}
-                
-                {/* User display name & Cloud Sync indicator */}
-                <div className="flex flex-col text-left max-w-28 shrink-0">
-                  <span className="font-bold text-slate-200 truncate">{currentUser.displayName || 'Fellow Daoist'}</span>
-                  <span className="text-[7.5px] text-emerald-400 font-mono flex items-center gap-0.5 leading-none">
-                    {isCloudSyncing ? (
-                      <span className="w-1.5 h-1.5 rounded-full border border-t-transparent border-emerald-400 animate-spin" />
-                    ) : (
-                      <Cloud className="w-2 h-2 animate-pulse" />
-                    )}
-                    Cloud
-                  </span>
-                </div>
-
-                {/* Logout button */}
-                <button
-                  onClick={async () => {
-                    if (confirm('Are you sure you want to sign out and disconnect from the cloud?')) {
-                      await firebaseLogout();
-                      alert('Signed out successfully.');
-                    }
-                  }}
-                  className="ml-1 bg-rose-950/40 hover:bg-rose-900 border border-rose-900/40 text-rose-400 px-2 py-0.5 rounded text-[8px] font-bold uppercase transition-colors cursor-pointer"
-                >
-                  Sign out
-                </button>
-              </div>
-            ) : (
+            <div className="flex items-center gap-2.5">
+              {/* Focus (Web Blocker) Button */}
               <button
-                onClick={handleGoogleSignIn}
-                className="flex items-center gap-1 px-3 py-1.5 bg-amber-400 hover:bg-amber-500 text-slate-950 font-extrabold text-[9px] rounded-lg border-2 border-slate-950 uppercase tracking-wider transition-all cursor-pointer shadow-[2px_2px_0px_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0px_#000]"
+                onClick={() => setIsWebBlockerOpen(true)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all shadow-sm ${
+                  isWebBlockerActive
+                    ? 'bg-[#2E6930]/10 border-[#2E6930]/30 text-[#2E6930] hover:bg-[#2E6930]/20'
+                    : 'bg-[#F4EFE6] border-[#E7E1D7] text-[#5C554B] hover:text-[#2C2825] hover:border-[#D3CBBF]'
+                }`}
+                title="Bật/Tắt chế độ Focus chặn web gây xao nhãng"
               >
-                <LogIn className="w-3.5 h-3.5 stroke-[2.5]" />
-                Google Sign-in
+                <div className="relative flex items-center justify-center">
+                  <Play className="w-3 h-3 fill-current" />
+                  {isWebBlockerActive && (
+                    <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-[#2E6930] rounded-full animate-ping" />
+                  )}
+                </div>
+                <span>Focus</span>
+                {isWebBlockerActive && (
+                  <span className="px-1 py-0.2 bg-[#2E6930] text-white text-[9px] font-bold rounded">
+                    ON
+                  </span>
+                )}
               </button>
-            )}
-          </div>
-        </header>
 
-        {/* Main Body (Left Sidebar + Right Active Content Workspace) */}
-        <div className="flex-1 flex overflow-hidden">
-          {/* Left Sidebar containing Full Cultivation Profile + 10 Navigation Tabs */}
-          <SidebarNavigation
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            cultivationState={cultState}
-            userName={userName}
-            onRename={setUserName}
-            onBreakthrough={handleBreakthrough}
-            onOpenAchievements={() => setIsAchievementsModalOpen(true)}
-            onOpenTabCustomize={() => setShowTabCustomizeModal(true)}
-            tabOrder={tabOrder}
-            getTabConfig={getTabConfig}
-            isLofiActive={soundscape === 'LOFI_YT'}
-            onCloseLofi={() => setSoundscape('NONE')}
-            isPomodoroRunning={isPomodoroRunning}
-          />
+              {/* Studocu Downloader Button */}
+              <button
+                onClick={() => setIsStudocuOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[#F4EFE6] border border-[#E7E1D7] text-[#5C554B] hover:text-[#2C2825] hover:border-[#D3CBBF] transition-all shadow-sm"
+                title="Mở công cụ giải mã & tải tài liệu Studocu"
+              >
+                <FileText className="w-3.5 h-3.5 text-[#B85D38]" />
+                <span>Studocu</span>
+              </button>
 
-          {/* Right Active Workspace */}
-          <main className="flex-1 overflow-y-auto p-4 sm:p-6">
-            <div className="max-w-5xl mx-auto space-y-6">
-              {/* Cảnh báo Tâm Ma Xâm Nhập */}
-            {checkTamMaActive() && cultState.tamMaSuppressedDate !== getLocalDateString() && (
-              <div className="bg-purple-950/25 border border-purple-900/60 rounded-2xl p-4 shadow-lg flex items-center justify-between gap-4 font-sans text-xs">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-purple-500/15 border border-purple-500/25 rounded-xl text-purple-400 animate-bounce">
-                    💀
-                  </div>
-                  <div className="space-y-0.5">
-                    <h4 className="text-purple-300 font-extrabold uppercase tracking-wide flex items-center gap-1.5">
-                      Inner Demon Infiltration!
-                      <span className="text-[9px] bg-rose-500/15 text-rose-400 border border-rose-500/25 px-2 py-0.5 rounded-full uppercase font-bold tracking-normal font-mono animate-pulse">
-                        Cultivation Efficiency -30%
-                      </span>
-                    </h4>
-                    <p className="text-[10px] text-slate-400 leading-normal">
-                      Your dantian is beset by evil energy due to overdue tasks or neglected meditation. Complete overdue tasks immediately, or purchase a <strong>Pure Heart Talisman</strong> from the Treasure Store to dispel inner demons.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-              <div className={`grid grid-cols-1 xl:grid-cols-3 gap-6 ${activeTab !== 'MEDITATION' ? 'hidden' : ''}`} id="meditation-tab-view">
-                <div className="xl:col-span-2 space-y-6">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
-                      <div className={isFocusMode ? "fixed inset-0 bg-[#05070a] z-50 flex flex-col items-center justify-center p-4 overflow-y-auto" : "w-full h-full flex flex-col"}>
-                        {isFocusMode && (
-                          <div className="absolute inset-0 bg-[radial-gradient(#10b981_1px,transparent_1px)] [background-size:32px_32px] opacity-5 -z-10" />
-                        )}
-                        <div className={isFocusMode ? "max-w-xl w-full flex flex-col items-center space-y-6 my-auto z-10" : "w-full h-full flex flex-col"}>
-                          {isFocusMode && (
-                            <div className="text-center space-y-1">
-                              <span className="text-[10px] font-bold font-mono tracking-widest text-emerald-400 bg-emerald-950/40 border border-emerald-900 px-3 py-1 rounded-full uppercase">
-                                Deep Focus Realm
-                              </span>
-                              <h1 className="text-xl font-bold text-slate-200 uppercase tracking-widest mt-2">Unified Dao Heart</h1>
-                              <p className="text-xs text-slate-500">Eliminate distractions and focus entirely on mastering your studies.</p>
-                            </div>
-                          )}
+              <div className="h-4 w-px bg-[#E7E1D7] mx-1" />
 
-                          <MeditationTimer
-                            state={cultState}
-                            onMeditationComplete={handleMeditationComplete}
-                            onPassiveQiTick={handlePassiveQiTick}
-                            isFocusMode={isFocusMode}
-                            onToggleFocusMode={() => setIsFocusMode(!isFocusMode)}
-                            soundscape={soundscape}
-                            onSoundscapeChange={setSoundscape}
-                            onTimerStateChange={setIsPomodoroRunning}
-                          />
+              <span className="text-xs font-mono text-[#9C948A]">{getLocalDateString()}</span>
+            </div>
+          </header>
 
-                          {isFocusMode && (
-                            <>
-                              {/* Focusing task panel */}
-                              <div className="bg-[#0f141c] border border-slate-800/80 p-5 rounded-2xl w-full text-center space-y-3 shadow-xl">
-                                <h3 className="text-xs font-bold text-slate-200 flex items-center justify-center gap-1.5 uppercase">
-                                  <CheckCircle className="w-4 h-4 text-emerald-400" />
-                                  Current Focused Task
-                                </h3>
-
-                                {(() => {
-                                  const pendingFocusTasks = [
-                                    ...todoItems.filter(t => !t.isCompleted).map(t => ({ id: t.id, title: t.title })),
-                                    ...tasks.filter(t => !t.isCompleted).map(t => ({ id: t.id, title: t.title }))
-                                  ];
-                                  const selectedTask = pendingFocusTasks.find(t => t.id === focusSelectedTaskId);
-
-                                  return pendingFocusTasks.length > 0 ? (
-                                    <div className="space-y-3">
-                                      <select
-                                        value={focusSelectedTaskId}
-                                        onChange={(e) => setFocusSelectedTaskId(e.target.value)}
-                                        className="w-full bg-slate-950 border border-slate-900 rounded-lg px-3 py-2 text-xs text-slate-300 focus:outline-none focus:border-emerald-500 cursor-pointer"
-                                      >
-                                        <option value="">-- Select a task to focus on --</option>
-                                        {pendingFocusTasks.map(t => (
-                                          <option key={t.id} value={t.id}>{t.title}</option>
-                                        ))}
-                                      </select>
-
-                                      {selectedTask && (
-                                        <div className="p-3 bg-emerald-950/10 border border-emerald-900/30 rounded-xl flex items-center justify-between gap-3 text-left">
-                                          <span className="text-xs font-semibold text-slate-200">
-                                            {selectedTask.title}
-                                          </span>
-                                          <button
-                                            onClick={() => handleFocusTaskComplete(selectedTask.id)}
-                                            className="bg-emerald-600 hover:bg-emerald-700 text-slate-950 font-bold text-[10px] px-3 py-1.5 rounded-lg transition-colors cursor-pointer shrink-0"
-                                          >
-                                            COMPLETE
-                                          </button>
-                                        </div>
-                                      )}
-                                    </div>
-                                  ) : (
-                                    <p className="text-xs text-slate-500 italic">No pending tasks in your domain!</p>
-                                  );
-                                })()}
-                              </div>
-
-                              {/* Exit button */}
-                              <button
-                                onClick={() => setIsFocusMode(false)}
-                                className="text-[10px] text-slate-500 hover:text-rose-400 font-bold border border-slate-900 hover:border-rose-900/40 bg-slate-950/60 px-5 py-2 rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer"
-                              >
-                                <LogOut className="w-3.5 h-3.5" />
-                                EXIT SECLUSION (RETURN TO SECT)
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                      <TaskSection
-                        tasks={tasks}
-                        onAddTask={handleAddTask}
-                        onToggleTask={handleToggleTask}
-                        onDeleteTask={handleDeleteTask}
-                      />
-                    </div>
-
-                    <HabitSection
-                      habits={habits}
-                      onAddHabit={handleAddHabit}
-                      onToggleHabitDay={handleToggleHabitDay}
-                      onDeleteHabit={handleDeleteHabit}
-                    />
-                  </div>
-
-                  <div className="space-y-6">
-                    <StreakGrid dailyLogs={dailyLogs} todoItems={todoItems} totalMeditationMinutes={cultState.meditationMinutes} />
-
-                    <SpiritualGarden
-                      plants={gardenPlants}
-                      onClearGarden={() => setGardenPlants([])}
-                    />
-                  </div>
-                </div>
-
+          {/* Main Content Area */}
+          <main className="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#FBF8F2]">
+            <div className="w-full max-w-[1600px] mx-auto space-y-6">
+              {/* Tab: Tasks (Planner) */}
               <div className={activeTab !== 'TODOS' ? 'hidden' : ''} id="todos-tab-view">
                 <TodoSection
                   todoItems={todoItems}
@@ -2400,55 +1731,7 @@ export default function App() {
                 />
               </div>
 
-              <div className={activeTab !== 'SCHEDULE' ? 'hidden' : ''} id="schedule-tab-view">
-                <ScheduleSection
-                  manuals={manuals}
-                  onUpdateManuals={setManuals}
-                  calendarGroups={calendarGroups}
-                  onUpdateCalendarGroups={setCalendarGroups}
-                  calendarEvents={calendarEvents}
-                  onUpdateCalendarEvents={setCalendarEvents}
-                  todoItems={todoItems}
-                />
-              </div>
-
-              <div className={activeTab !== 'STORE' ? 'hidden' : ''}>
-                <TreasureStore
-                  state={cultState}
-                  onBuyItem={handleBuyItem}
-                  onUseConsumable={handleUseConsumable}
-                />
-              </div>
-
-
-              <div className={activeTab !== 'IELTS_ARENA' ? 'hidden' : ''}>
-                <IeltsMockTestLog
-                  logs={ieltsLogs}
-                  onAddLog={handleAddIeltsLog}
-                  onDeleteLog={handleDeleteIeltsLog}
-                  onUpdateLog={handleUpdateIeltsLog}
-                  targets={ieltsTargets}
-                  onUpdateTargets={setIeltsTargets}
-                  camBooks={camBooksList}
-                  onUpdateCamBooks={setCamBooksList}
-                  onAddExp={addExp}
-                />
-              </div>
-
-              <div className={activeTab !== 'TANG_KINH_CAC' ? 'hidden' : ''}>
-                <TangKinhCacSection onGainTuVi={addExp} />
-              </div>
-
-              <div className={activeTab !== 'CULT_PATH' ? 'hidden' : ''}>
-                <CultivationManualsSection
-                  manuals={manuals}
-                  onAddManual={(newManual) => setManuals(prev => [newManual, ...prev])}
-                  onUpdateManuals={setManuals}
-                  onAddExp={addExp}
-                  onAddTodo={handleAddTodo}
-                />
-              </div>
-
+              {/* Tab: Analytics */}
               <div className={activeTab !== 'ANALYTICS' ? 'hidden' : ''}>
                 <PerformanceStats
                   challenges={challenges}
@@ -2467,6 +1750,30 @@ export default function App() {
                 />
               </div>
 
+              {/* Tab: Schedule */}
+              <div className={activeTab !== 'SCHEDULE' ? 'hidden' : ''} id="schedule-tab-view">
+                <ScheduleSection
+                  manuals={manuals}
+                  onUpdateManuals={setManuals}
+                  calendarGroups={calendarGroups}
+                  onUpdateCalendarGroups={setCalendarGroups}
+                  calendarEvents={calendarEvents}
+                  onUpdateCalendarEvents={setCalendarEvents}
+                  todoItems={todoItems}
+                />
+              </div>
+
+              {/* Tab: Habits */}
+              <div className={activeTab !== 'HABITS' ? 'hidden' : ''} id="habits-tab-view">
+                <HabitSection
+                  habits={habits}
+                  onAddHabit={handleAddHabit}
+                  onToggleHabitDay={handleToggleHabitDay}
+                  onDeleteHabit={handleDeleteHabit}
+                />
+              </div>
+
+              {/* Tab: Grades */}
               <div className={activeTab !== 'GRADES' ? 'hidden' : ''}>
                 <GradeSection
                   subjects={gradeSubjects}
@@ -2484,8 +1791,39 @@ export default function App() {
                 />
               </div>
 
-          {/* 🔮 Thiên Cơ Các (AI Planner) */}
+              {/* Tab: IELTS */}
+              <div className={activeTab !== 'IELTS_ARENA' ? 'hidden' : ''}>
+                <IeltsMockTestLog
+                  logs={ieltsLogs}
+                  onAddLog={handleAddIeltsLog}
+                  onDeleteLog={handleDeleteIeltsLog}
+                  onUpdateLog={handleUpdateIeltsLog}
+                  targets={ieltsTargets}
+                  onUpdateTargets={setIeltsTargets}
+                  camBooks={camBooksList}
+                  onUpdateCamBooks={setCamBooksList}
+                  onAddExp={addExp}
+                />
+              </div>
+
+              {/* Tab: Roadmaps */}
+              <div className={activeTab !== 'CULT_PATH' ? 'hidden' : ''}>
+                <CultivationManualsSection
+                  manuals={manuals}
+                  onAddManual={(newManual) => setManuals(prev => [newManual, ...prev])}
+                  onUpdateManuals={setManuals}
+                  onAddExp={addExp}
+                  onAddTodo={handleAddTodo}
+                />
+              </div>
+            </div>
+          </main>
+
+
+          {/* Trợ lý AI học tập (Slide-over Panel) */}
           <AIPanel
+            isOpen={isAIOpen}
+            onClose={() => setIsAIOpen(false)}
             todoItems={todoItems}
             tasks={tasks}
             habits={habits}
@@ -2548,141 +1886,19 @@ export default function App() {
               setManuals(prev => [newManual, ...prev]);
             }}
           />
-            </div>
-          </main>
-          {/* ==================== CUSTOMIZE TAB ORDER MODAL ==================== */}
-          {showTabCustomizeModal && (
-            <div className="fixed inset-0 bg-slate-950/85 flex items-center justify-center z-50 p-4 select-none animate-fadeIn">
-              <div className="bg-[#0f141c] border-2 border-slate-950 p-6 rounded-2xl w-full max-w-md shadow-[6px_6px_0px_#000] relative flex flex-col max-h-[85vh]">
-                <button
-                  onClick={() => setShowTabCustomizeModal(false)}
-                  className="absolute top-4 right-4 text-slate-400 hover:text-slate-200 cursor-pointer"
-                >
-                  <X className="w-5 h-5" />
-                </button>
 
-                <div className="mb-4">
-                  <h3 className="text-xs font-black text-slate-100 uppercase tracking-widest font-mono flex items-center gap-2">
-                    <Settings className="w-5 h-5 text-amber-400 animate-spin-slow" />
-                    Customize Tab Order
-                  </h3>
-                  <p className="text-[10px] text-slate-500 mt-1">Rearrange tab navigation order as desired. Use up/down arrows to shift positions.</p>
-                </div>
-
-                <div className="flex-1 overflow-y-auto pr-1 space-y-2 min-h-0">
-                  {tabOrder.map((tabId, idx) => {
-                    const config = getTabConfig(tabId);
-                    if (!config.label) return null;
-
-                    const moveUp = () => {
-                      if (idx === 0) return;
-                      const nextOrder = [...tabOrder];
-                      const temp = nextOrder[idx];
-                      nextOrder[idx] = nextOrder[idx - 1];
-                      nextOrder[idx - 1] = temp;
-                      setTabOrder(nextOrder);
-                    };
-
-                    const moveDown = () => {
-                      if (idx === tabOrder.length - 1) return;
-                      const nextOrder = [...tabOrder];
-                      const temp = nextOrder[idx];
-                      nextOrder[idx] = nextOrder[idx + 1];
-                      nextOrder[idx + 1] = temp;
-                      setTabOrder(nextOrder);
-                    };
-
-                    return (
-                      <div 
-                        key={tabId}
-                        className="bg-slate-950/60 border border-slate-900 p-2.5 rounded-xl flex items-center justify-between gap-3 text-xs"
-                      >
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className="text-[10px] text-slate-600 font-mono font-bold w-4">#{idx + 1}</span>
-                          <span className="shrink-0">{config.icon}</span>
-                          <span className="font-extrabold text-slate-250 truncate">{config.label}</span>
-                        </div>
-
-                        <div className="flex items-center gap-1 shrink-0">
-                          <button
-                            type="button"
-                            onClick={moveUp}
-                            disabled={idx === 0}
-                            className={`p-1.5 rounded-lg border border-slate-900 flex items-center justify-center transition-colors ${
-                              idx === 0
-                                ? 'bg-slate-950 text-slate-700 cursor-not-allowed opacity-40'
-                                : 'bg-[#131924] text-slate-400 hover:text-slate-200 hover:bg-slate-900 cursor-pointer'
-                            }`}
-                            title="Move up"
-                          >
-                            <ArrowUp className="w-3.5 h-3.5" />
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={moveDown}
-                            disabled={idx === tabOrder.length - 1}
-                            className={`p-1.5 rounded-lg border border-slate-900 flex items-center justify-center transition-colors ${
-                              idx === tabOrder.length - 1
-                                ? 'bg-slate-950 text-slate-700 cursor-not-allowed opacity-40'
-                                : 'bg-[#131924] text-slate-400 hover:text-slate-200 hover:bg-slate-900 cursor-pointer'
-                            }`}
-                            title="Move down"
-                          >
-                            <ArrowDown className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <div className="pt-4 border-t border-slate-900 shrink-0 mt-4">
-                  <button
-                    onClick={() => setShowTabCustomizeModal(false)}
-                    className="w-full py-2 bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-black rounded-xl border-2 border-slate-950 uppercase tracking-wider text-[11px] transition-all shadow-[2px_2px_0px_#000] active:translate-y-[1px] active:shadow-none cursor-pointer"
-                  >
-                    Done
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-
-
-          {/* Daily Rituals Dedicated Modal */}
-          <DailyRitualsModal
-            isOpen={activeRitualModal !== 'NONE'}
-            onClose={() => setActiveRitualModal('NONE')}
-            initialType={activeRitualModal === 'REFLECTION' ? 'REFLECTION' : 'PLANNING'}
-            todoItems={todoItems}
-            dailyLogs={dailyLogs}
-            onSyncTodos={setTodoItems}
-            onAddExp={addExp}
-            onCompletePlanning={setPlanningCompletedDate}
-            onCompleteReflection={setReflectionCompletedDate}
+          {/* Web Blocker Modal */}
+          <WebBlockerModal
+            isOpen={isWebBlockerOpen}
+            onClose={() => setIsWebBlockerOpen(false)}
+            isBlocking={isWebBlockerActive}
+            onToggleBlocking={handleToggleWebBlocker}
           />
 
-          {/* Achievements Modal */}
-          <AchievementsModal
-            isOpen={isAchievementsModalOpen}
-            onClose={() => setIsAchievementsModalOpen(false)}
-            state={cultState}
-            currentStreak={getStreakFromLogs(dailyLogs)}
-            gardenPlantsCount={gardenPlants.length}
-            notesCount={notes.length}
-            timeBlocksCount={timeBlocks.length}
-            manualsCount={manuals.length}
-            cpaScore={cpaOverall}
-            onClaimAchievement={handleClaimAchievement}
-            onEquipTitle={handleEquipTitle}
-          />
-
-          {/* User Guide Interactive Documentation Modal */}
-          <UserGuideModal
-            isOpen={isUserGuideOpen}
-            onClose={() => setIsUserGuideOpen(false)}
+          {/* Studocu Downloader Modal */}
+          <StudocuModal
+            isOpen={isStudocuOpen}
+            onClose={() => setIsStudocuOpen(false)}
           />
         </div>
       </div>
