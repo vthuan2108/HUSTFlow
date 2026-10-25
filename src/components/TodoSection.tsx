@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { TodoItem, Priority, normalizePriority, getTodoPriority } from '../types';
 import {
   Plus,
@@ -28,7 +28,9 @@ import {
   AlertTriangle,
   Filter,
   FileSpreadsheet,
-  Sparkles
+  Sparkles,
+  ChevronDown,
+  Wrench
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { initAuth, googleSignIn, logout, getAccessToken } from '../lib/firebase';
@@ -401,6 +403,22 @@ export default function TodoSection({
   }, [todoItems]);
 
   const [isDeduplicating, setIsDeduplicating] = useState(false);
+  const [showToolsDropdown, setShowToolsDropdown] = useState(false);
+  const toolsDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (toolsDropdownRef.current && !toolsDropdownRef.current.contains(event.target as Node)) {
+        setShowToolsDropdown(false);
+      }
+    }
+    if (showToolsDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showToolsDropdown]);
 
   const handleDeduplicateTodos = async () => {
     if (duplicateTodosCount === 0 || isDeduplicating) return;
@@ -1583,43 +1601,113 @@ export default function TodoSection({
               </button>
             )}
 
-            {/* Dọn việc trùng button */}
-            {duplicateTodosCount > 0 && (
+            {/* Tools Consolidated Dropdown */}
+            <div className="relative" ref={toolsDropdownRef}>
               <button
-                onClick={handleDeduplicateTodos}
-                disabled={isDeduplicating}
-                className="flex items-center gap-1 px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-xl text-xs font-semibold transition-colors cursor-pointer shadow-xs animate-pulse disabled:opacity-50"
-                title={`Phát hiện ${duplicateTodosCount} việc trùng lặp (cùng tên và ngày). Bấm để dọn dẹp ngay!`}
+                onClick={() => setShowToolsDropdown(prev => !prev)}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer border ${
+                  showToolsDropdown
+                    ? 'bg-[#EAE5DC] text-[#2C2825] border-[#D5CDC2]'
+                    : 'bg-[#FAF8F5] hover:bg-[#F2EFE9] text-[#5C554B] hover:text-[#2C2825] border-[#E7E1D7]'
+                }`}
+                title="Công cụ: Xóa trùng lặp, Xóa hàng loạt, Dán từ Excel"
               >
-                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                <span>{isDeduplicating ? 'Đang dọn...' : `Dọn ${duplicateTodosCount} việc trùng`}</span>
+                <Wrench className="w-3.5 h-3.5 text-[#5C554B]" />
+                <span>Tools</span>
+                {duplicateTodosCount > 0 && (
+                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" title={`${duplicateTodosCount} việc trùng lặp`} />
+                )}
+                <ChevronDown className={`w-3 h-3 text-[#8A8177] transition-transform duration-200 ${showToolsDropdown ? 'rotate-180' : ''}`} />
               </button>
-            )}
 
-            {/* Xóa hàng loạt button */}
-            <button
-              onClick={() => setShowBulkDeleteModal(true)}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-[#FAF8F5] hover:bg-rose-50 text-[#7A7268] hover:text-rose-600 border border-[#E7E1D7] hover:border-rose-200 rounded-xl text-xs font-medium transition-colors cursor-pointer"
-              title="Xóa công việc hàng loạt theo tuần, tháng hoặc trạng thái"
-            >
-              <Trash2 className="w-3.5 h-3.5 text-rose-500" />
-              <span>Xóa hàng loạt</span>
-            </button>
+              <AnimatePresence>
+                {showToolsDropdown && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 top-full mt-1.5 w-64 bg-white border border-[#E7E1D7] rounded-2xl shadow-xl p-1.5 z-40 space-y-1"
+                  >
+                    {/* Item 1: Xóa trùng lặp */}
+                    <button
+                      onClick={() => {
+                        setShowToolsDropdown(false);
+                        handleDeduplicateTodos();
+                      }}
+                      disabled={isDeduplicating || duplicateTodosCount === 0}
+                      className={`w-full flex items-start gap-2.5 p-2 rounded-xl text-left transition-colors ${
+                        duplicateTodosCount > 0
+                          ? 'hover:bg-amber-50/80 cursor-pointer group/item'
+                          : 'opacity-50 cursor-not-allowed hover:bg-stone-50'
+                      }`}
+                    >
+                      <div className={`p-1.5 rounded-lg shrink-0 mt-0.5 ${
+                        duplicateTodosCount > 0 ? 'bg-amber-100 text-amber-700' : 'bg-stone-100 text-stone-400'
+                      }`}>
+                        <Sparkles className="w-3.5 h-3.5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-semibold text-[#2C2825]">Xóa trùng lặp</span>
+                          {duplicateTodosCount > 0 && (
+                            <span className="px-1.5 py-0.2 rounded-md bg-amber-100 text-amber-800 text-[10px] font-bold">
+                              {duplicateTodosCount} việc
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-[#8A8177] leading-tight mt-0.5">
+                          {duplicateTodosCount > 0
+                            ? `Dọn dẹp ${duplicateTodosCount} việc trùng cùng tên & ngày`
+                            : 'Không phát hiện việc trùng lặp'}
+                        </p>
+                      </div>
+                    </button>
 
-            {/* Dán từ Excel button */}
-            <button
-              onClick={() => {
-                setExcelDefaultProject(projects[0] || 'Chung');
-                setExcelPastedText('');
-                setExcelParsedRows([]);
-                setShowExcelImportModal(true);
-              }}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-[#FAF8F5] hover:bg-[#EEF5EE] text-[#5C554B] hover:text-[#2E6930] border border-[#E7E1D7] hover:border-[#2E6930]/40 rounded-xl text-xs font-medium transition-colors cursor-pointer"
-              title="Dán 2 cột từ Excel: Ngày thực hiện & Tên công việc"
-            >
-              <FileSpreadsheet className="w-3.5 h-3.5 text-[#2E6930]" />
-              <span className="hidden sm:inline">Dán từ Excel</span>
-            </button>
+                    {/* Item 2: Xóa hàng loạt */}
+                    <button
+                      onClick={() => {
+                        setShowToolsDropdown(false);
+                        setShowBulkDeleteModal(true);
+                      }}
+                      className="w-full flex items-start gap-2.5 p-2 rounded-xl text-left hover:bg-rose-50/80 transition-colors cursor-pointer group/item"
+                    >
+                      <div className="p-1.5 rounded-lg bg-rose-100 text-rose-600 shrink-0 mt-0.5">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-xs font-semibold text-[#2C2825] group-hover/item:text-rose-700">Xóa hàng loạt</span>
+                        <p className="text-[11px] text-[#8A8177] leading-tight mt-0.5">
+                          Xóa theo tuần, tháng hoặc trạng thái
+                        </p>
+                      </div>
+                    </button>
+
+                    {/* Item 3: Dán từ Excel */}
+                    <button
+                      onClick={() => {
+                        setShowToolsDropdown(false);
+                        setExcelDefaultProject(projects[0] || 'Chung');
+                        setExcelPastedText('');
+                        setExcelParsedRows([]);
+                        setShowExcelImportModal(true);
+                      }}
+                      className="w-full flex items-start gap-2.5 p-2 rounded-xl text-left hover:bg-[#EEF5EE] transition-colors cursor-pointer group/item"
+                    >
+                      <div className="p-1.5 rounded-lg bg-[#E2EFE2] text-[#2E6930] shrink-0 mt-0.5">
+                        <FileSpreadsheet className="w-3.5 h-3.5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-xs font-semibold text-[#2C2825] group-hover/item:text-[#2E6930]">Dán từ Excel</span>
+                        <p className="text-[11px] text-[#8A8177] leading-tight mt-0.5">
+                          Nhập tự động 2 cột Ngày & Công việc
+                        </p>
+                      </div>
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
             {/* Google Tasks Sync */}
             {isLoggedIn ? (
@@ -2404,10 +2492,10 @@ export default function TodoSection({
                 <div className="space-y-1">
                   <h3 className="text-base font-bold text-[#2C2825] flex items-center gap-2">
                     <CalendarClock className="w-4 h-4 text-[#B85D38]" />
-                    <span>Dời nhiệm vụ sang hôm nay</span>
+                    <span>Chuyển nhiệm vụ quá hạn</span>
                   </h3>
                   <p className="text-xs text-[#7A7268]">
-                    Chọn các nhiệm vụ chưa hoàn thành bạn muốn dời sang hôm nay ({todayStr})
+                    Dời sang hôm nay ({todayStr}) hoặc chuyển vào Chưa xếp ngày (Backlog)
                   </p>
                 </div>
                 <button
@@ -2490,13 +2578,41 @@ export default function TodoSection({
                 })}
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#E7E1D7]">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#E7E1D7] flex-wrap">
                 <button
                   type="button"
                   onClick={() => setShowRollOverModal(false)}
-                  className="px-4 py-2 bg-[#FAF8F5] hover:bg-[#F2EFE9] text-[#7A7268] border border-[#E7E1D7] rounded-xl text-xs font-medium cursor-pointer transition-colors"
+                  className="px-3.5 py-2 bg-[#FAF8F5] hover:bg-[#F2EFE9] text-[#7A7268] border border-[#E7E1D7] rounded-xl text-xs font-medium cursor-pointer transition-colors"
                 >
                   Hủy
+                </button>
+                <button
+                  type="button"
+                  disabled={selectedRollOverIds.length === 0}
+                  onClick={async () => {
+                    if (selectedRollOverIds.length === 0) return;
+                    const selectedSet = new Set(selectedRollOverIds);
+                    const updated = todoItems.map(t => {
+                      if (selectedSet.has(t.id)) {
+                        if (t.googleTaskId && isLoggedIn) {
+                          const token = getAccessToken();
+                          if (token) {
+                            patchTaskOnGoogle(token, t.googleTaskId, { dueDate: '' });
+                          }
+                        }
+                        return { ...t, dueDate: undefined };
+                      }
+                      return t;
+                    });
+                    onSyncTodos(updated);
+                    setShowRollOverModal(false);
+                    setClipboardNotice(`Đã chuyển ${selectedRollOverIds.length} việc qua chỗ Chưa xếp ngày!`);
+                    setTimeout(() => setClipboardNotice(null), 3500);
+                  }}
+                  className="px-3.5 py-2 bg-[#FAF8F5] hover:bg-[#F2EFE9] text-[#5C554B] hover:text-[#2C2825] border border-[#E7E1D7] rounded-xl text-xs font-semibold cursor-pointer transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
+                >
+                  <Inbox className="w-3.5 h-3.5 text-[#7A7268]" />
+                  <span>Chuyển vào Chưa xếp ngày</span>
                 </button>
                 <button
                   type="button"
@@ -2518,6 +2634,8 @@ export default function TodoSection({
                     });
                     onSyncTodos(updated);
                     setShowRollOverModal(false);
+                    setClipboardNotice(`Đã dời ${selectedRollOverIds.length} việc sang hôm nay!`);
+                    setTimeout(() => setClipboardNotice(null), 3500);
                   }}
                   className="px-4 py-2 bg-[#2E6930] hover:bg-[#255427] text-white rounded-xl text-xs font-semibold cursor-pointer transition-all shadow-xs disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5"
                 >
