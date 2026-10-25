@@ -27,7 +27,8 @@ import {
   MoreHorizontal,
   AlertTriangle,
   Filter,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Sparkles
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { initAuth, googleSignIn, logout, getAccessToken } from '../lib/firebase';
@@ -199,7 +200,16 @@ interface MasterTask {
   project: string;
 }
 
-const DUMMY_PROJECTS = new Set(['beaverplans', 'linear algebra', 'piano', 'lck']);
+const DUMMY_PROJECTS = new Set([
+  'beaverplans', 'linear algebra', 'piano', 'lck',
+  'hustflow', 'chung', 'tasks', 'my tasks', 'default', '@default'
+]);
+
+export const isGenericProject = (p?: string) => {
+  if (!p) return true;
+  const s = p.trim().toLowerCase();
+  return ['chung', 'hustflow', 'mytasks', 'my tasks', 'default', '@default', 'tasks'].includes(s);
+};
 const DUMMY_TITLES = new Set([
   'color polish', 'finalize copy', 'improve sync', 'ui polish', 'release polish', 'official release?',
   'read chap 3', 'do homework', 'review lecture notes', 'practice sessions', 'weekly lessons',
@@ -356,6 +366,111 @@ export default function TodoSection({
   const [excelParsedRows, setExcelParsedRows] = useState<ParsedTaskRow[]>([]);
   const [excelDefaultProject, setExcelDefaultProject] = useState('Chung');
   const [isImportingExcel, setIsImportingExcel] = useState(false);
+
+  // Migrate legacy projects (e.g. HUSTFlow) to clean empty string once on mount
+  useEffect(() => {
+    let changed = false;
+    const cleaned = todoItems.map(t => {
+      if (t.project && isGenericProject(t.project)) {
+        changed = true;
+        return { ...t, project: '' };
+      }
+      return t;
+    });
+    if (changed) {
+      onSyncTodos(cleaned);
+    }
+  }, []);
+
+  // Detect duplicate tasks (same normalized title and dueDate)
+  const duplicateTodosCount = useMemo(() => {
+    const seen = new Set<string>();
+    let dupCount = 0;
+    todoItems.forEach(t => {
+      const titleKey = (t.title || '').trim().toLowerCase();
+      const dateKey = t.dueDate || '';
+      if (!titleKey) return;
+      const key = `${titleKey}__${dateKey}`;
+      if (seen.has(key)) {
+        dupCount++;
+      } else {
+        seen.add(key);
+      }
+    });
+    return dupCount;
+  }, [todoItems]);
+
+  const [isDeduplicating, setIsDeduplicating] = useState(false);
+
+  const handleDeduplicateTodos = async () => {
+    if (duplicateTodosCount === 0 || isDeduplicating) return;
+    setIsDeduplicating(true);
+
+    try {
+      const groups = new Map<string, TodoItem[]>();
+      todoItems.forEach(t => {
+        const titleKey = (t.title || '').trim().toLowerCase();
+        const dateKey = t.dueDate || '';
+        const key = `${titleKey}__${dateKey}`;
+        if (!groups.has(key)) {
+          groups.set(key, []);
+        }
+        groups.get(key)!.push(t);
+      });
+
+      const uniqueTodos: TodoItem[] = [];
+      const idsToDeleteOnGoogle: { id: string; listId?: string }[] = [];
+
+      groups.forEach((items) => {
+        if (items.length === 1) {
+          uniqueTodos.push(items[0]);
+        } else {
+          // Keep best item:
+          // 1) Completed
+          // 2) Has googleTaskId
+          // 3) First created
+          const sorted = [...items].sort((a, b) => {
+            if (a.isCompleted !== b.isCompleted) return a.isCompleted ? -1 : 1;
+            if (Boolean(a.googleTaskId) !== Boolean(b.googleTaskId)) return a.googleTaskId ? -1 : 1;
+            return 0;
+          });
+
+          const kept = sorted[0];
+          uniqueTodos.push(kept);
+
+          for (let i = 1; i < sorted.length; i++) {
+            const dup = sorted[i];
+            if (dup.googleTaskId) {
+              idsToDeleteOnGoogle.push({ id: dup.googleTaskId, listId: dup.googleTaskListId });
+            }
+          }
+        }
+      });
+
+      onSyncTodos(uniqueTodos);
+
+      // Clean from Google Tasks
+      if (isLoggedIn && idsToDeleteOnGoogle.length > 0) {
+        const token = getAccessToken();
+        if (token) {
+          for (const item of idsToDeleteOnGoogle) {
+            try {
+              await deleteTaskOnGoogle(token, item.id, item.listId);
+            } catch (e) {
+              console.warn('Failed to delete duplicate on Google Tasks:', e);
+            }
+          }
+        }
+      }
+
+      setClipboardNotice(`Đã dọn dẹp thành công ${duplicateTodosCount} nhiệm vụ trùng lặp!`);
+      setTimeout(() => setClipboardNotice(null), 3500);
+    } catch (err) {
+      console.error('Deduplication error:', err);
+    } finally {
+      setIsDeduplicating(false);
+    }
+  };
 
   // Initialize auth state
   useEffect(() => {
@@ -1158,7 +1273,8 @@ export default function TodoSection({
         <div className="flex-1 overflow-y-auto space-y-1.5 pr-0.5 min-h-0 py-0.5 scrollbar-thin">
           {dayItems.length > 0 ? (
             dayItems.map(item => {
-              const displayProject = item.project || item.googleTaskListName || 'CHUNG';
+              const rawProject = item.project || (!isGenericProject(item.googleTaskListName) ? item.googleTaskListName : '');
+              const displayProject = isGenericProject(rawProject) ? '' : rawProject;
 
               return (
                 <div
@@ -1187,10 +1303,12 @@ export default function TodoSection({
                   {/* Task Content */}
                   <div className="flex-1 min-w-0">
                     {/* Top Tag: Project name in tiny uppercase + dot-menu */}
-                    <div className="flex items-center justify-between text-[8.5px] font-bold uppercase tracking-wider text-[#8A8177] mb-0.5">
-                      <span className="truncate max-w-[110px]" title={displayProject}>
-                        {displayProject}
-                      </span>
+                    <div className="flex items-center justify-between text-[8.5px] font-bold uppercase tracking-wider text-[#8A8177] mb-0.5 min-h-[14px]">
+                      {displayProject ? (
+                        <span className="truncate max-w-[110px]" title={displayProject}>
+                          {displayProject}
+                        </span>
+                      ) : <span />}
                       <div className="opacity-0 group-hover/todo:opacity-100 flex items-center gap-1 transition-opacity shrink-0">
                         <button
                           onClick={(e) => {
@@ -1343,10 +1461,12 @@ export default function TodoSection({
                 </button>
 
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between text-[8.5px] font-bold uppercase tracking-wider text-[#8A8177] mb-0.5">
-                    <span className="truncate max-w-[110px]">
-                      {item.project || 'CHUNG'}
-                    </span>
+                  <div className="flex items-center justify-between text-[8.5px] font-bold uppercase tracking-wider text-[#8A8177] mb-0.5 min-h-[14px]">
+                    {item.project && !isGenericProject(item.project) ? (
+                      <span className="truncate max-w-[110px]">
+                        {item.project}
+                      </span>
+                    ) : <span />}
                     <div className="opacity-0 group-hover/todo:opacity-100 flex items-center gap-1 transition-opacity shrink-0">
                       <button onClick={() => startEditing(item)} className="text-[#8C827A] hover:text-[#2C2825]">
                         <Pencil className="w-2.5 h-2.5" />
@@ -1460,6 +1580,19 @@ export default function TodoSection({
               >
                 <CalendarClock className="w-3.5 h-3.5" />
                 <span>Chuyển việc ({overdueTodos.length})</span>
+              </button>
+            )}
+
+            {/* Dọn việc trùng button */}
+            {duplicateTodosCount > 0 && (
+              <button
+                onClick={handleDeduplicateTodos}
+                disabled={isDeduplicating}
+                className="flex items-center gap-1 px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-xl text-xs font-semibold transition-colors cursor-pointer shadow-xs animate-pulse disabled:opacity-50"
+                title={`Phát hiện ${duplicateTodosCount} việc trùng lặp (cùng tên và ngày). Bấm để dọn dẹp ngay!`}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                <span>{isDeduplicating ? 'Đang dọn...' : `Dọn ${duplicateTodosCount} việc trùng`}</span>
               </button>
             )}
 

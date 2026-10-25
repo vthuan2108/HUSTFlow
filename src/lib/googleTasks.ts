@@ -128,20 +128,28 @@ export async function syncGoogleTasks(
     let addedCount = 0;
     let updatedCount = 0;
 
-    // Index Google Tasks by ID and normalized Title
+    // Index Google Tasks by ID, normalized (Title + Date), and normalized Title
     const googleMapById = new Map<string, any>();
+    const googleMapByTitleAndDate = new Map<string, any>();
     const googleMapByTitle = new Map<string, any>();
 
     googleTasks.forEach((gt: any) => {
       googleMapById.set(gt.id, gt);
       const titleKey = (gt.title || '').trim().toLowerCase();
+      const dateKey = gt.due ? gt.due.split('T')[0] : '';
       if (titleKey && !gt.parent) {
-        googleMapByTitle.set(titleKey, gt);
+        if (dateKey) {
+          googleMapByTitleAndDate.set(`${titleKey}__${dateKey}`, gt);
+        }
+        if (!googleMapByTitle.has(titleKey)) {
+          googleMapByTitle.set(titleKey, gt);
+        }
       }
     });
 
     // 5. Step A: Match local todos against Google Tasks
     const matchedLocalTodos: TodoItem[] = [];
+    const usedGoogleIds = new Set<string>();
 
     for (let i = 0; i < localTodos.length; i++) {
       const todo = { ...localTodos[i], type: 'DAY' as const };
@@ -151,12 +159,22 @@ export async function syncGoogleTasks(
         matchedGoogleTask = googleMapById.get(todo.googleTaskId);
       } else {
         const localTitleKey = (todo.title || '').trim().toLowerCase();
-        if (localTitleKey && googleMapByTitle.has(localTitleKey)) {
-          matchedGoogleTask = googleMapByTitle.get(localTitleKey);
+        const localDateKey = todo.dueDate || '';
+        if (localTitleKey && localDateKey && googleMapByTitleAndDate.has(`${localTitleKey}__${localDateKey}`)) {
+          const candidate = googleMapByTitleAndDate.get(`${localTitleKey}__${localDateKey}`);
+          if (!usedGoogleIds.has(candidate.id)) {
+            matchedGoogleTask = candidate;
+          }
+        } else if (localTitleKey && googleMapByTitle.has(localTitleKey)) {
+          const candidate = googleMapByTitle.get(localTitleKey);
+          if (!usedGoogleIds.has(candidate.id)) {
+            matchedGoogleTask = candidate;
+          }
         }
       }
 
       if (matchedGoogleTask) {
+        usedGoogleIds.add(matchedGoogleTask.id);
         // Link up IDs and List metadata
         todo.googleTaskId = matchedGoogleTask.id;
         todo.googleTaskListId = matchedGoogleTask._listId;
@@ -226,6 +244,9 @@ export async function syncGoogleTasks(
 
     // 6. Step B: Pull tasks from Google Tasks that do not exist locally
     const localGoogleIds = new Set(matchedLocalTodos.map(t => t.googleTaskId).filter(Boolean));
+    const localTitleDateSet = new Set(
+      matchedLocalTodos.map(t => `${(t.title || '').trim().toLowerCase()}__${t.dueDate || ''}`)
+    );
     const syncedTodos = [...matchedLocalTodos];
 
     for (const gt of googleTasks) {
@@ -237,9 +258,20 @@ export async function syncGoogleTasks(
           dueDate = gt.due.split('T')[0];
         }
 
+        const titleKey = (gt.title || '').trim().toLowerCase();
+        const titleDateKey = `${titleKey}__${dueDate || ''}`;
+
+        // Deduplication: If local already has a task with identical title and dueDate, do NOT pull duplicate!
+        if (titleKey && localTitleDateSet.has(titleDateKey)) {
+          continue;
+        }
+
         const isCompleted = gt.status === 'completed';
         const completedAt = isCompleted ? (gt.completed || gt.updated || new Date().toISOString()) : undefined;
         const createdAt = gt.updated || (isCompleted ? completedAt : new Date().toISOString());
+
+        const listTitle = gt._listTitle || '';
+        const isGenericList = ['tasks', 'my tasks', '@default', 'default', 'chung', 'hustflow'].includes(listTitle.toLowerCase());
 
         const pulledTodo: TodoItem = {
           id: `todo_pulled_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
@@ -255,10 +287,11 @@ export async function syncGoogleTasks(
           googleTaskListName: gt._listTitle,
           dueDate,
           difficulty: 'SO_CAP',
-          project: gt._listTitle || 'beaverplans'
+          project: isGenericList ? '' : listTitle
         };
 
         syncedTodos.push(pulledTodo);
+        localTitleDateSet.add(titleDateKey);
         addedCount++;
       }
     }

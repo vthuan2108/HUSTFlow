@@ -1338,7 +1338,7 @@ export default function App() {
       dueDate: dueDate || getLocalDateString(),
       googleTaskId,
       difficulty: normPriority,
-      project: project?.trim() || 'HUSTFlow'
+      project: project?.trim() || ''
     };
     setTodoItems(prev => [newTodo, ...prev]);
   };
