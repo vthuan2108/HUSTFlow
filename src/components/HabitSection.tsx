@@ -118,7 +118,7 @@ export default function HabitSection({ habits, onAddHabit, onToggleHabitDay, onD
     <div className="space-y-5" id="habit-section">
       {/* 1. Header & Overview KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-        <div className="bg-white border border-[#E7E1D7] rounded-xl p-5 shadow-xs flex flex-col justify-between">
+        <div className="bg-white border border-[#E7E1D7] rounded-xl p-3.5 sm:p-5 shadow-xs flex flex-col justify-between">
           <p className="text-[11px] uppercase tracking-wider font-semibold text-[#7A7268]">
             TỔNG THÓI QUEN
           </p>
@@ -128,7 +128,7 @@ export default function HabitSection({ habits, onAddHabit, onToggleHabitDay, onD
           </div>
         </div>
 
-        <div className="bg-white border border-[#E7E1D7] rounded-xl p-5 shadow-xs flex flex-col justify-between">
+        <div className="bg-white border border-[#E7E1D7] rounded-xl p-3.5 sm:p-5 shadow-xs flex flex-col justify-between">
           <p className="text-[11px] uppercase tracking-wider font-semibold text-[#7A7268]">
             HOÀN THÀNH HÔM NAY
           </p>
@@ -140,7 +140,7 @@ export default function HabitSection({ habits, onAddHabit, onToggleHabitDay, onD
           </div>
         </div>
 
-        <div className="bg-white border border-[#E7E1D7] rounded-xl p-5 shadow-xs flex flex-col justify-between">
+        <div className="bg-white border border-[#E7E1D7] rounded-xl p-3.5 sm:p-5 shadow-xs flex flex-col justify-between">
           <p className="text-[11px] uppercase tracking-wider font-semibold text-[#7A7268]">
             CHUỖI NGÀY CAO NHẤT
           </p>
@@ -152,7 +152,7 @@ export default function HabitSection({ habits, onAddHabit, onToggleHabitDay, onD
       </div>
 
       {/* 2. Main Habit Management Card */}
-      <div className="bg-white border border-[#E7E1D7] rounded-2xl p-5 sm:p-6 shadow-xs space-y-5">
+      <div className="bg-white border border-[#E7E1D7] rounded-2xl p-3.5 sm:p-6 shadow-xs space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#EFECE6]">
           <div>
             <h3 className="text-sm font-bold text-[#2C2825] flex items-center gap-2">
@@ -251,7 +251,7 @@ export default function HabitSection({ habits, onAddHabit, onToggleHabitDay, onD
               return (
                 <div
                   key={habit.id}
-                  className="bg-[#FAF8F5] hover:bg-[#F5F2EC] border border-[#E7E1D7] p-4 rounded-xl transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs"
+                  className="bg-[#FAF8F5] hover:bg-[#F5F2EC] border border-[#E7E1D7] p-3 sm:p-4 rounded-xl transition-all flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-4 shadow-xs"
                 >
                   {/* Left: Info & Streak */}
                   <div className="min-w-0 flex-1 space-y-1">
@@ -274,9 +274,9 @@ export default function HabitSection({ habits, onAddHabit, onToggleHabitDay, onD
                   </div>
 
                   {/* Right: 7-Day History Circles + Quick Checkin + Delete */}
-                  <div className="flex items-center gap-4 shrink-0 flex-wrap sm:flex-nowrap justify-between md:justify-end">
+                  <div className="flex items-center gap-2.5 sm:gap-4 md:shrink-0 flex-wrap sm:flex-nowrap justify-between md:justify-end">
                     {/* 7 Days of Current Week */}
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto max-w-full">
                       {weekDays.map(day => {
                         const isDone = !!habit.history[day.dateStr];
                         return (

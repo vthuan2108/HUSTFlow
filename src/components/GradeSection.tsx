@@ -333,7 +333,7 @@ export default function GradeSection({
     <div className="space-y-6" id="grade-section-view">
       
       {/* ── SECTION 1: HEADER & GOOGLE SHEETS SETUP ── */}
-      <div className="bg-white border border-[#E7E1D7] p-5 rounded-2xl shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white border border-[#E7E1D7] p-3.5 md:p-5 rounded-2xl shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <h2 className="text-sm font-bold text-[#2C2825] flex items-center gap-2">
             <GraduationCap className="w-4 h-4 text-[#2E6930]" />
@@ -346,7 +346,7 @@ export default function GradeSection({
 
         <div className="flex flex-wrap items-center gap-3">
           {editingConfig ? (
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
               <input
                 type="text"
                 value={sheetInput}
@@ -373,12 +373,12 @@ export default function GradeSection({
               {errorMsg && <p className="text-rose-600 text-[10px] block mt-1 font-semibold">{errorMsg}</p>}
             </div>
           ) : (
-            <div className="flex items-center gap-2 bg-[#FAF8F5] border border-[#E7E1D7] px-3.5 py-1.5 rounded-xl shadow-xs">
+            <div className="flex items-center gap-2 bg-[#FAF8F5] border border-[#E7E1D7] px-3.5 py-1.5 rounded-xl shadow-xs max-w-full min-w-0">
               <span className="w-2 h-2 rounded-full bg-[#2E6930] shrink-0" />
-              <span className="text-xs text-[#57534E] font-mono truncate max-w-[200px]">ID: {spreadsheetId}</span>
+              <span className="text-xs text-[#57534E] font-mono truncate max-w-[140px] sm:max-w-[200px]">ID: {spreadsheetId}</span>
               <button
                 onClick={() => setEditingConfig(true)}
-                className="text-xs text-[#2E6930] hover:underline font-medium ml-2 cursor-pointer"
+                className="text-xs text-[#2E6930] hover:underline font-medium ml-2 cursor-pointer shrink-0"
               >
                 Đổi link
               </button>
@@ -419,9 +419,9 @@ export default function GradeSection({
 
       {/* Helper guide link */}
       {!spreadsheetId && (
-        <div className="bg-amber-50/60 border border-amber-200/80 p-4 rounded-2xl flex gap-3 text-xs text-amber-900 leading-relaxed font-sans">
+        <div className="bg-amber-50/60 border border-amber-200/80 p-3.5 md:p-4 rounded-2xl flex gap-3 text-xs text-amber-900 leading-relaxed font-sans">
           <HelpCircle className="w-5 h-5 text-amber-700 shrink-0" />
-          <div className="space-y-1">
+          <div className="space-y-1 min-w-0 break-words">
             <p className="font-semibold text-amber-950">Bạn chưa liên kết Google Sheet để quản lý điểm!</p>
             <p>
               1. Nhấn vào đây để tạo bản sao mẫu: <a href="https://docs.google.com/spreadsheets/d/1In58O2CMig4yO6PpufTrDrbKIjyPXQDgVEV7XcAGk7U/copy" target="_blank" rel="noreferrer" className="underline text-[#2E6930] font-semibold hover:opacity-80">Sao chép mẫu bảng điểm Google Sheet ➔</a>
@@ -437,7 +437,7 @@ export default function GradeSection({
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-stretch">
         
         {/* CPA Large Dashboard Box */}
-        <div className="lg:col-span-1 bg-white border border-[#E7E1D7] p-6 flex flex-col justify-center items-center text-center shadow-xs rounded-2xl select-none">
+        <div className="lg:col-span-1 bg-white border border-[#E7E1D7] p-4 md:p-6 flex flex-col justify-center items-center text-center shadow-xs rounded-2xl select-none">
           <span className="text-[10px] uppercase tracking-wider font-semibold text-[#8C827A] mb-1">CPA TÍCH LŨY</span>
           <span className="text-5xl font-black font-mono text-[#B85D38] leading-none tracking-tight">
             {safeCpaOverall.toFixed(2)}
@@ -453,7 +453,7 @@ export default function GradeSection({
         </div>
 
         {/* GPA Semester Winding Timeline */}
-        <div className="lg:col-span-3 bg-white border border-[#E7E1D7] p-5 rounded-2xl shadow-xs flex flex-col justify-between">
+        <div className="lg:col-span-3 bg-white border border-[#E7E1D7] p-3.5 md:p-5 rounded-2xl shadow-xs flex flex-col justify-between min-w-0">
           <div className="border-b border-[#EFECE6] pb-2.5 mb-4">
             <h3 className="text-xs font-bold text-[#2C2825] uppercase tracking-wider flex items-center gap-1.5">
               GPA từng kỳ (Tiến trình)
@@ -466,7 +466,8 @@ export default function GradeSection({
               <span>Chưa có dữ liệu học kỳ. Nhấn "Đồng bộ 2 chiều" để tải điểm từ Google Sheets.</span>
             </div>
           ) : (
-            <div className="flex flex-col gap-10 p-2 relative">
+            <div className="overflow-x-auto pb-1">
+              <div className="min-w-[440px] md:min-w-0 flex flex-col gap-10 p-2 relative">
               {windingTimelineRows.rows.map((row, rIdx) => {
                 const isEvenRow = rIdx % 2 === 0;
                 return (
@@ -520,6 +521,7 @@ export default function GradeSection({
                   </div>
                 );
               })}
+              </div>
             </div>
           )}
         </div>
@@ -532,7 +534,7 @@ export default function GradeSection({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
             {/* Chart 1: Line Chart - GPA Theo Kì (Cột L4) */}
-            <div className="bg-white border border-[#E7E1D7] p-5 shadow-xs rounded-2xl">
+            <div className="bg-white border border-[#E7E1D7] p-3.5 md:p-5 shadow-xs rounded-2xl">
               <div className="border-b border-[#EFECE6] pb-2 mb-4">
                 <h3 className="text-xs font-bold text-[#2C2825] uppercase tracking-wider flex items-center gap-1.5 font-sans">
                   <TrendingUp className="w-4 h-4 text-[#2E6930] stroke-[2]" />
@@ -570,7 +572,7 @@ export default function GradeSection({
             </div>
 
             {/* Chart 2: Pie Chart - Thống Kê Điểm Chữ */}
-            <div className="bg-white border border-[#E7E1D7] p-5 shadow-xs rounded-2xl">
+            <div className="bg-white border border-[#E7E1D7] p-3.5 md:p-5 shadow-xs rounded-2xl">
               <div className="border-b border-[#EFECE6] pb-2 mb-4">
                 <h3 className="text-xs font-bold text-[#2C2825] uppercase tracking-wider flex items-center gap-1.5 font-sans">
                   <PieIcon className="w-4 h-4 text-[#B85D38] stroke-[2]" />
@@ -578,12 +580,12 @@ export default function GradeSection({
                 </h3>
               </div>
 
-              <div className="h-64 flex flex-col sm:flex-row items-center justify-center gap-4">
+              <div className="min-h-64 h-auto sm:h-64 flex flex-col sm:flex-row items-center justify-center gap-4">
                 {letterGradeChartData.length === 0 ? (
                   <div className="text-[#8C827A] text-xs font-medium italic">Chưa có dữ liệu điểm chữ</div>
                 ) : (
                   <>
-                    <div className="w-full sm:w-1/2 h-full">
+                    <div className="w-full sm:w-1/2 h-48 sm:h-full">
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                           <Pie
@@ -638,7 +640,7 @@ export default function GradeSection({
           </div>
 
           {/* Row 2 (Full Width): Bar Chart - Số Tín Chỉ Học Theo Kỳ (Cột J4 & K4) */}
-          <div className="bg-white border border-[#E7E1D7] p-5 shadow-xs rounded-2xl">
+          <div className="bg-white border border-[#E7E1D7] p-3.5 md:p-5 shadow-xs rounded-2xl">
             <div className="border-b border-[#EFECE6] pb-2 mb-4">
               <h3 className="text-xs font-bold text-[#2C2825] uppercase tracking-wider flex items-center gap-1.5 font-sans">
                 <BarChart3 className="w-4 h-4 text-[#2E6930] stroke-[2]" />
@@ -686,7 +688,7 @@ export default function GradeSection({
       )}
 
       {/* ── SECTION 4: DETAILED SUBJECT GRADEBOOK TABLE ── */}
-      <div className="bg-white border border-[#E7E1D7] p-5 shadow-xs rounded-2xl">
+      <div className="bg-white border border-[#E7E1D7] p-3.5 md:p-5 shadow-xs rounded-2xl">
         <div className="flex items-center justify-between border-b border-[#EFECE6] pb-3 mb-4">
           <div className="space-y-0.5">
             <h3 className="text-xs font-bold text-[#2C2825] uppercase tracking-wider">

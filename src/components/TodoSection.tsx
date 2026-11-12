@@ -232,6 +232,13 @@ export default function TodoSection({
   const [weekOffset, setWeekOffset] = useState(0);
   const todayStr = getLocalDateString();
 
+  // Mobile (< md) navigation states
+  const [mobileTab, setMobileTab] = useState<'week' | 'projects'>('week');
+  const [mobileSelectedDay, setMobileSelectedDay] = useState<0 | 1 | 2 | 3 | 4 | 5 | 6 | 'backlog' | 'all'>(() => {
+    const d = new Date().getDay();
+    return (d === 0 ? 6 : d - 1) as 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  });
+
   // Projects state - strictly user-defined, no dummy sample data
   const [projects, setProjects] = useState<string[]>(() => {
     const saved = localStorage.getItem('tlk_beaver_projects');
@@ -729,6 +736,15 @@ export default function TodoSection({
   const weekDays = useMemo(() => getDaysOfCurrentWeek(weekOffset), [weekOffset]);
   const weekDayStrings = useMemo(() => weekDays.map(d => getLocalDateString(d)), [weekDays]);
 
+  useEffect(() => {
+    const todayIdx = weekDayStrings.indexOf(todayStr);
+    if (todayIdx !== -1) {
+      setMobileSelectedDay(todayIdx as 0 | 1 | 2 | 3 | 4 | 5 | 6);
+    } else {
+      setMobileSelectedDay(0);
+    }
+  }, [weekDayStrings, todayStr]);
+
   const weekStartStr = weekDays[0].toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
   const weekEndStr = weekDays[6].toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
 
@@ -1191,7 +1207,7 @@ export default function TodoSection({
         key={dateStr}
         onDragOver={(e) => e.preventDefault()}
         onDrop={() => handleDropOnDay(dateStr)}
-        className={`bg-[#F8F6F1] border rounded-2xl p-2.5 flex flex-col min-h-[380px] max-h-[520px] transition-all ${
+        className={`bg-[#F8F6F1] border rounded-2xl p-2.5 flex flex-col min-h-[260px] md:min-h-[380px] max-h-[520px] transition-all ${
           isToday
             ? 'border-[#2E6930]/40 ring-1 ring-[#2E6930]/20 bg-[#F4F8F4]'
             : 'border-[#EBE6DC] hover:border-[#D8D2C5]'
@@ -1327,7 +1343,7 @@ export default function TodoSection({
                           {displayProject}
                         </span>
                       ) : <span />}
-                      <div className="opacity-0 group-hover/todo:opacity-100 flex items-center gap-1 transition-opacity shrink-0">
+                      <div className="opacity-100 md:opacity-0 md:group-hover/todo:opacity-100 flex items-center gap-1 transition-opacity shrink-0">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -1381,7 +1397,7 @@ export default function TodoSection({
       <div
         onDragOver={(e) => e.preventDefault()}
         onDrop={() => handleDropOnDay('')}
-        className={`bg-[#F8F6F1] border rounded-2xl p-2.5 flex flex-col min-h-[380px] max-h-[520px] transition-all border-[#EBE6DC] hover:border-[#D8D2C5] ${
+        className={`bg-[#F8F6F1] border rounded-2xl p-2.5 flex flex-col min-h-[260px] md:min-h-[380px] max-h-[520px] transition-all border-[#EBE6DC] hover:border-[#D8D2C5] ${
           (draggedTodoId || draggedMasterTask) ? 'border-dashed border-[#2E6930]/50 bg-[#EEF5EE]/60' : ''
         }`}
       >
@@ -1485,11 +1501,11 @@ export default function TodoSection({
                         {item.project}
                       </span>
                     ) : <span />}
-                    <div className="opacity-0 group-hover/todo:opacity-100 flex items-center gap-1 transition-opacity shrink-0">
-                      <button onClick={() => startEditing(item)} className="text-[#8C827A] hover:text-[#2C2825]">
+                    <div className="opacity-100 md:opacity-0 md:group-hover/todo:opacity-100 flex items-center gap-1 transition-opacity shrink-0">
+                      <button onClick={() => startEditing(item)} className="text-[#8C827A] hover:text-[#2C2825] p-0.5 rounded cursor-pointer">
                         <Pencil className="w-2.5 h-2.5" />
                       </button>
-                      <button onClick={() => setDeletingTodo(item)} className="text-[#8C827A] hover:text-rose-600">
+                      <button onClick={() => setDeletingTodo(item)} className="text-[#8C827A] hover:text-rose-600 p-0.5 rounded cursor-pointer">
                         <Trash2 className="w-2.5 h-2.5" />
                       </button>
                     </div>
@@ -1513,7 +1529,7 @@ export default function TodoSection({
   return (
     <div className="space-y-4" id="todo-section-container">
       {/* Top Banner & Progress Bar (Authentic Beaverplans Style) */}
-      <div className="bg-white border border-[#E7E1D7] rounded-2xl p-4 sm:p-5 space-y-3.5 shadow-xs">
+      <div className="bg-white border border-[#E7E1D7] rounded-2xl p-3 sm:p-4 md:p-5 space-y-3.5 shadow-xs">
         {/* Full-width Sleek Green Progress Bar */}
         <div className="flex items-center gap-4">
           <div className="flex-1 bg-[#EAE5DC] h-2 rounded-full overflow-hidden">
@@ -1569,7 +1585,11 @@ export default function TodoSection({
 
             {weekOffset !== 0 && (
               <button
-                onClick={() => setWeekOffset(0)}
+                onClick={() => {
+                  setWeekOffset(0);
+                  const d = new Date().getDay();
+                  setMobileSelectedDay((d === 0 ? 6 : d - 1) as 0 | 1 | 2 | 3 | 4 | 5 | 6);
+                }}
                 className="px-2.5 py-1 text-xs font-medium text-[#2E6930] hover:bg-[#EEF5EE] rounded-lg transition-colors cursor-pointer"
               >
                 Hôm nay
@@ -1585,7 +1605,7 @@ export default function TodoSection({
           </div>
 
           {/* Right: Actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center flex-wrap gap-2">
             {/* Chuyển việc button */}
             {overdueTodos.length > 0 && (
               <button
@@ -1627,7 +1647,7 @@ export default function TodoSection({
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: -4 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute right-0 top-full mt-1.5 w-64 bg-white border border-[#E7E1D7] rounded-2xl shadow-xl p-1.5 z-40 space-y-1"
+                    className="absolute left-0 sm:left-auto sm:right-0 top-full mt-1.5 w-60 sm:w-64 max-w-[calc(100vw-2rem)] bg-white border border-[#E7E1D7] rounded-2xl shadow-xl p-1.5 z-40 space-y-1"
                   >
                     {/* Item 1: Xóa trùng lặp */}
                     <button
@@ -1770,10 +1790,43 @@ export default function TodoSection({
         )}
       </AnimatePresence>
 
+      {/* MOBILE SUB-TABS (< md): Switch between Lịch tuần & Dự án */}
+      <div className="md:hidden flex items-center p-1 bg-[#F2EFE9] border border-[#E7E1D7] rounded-2xl">
+        <button
+          type="button"
+          onClick={() => setMobileTab('week')}
+          className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+            mobileTab === 'week'
+              ? 'bg-white text-[#2E6930] shadow-xs border border-[#E7E1D7]/70'
+              : 'text-[#7A7268] hover:text-[#2C2825]'
+          }`}
+        >
+          <Calendar className="w-3.5 h-3.5" />
+          <span>Lịch tuần</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setMobileTab('projects')}
+          className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+            mobileTab === 'projects'
+              ? 'bg-white text-[#2E6930] shadow-xs border border-[#E7E1D7]/70'
+              : 'text-[#7A7268] hover:text-[#2C2825]'
+          }`}
+        >
+          <ListChecks className="w-3.5 h-3.5" />
+          <span>Dự án</span>
+          {projects.length > 0 && (
+            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-[#EDE8DF] text-[#6B645C]">
+              {projects.length}
+            </span>
+          )}
+        </button>
+      </div>
+
       {/* MAIN BEAVERPLANS SPLIT LAYOUT: LEFT DỰ ÁN, RIGHT TUẦN NÀY */}
       <div className="flex flex-col lg:flex-row gap-5 items-start">
         {/* LEFT COLUMN: DỰ ÁN (~30%) */}
-        <div className="w-full lg:w-[310px] xl:w-[330px] shrink-0 space-y-3.5">
+        <div className={`${mobileTab === 'projects' ? 'block' : 'hidden'} md:block w-full lg:w-[310px] xl:w-[330px] shrink-0 space-y-3.5`}>
           {/* Header Row */}
           <div className="flex items-center justify-between px-1">
             <span className="text-xs font-bold uppercase tracking-wider text-[#797268]">
@@ -1878,8 +1931,8 @@ export default function TodoSection({
                             {project}
                           </span>
 
-                          {/* Hover edit & delete buttons for project */}
-                          <div className="opacity-0 group-hover/header:opacity-100 flex items-center gap-0.5 transition-opacity">
+                          {/* Hover edit & delete buttons for project (always visible on mobile touch) */}
+                          <div className="opacity-100 md:opacity-0 md:group-hover/header:opacity-100 flex items-center gap-0.5 transition-opacity">
                             <button
                               type="button"
                               onClick={() => {
@@ -2004,8 +2057,8 @@ export default function TodoSection({
                                   {mt.title}
                                 </span>
 
-                                {/* Hover edit & delete buttons for master task */}
-                                <div className="opacity-0 group-hover/master:opacity-100 flex items-center gap-0.5 transition-opacity shrink-0">
+                                {/* Hover edit & delete buttons for master task (always visible on mobile touch) */}
+                                <div className="opacity-100 md:opacity-0 md:group-hover/master:opacity-100 flex items-center gap-0.5 transition-opacity shrink-0">
                                   <button
                                     type="button"
                                     onClick={(e) => {
@@ -2197,7 +2250,7 @@ export default function TodoSection({
         </div>
 
         {/* RIGHT SECTION: TUẦN NÀY (~70%) */}
-        <div className="flex-1 w-full space-y-3.5">
+        <div className={`${mobileTab === 'week' ? 'block' : 'hidden'} md:block flex-1 w-full space-y-3.5`}>
           {/* Header Row */}
           <div className="flex items-center justify-between px-1">
             <span className="text-xs font-bold uppercase tracking-wider text-[#797268]">
@@ -2205,18 +2258,108 @@ export default function TodoSection({
             </span>
             <div className="flex items-center gap-1.5 text-xs text-[#797268]">
               <button
-                onClick={() => setWeekOffset(0)}
+                onClick={() => {
+                  setWeekOffset(0);
+                  const d = new Date().getDay();
+                  setMobileSelectedDay((d === 0 ? 6 : d - 1) as 0 | 1 | 2 | 3 | 4 | 5 | 6);
+                }}
                 className="hover:text-[#2E6930] transition-colors cursor-pointer underline decoration-dotted"
               >
                 Xem hôm nay
               </button>
-              <span className="text-[#C5BEB4]">·</span>
+              <span className="hidden sm:inline text-[#C5BEB4]">·</span>
               <span className="hidden sm:inline text-[#8C827A]">kéo thả giữa các ngày để đổi lịch</span>
             </div>
           </div>
 
-          {/* 2-Row Grid: Row 1 (T2..T5), Row 2 (T6..CN + Chưa xếp ngày) */}
-          <div className="space-y-3">
+          {/* Mobile Day Picker Strip (< md) */}
+          <div className="md:hidden flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+            {weekDays.map((dayDate, idx) => {
+              const dateStr = getLocalDateString(dayDate);
+              const isToday = dateStr === todayStr;
+              const isSelected = mobileSelectedDay === idx;
+              const dayTasks = todoItems.filter(item => item.dueDate === dateStr);
+              const dayDone = dayTasks.filter(item => item.isCompleted).length;
+
+              return (
+                <button
+                  key={dateStr}
+                  type="button"
+                  onClick={() => setMobileSelectedDay(idx as 0 | 1 | 2 | 3 | 4 | 5 | 6)}
+                  className={`shrink-0 flex flex-col items-center justify-center min-w-[46px] px-2 py-1.5 rounded-xl border text-center transition-all cursor-pointer ${
+                    isSelected
+                      ? 'bg-[#2E6930] text-white border-[#2E6930] shadow-xs'
+                      : isToday
+                        ? 'bg-[#EEF5EE] text-[#2E6930] border-[#2E6930]/40'
+                        : 'bg-white text-[#5C554B] border-[#E7E1D7] hover:border-[#D5CDC2]'
+                  }`}
+                >
+                  <span className="text-[11px] font-bold leading-tight">{getDayShortName(idx)}</span>
+                  <span className={`text-[9px] font-mono leading-tight mt-0.5 ${isSelected ? 'text-white/85' : 'text-[#8C827A]'}`}>
+                    {dayDate.getDate()}/{dayDate.getMonth() + 1}
+                  </span>
+                  {dayTasks.length > 0 && (
+                    <span className={`text-[8.5px] font-mono mt-0.5 px-1 rounded-full ${
+                      isSelected
+                        ? 'bg-white/20 text-white'
+                        : dayDone === dayTasks.length
+                          ? 'bg-[#D8ECD8] text-[#245D26]'
+                          : 'bg-[#EDE8DF] text-[#6B645C]'
+                    }`}>
+                      {dayDone}/{dayTasks.length}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+
+            <button
+              type="button"
+              onClick={() => setMobileSelectedDay('backlog')}
+              className={`shrink-0 flex flex-col items-center justify-center px-2.5 py-1.5 rounded-xl border text-center transition-all cursor-pointer ${
+                mobileSelectedDay === 'backlog'
+                  ? 'bg-[#2E6930] text-white border-[#2E6930] shadow-xs'
+                  : 'bg-white text-[#5C554B] border-[#E7E1D7] hover:border-[#D5CDC2]'
+              }`}
+            >
+              <span className="text-[11px] font-bold leading-tight">Chưa xếp</span>
+              <span className={`text-[9px] font-mono leading-tight mt-0.5 ${mobileSelectedDay === 'backlog' ? 'text-white/85' : 'text-[#8C827A]'}`}>
+                {backlogItems.length} việc
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setMobileSelectedDay('all')}
+              className={`shrink-0 flex flex-col items-center justify-center px-2.5 py-1.5 rounded-xl border text-center transition-all cursor-pointer ${
+                mobileSelectedDay === 'all'
+                  ? 'bg-[#2E6930] text-white border-[#2E6930] shadow-xs'
+                  : 'bg-white text-[#5C554B] border-[#E7E1D7] hover:border-[#D5CDC2]'
+              }`}
+            >
+              <span className="text-[11px] font-bold leading-tight">Cả tuần</span>
+              <span className={`text-[9px] font-mono leading-tight mt-0.5 ${mobileSelectedDay === 'all' ? 'text-white/85' : 'text-[#8C827A]'}`}>
+                {weekTotalCount} việc
+              </span>
+            </button>
+          </div>
+
+          {/* Mobile Single Day / All Week View (< md) */}
+          <div className="md:hidden space-y-3">
+            {mobileSelectedDay === 'all' ? (
+              <>
+                {weekDays.map((dayDate, idx) => renderDayColumn(dayDate, idx))}
+                {renderBacklogColumn()}
+              </>
+            ) : mobileSelectedDay === 'backlog' ? (
+              renderBacklogColumn()
+            ) : (
+              weekDays[mobileSelectedDay] && renderDayColumn(weekDays[mobileSelectedDay], mobileSelectedDay)
+            )}
+          </div>
+
+          {/* Desktop 2-Row Grid (>= md): Row 1 (T2..T5), Row 2 (T6..CN + Chưa xếp ngày) */}
+          <div className="hidden md:block space-y-3">
             {/* Row 1: T2, T3, T4, T5 */}
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
               {weekDays.slice(0, 4).map((dayDate, idx) => renderDayColumn(dayDate, idx))}
@@ -2231,15 +2374,29 @@ export default function TodoSection({
         </div>
       </div>
 
+      {/* Mobile-only Floating Action Button for Quick Add */}
+      <button
+        type="button"
+        onClick={() => {
+          setTodoProject(projects[0] || '');
+          setShowQuickAddModal(true);
+        }}
+        className="md:hidden fixed bottom-20 right-4 z-20 flex items-center gap-1.5 px-4 py-3 bg-[#2E6930] hover:bg-[#255527] active:scale-95 text-white rounded-full text-xs font-bold shadow-lg shadow-[#2E6930]/25 transition-all cursor-pointer"
+        aria-label="Thêm việc mới"
+      >
+        <Plus className="w-4 h-4 stroke-[2.5]" />
+        <span>Thêm việc</span>
+      </button>
+
       {/* QUICK ADD TASK MODAL */}
       <AnimatePresence>
         {showQuickAddModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-xs">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/30 backdrop-blur-xs">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white border border-[#E7E1D7] rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4"
+              className="bg-white border border-[#E7E1D7] rounded-2xl max-w-md w-full p-4 sm:p-6 shadow-xl space-y-4 max-h-[90dvh] overflow-y-auto"
             >
               <div className="flex items-center justify-between pb-3 border-b border-[#EFECE6]">
                 <h3 className="text-sm font-bold text-[#2C2825]">Thêm nhiệm vụ mới</h3>
@@ -2267,7 +2424,7 @@ export default function TodoSection({
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="text-[11px] font-semibold text-[#7A7268] block mb-1">
                       Dự án
@@ -2318,12 +2475,12 @@ export default function TodoSection({
 
         {/* EDIT TASK MODAL */}
         {editingTodo && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-xs">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/30 backdrop-blur-xs">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white border border-[#E7E1D7] rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4"
+              className="bg-white border border-[#E7E1D7] rounded-2xl max-w-md w-full p-4 sm:p-6 shadow-xl space-y-4 max-h-[90dvh] overflow-y-auto"
             >
               <div className="flex items-center justify-between pb-3 border-b border-[#EFECE6]">
                 <h3 className="text-sm font-bold text-[#2C2825]">Chỉnh sửa nhiệm vụ</h3>
@@ -2353,7 +2510,7 @@ export default function TodoSection({
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="text-[11px] font-semibold text-[#7A7268] block mb-1">
                       Dự án
@@ -2406,12 +2563,12 @@ export default function TodoSection({
 
         {/* DELETE CONFIRMATION MODAL */}
         {deletingTodo && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-xs">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/30 backdrop-blur-xs">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white border border-[#E7E1D7] rounded-2xl max-w-sm w-full p-6 shadow-xl space-y-4"
+              className="bg-white border border-[#E7E1D7] rounded-2xl max-w-sm w-full p-4 sm:p-6 shadow-xl space-y-4 max-h-[90dvh] overflow-y-auto"
             >
               <div className="text-center space-y-2">
                 <div className="mx-auto w-10 h-10 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center">
@@ -2443,12 +2600,12 @@ export default function TodoSection({
 
         {/* LOGOUT GOOGLE CONFIRM MODAL */}
         {showLogoutConfirm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-xs">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/30 backdrop-blur-xs">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white border border-[#E7E1D7] rounded-2xl max-w-sm w-full p-6 shadow-xl space-y-4"
+              className="bg-white border border-[#E7E1D7] rounded-2xl max-w-sm w-full p-4 sm:p-6 shadow-xl space-y-4 max-h-[90dvh] overflow-y-auto"
             >
               <div className="text-center space-y-2">
                 <div className="mx-auto w-10 h-10 rounded-full bg-[#FAF8F5] text-[#2C2825] border border-[#E7E1D7] flex items-center justify-center">
@@ -2480,12 +2637,12 @@ export default function TodoSection({
 
         {/* ROLL OVER SELECTION MODAL */}
         {showRollOverModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-xs">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white border border-[#E7E1D7] rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-xl space-y-4 max-h-[85vh] flex flex-col"
+              className="bg-white border border-[#E7E1D7] rounded-2xl max-w-lg w-full p-4 sm:p-6 shadow-xl space-y-4 max-h-[90dvh] overflow-y-auto flex flex-col"
               onClick={e => e.stopPropagation()}
             >
               <div className="flex items-start justify-between pb-3 border-b border-[#E7E1D7]">
@@ -2649,12 +2806,12 @@ export default function TodoSection({
 
         {/* Delete Project Confirmation Modal */}
         {deletingProjectName && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-xs">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/30 backdrop-blur-xs">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white border border-[#E7E1D7] rounded-2xl max-w-sm w-full p-6 shadow-xl space-y-4"
+              className="bg-white border border-[#E7E1D7] rounded-2xl max-w-sm w-full p-4 sm:p-6 shadow-xl space-y-4 max-h-[90dvh] overflow-y-auto"
             >
               <div className="text-center space-y-2">
                 <div className="mx-auto w-10 h-10 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center">
@@ -2688,12 +2845,12 @@ export default function TodoSection({
 
         {/* Delete Master Task Confirmation Modal */}
         {deletingMasterTask && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-xs">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/30 backdrop-blur-xs">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white border border-[#E7E1D7] rounded-2xl max-w-sm w-full p-6 shadow-xl space-y-4"
+              className="bg-white border border-[#E7E1D7] rounded-2xl max-w-sm w-full p-4 sm:p-6 shadow-xl space-y-4 max-h-[90dvh] overflow-y-auto"
             >
               <div className="text-center space-y-2">
                 <div className="mx-auto w-10 h-10 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center">
@@ -2727,12 +2884,12 @@ export default function TodoSection({
 
         {/* Bulk Delete Modal */}
         {showBulkDeleteModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-xs">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white border border-[#E7E1D7] rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl space-y-4 max-h-[90vh] flex flex-col"
+              className="bg-white border border-[#E7E1D7] rounded-2xl max-w-lg w-full p-4 sm:p-6 shadow-2xl space-y-4 max-h-[90dvh] overflow-y-auto flex flex-col"
             >
               {/* Header */}
               <div className="flex items-center justify-between pb-3 border-b border-[#E7E1D7] shrink-0">
@@ -2964,7 +3121,7 @@ export default function TodoSection({
                 </div>
 
                 {/* 2. Filters: Status & Project */}
-                <div className="grid grid-cols-2 gap-3 pt-2 border-t border-[#F2EFE9]">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-[#F2EFE9]">
                   <div className="space-y-1">
                     <label className="text-[11px] font-bold text-[#5C554B] flex items-center gap-1">
                       <Filter className="w-3 h-3 text-[#7A7268]" />
@@ -3092,12 +3249,12 @@ export default function TodoSection({
 
         {/* Excel 2-Column Bulk Import Modal */}
         {showExcelImportModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-xs">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white border border-[#E7E1D7] rounded-2xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl space-y-4 max-h-[90vh] flex flex-col"
+              className="bg-white border border-[#E7E1D7] rounded-2xl max-w-2xl w-full p-4 sm:p-6 shadow-2xl space-y-4 max-h-[90dvh] overflow-y-auto flex flex-col"
             >
               {/* Header */}
               <div className="flex items-center justify-between pb-3 border-b border-[#E7E1D7] shrink-0">
@@ -3189,7 +3346,7 @@ export default function TodoSection({
                     </div>
 
                     {/* Table */}
-                    <div className="border border-[#E7E1D7] rounded-xl overflow-hidden max-h-60 overflow-y-auto scrollbar-thin shadow-2xs">
+                    <div className="border border-[#E7E1D7] rounded-xl overflow-x-auto overflow-y-auto max-h-60 scrollbar-thin shadow-2xs">
                       <table className="w-full text-left border-collapse text-xs">
                         <thead className="bg-[#FAF8F5] border-b border-[#E7E1D7] sticky top-0 z-10 text-[11px] font-bold text-[#5C554B]">
                           <tr>

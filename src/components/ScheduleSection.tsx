@@ -713,7 +713,7 @@ export default function ScheduleSection({
     <div className="space-y-6" id="schedule-weekly-root">
       
       {/* ==================== TOP CONTROL AREA ==================== */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 bg-white border border-[#E7E1D7] p-5 rounded-2xl shadow-xs">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5 bg-white border border-[#E7E1D7] p-3.5 md:p-5 rounded-2xl shadow-xs">
         
         {/* Left Col: Mini Month Calendar with Nav Arrows */}
         <div className="bg-[#FAF8F5] p-3 rounded-xl border border-[#E7E1D7]">
@@ -754,7 +754,7 @@ export default function ScheduleSection({
                     setAnchorDate(c.date);
                     setMiniCalendarDate(c.date);
                   }}
-                  className={`w-6 h-5.5 rounded font-medium flex items-center justify-center transition-all cursor-pointer ${
+                  className={`w-6 h-5.5 mx-auto rounded font-medium flex items-center justify-center transition-all cursor-pointer ${
                     isActive 
                       ? 'bg-[#2E6930] text-white font-bold' 
                       : isToday 
@@ -810,7 +810,7 @@ export default function ScheduleSection({
                   {!group.isPrimary && (
                     <button
                       onClick={() => handleDeleteGroup(group.id)}
-                      className="opacity-0 group-hover/chip:opacity-100 p-0.5 text-[#8C827A] hover:text-rose-600 transition-all cursor-pointer shrink-0"
+                      className="opacity-100 md:opacity-0 md:group-hover/chip:opacity-100 p-0.5 text-[#8C827A] hover:text-rose-600 transition-all cursor-pointer shrink-0"
                     >
                       <X className="w-2.5 h-2.5" />
                     </button>
@@ -828,7 +828,7 @@ export default function ScheduleSection({
               placeholder="Tên nhóm lịch mới..."
               value={newGroupTitle}
               onChange={(e) => setNewGroupTitle(e.target.value)}
-              className="flex-1 bg-[#FAF8F5] border border-[#E7E1D7] rounded-lg px-2.5 py-1 text-xs text-[#2C2825] focus:outline-none focus:border-[#2E6930]"
+              className="flex-1 min-w-0 bg-[#FAF8F5] border border-[#E7E1D7] rounded-lg px-2.5 py-1 text-xs text-[#2C2825] focus:outline-none focus:border-[#2E6930]"
             />
             <button
               type="submit"
@@ -886,8 +886,8 @@ export default function ScheduleSection({
       <div className="flex flex-col min-w-0 w-full">
         
         {/* Controls header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white border border-[#E7E1D7] p-4 rounded-2xl shadow-xs mb-4">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 md:gap-4 bg-white border border-[#E7E1D7] p-3 md:p-4 rounded-2xl shadow-xs mb-4">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <button
               onClick={setToday}
               className="px-3.5 py-1.5 bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl text-xs font-semibold text-[#2C2825] uppercase tracking-wider hover:bg-[#F2EFE9] transition-all cursor-pointer"
@@ -913,7 +913,7 @@ export default function ScheduleSection({
             </h3>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={() => setShowExamModal(true)}
               className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#FAF8F5] hover:bg-[#F2EFE9] text-[#B85D38] border border-[#E7E1D7] font-semibold text-xs rounded-xl transition-all shadow-xs cursor-pointer"
@@ -932,10 +932,11 @@ export default function ScheduleSection({
         </div>
 
         {/* Weekly Scheduler Table */}
-        <div className="bg-white border border-[#E7E1D7] rounded-2xl overflow-hidden shadow-xs flex flex-col flex-1 max-h-[750px]">
-          
-          {/* Day Headers row */}
-          <div className="grid grid-cols-[60px_1fr] border-b border-[#E7E1D7] bg-[#FAF8F5] divide-x divide-[#EFECE6]">
+        <div className="bg-white border border-[#E7E1D7] rounded-2xl overflow-hidden shadow-xs flex flex-col flex-1 max-h-[70dvh] md:max-h-[750px]">
+          <div className="flex-1 overflow-x-auto flex flex-col min-h-0">
+            <div className="min-w-[680px] md:min-w-0 flex flex-col flex-1 min-h-0">
+              {/* Day Headers row */}
+              <div className="grid grid-cols-[60px_1fr] border-b border-[#E7E1D7] bg-[#FAF8F5] divide-x divide-[#EFECE6] shrink-0">
             <div className="flex items-center justify-center text-[10px] font-semibold text-[#8C827A] font-mono tracking-wider">
               GMT+7
             </div>
@@ -1090,13 +1091,15 @@ export default function ScheduleSection({
             </div>
           </div>
 
+            </div>
+          </div>
         </div>
       </div>
 
       {/* ==================== ADD / EDIT EVENT MODAL ==================== */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 select-none animate-fadeIn">
-          <div className="bg-white border border-[#E7E1D7] p-6 rounded-2xl w-full max-w-md shadow-xl relative text-[#2C2825]">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-3 sm:p-4 select-none animate-fadeIn">
+          <div className="bg-white border border-[#E7E1D7] p-4 sm:p-6 rounded-2xl w-full max-w-md max-h-[90dvh] overflow-y-auto shadow-xl relative text-[#2C2825]">
             <button
               onClick={() => setShowAddModal(false)}
               className="absolute top-4 right-4 text-[#8C827A] hover:text-[#2C2825] cursor-pointer"
@@ -1133,7 +1136,7 @@ export default function ScheduleSection({
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-[10px] text-[#7A7268] font-semibold block mb-1">Nhóm lịch:</label>
                   <select
@@ -1175,7 +1178,7 @@ export default function ScheduleSection({
 
               {/* Start/End hours */}
               {!formIsAllDay && (
-                <div className="grid grid-cols-2 gap-3 bg-[#FAF8F5] p-2.5 border border-[#E7E1D7] rounded-xl">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-[#FAF8F5] p-2.5 border border-[#E7E1D7] rounded-xl">
                   <div>
                     <label className="text-[9px] text-[#7A7268] font-semibold block mb-1">Bắt đầu:</label>
                     <div className="flex gap-1.5">
@@ -1277,8 +1280,8 @@ export default function ScheduleSection({
 
       {/* ==================== EXAM SCHEDULE MODAL ==================== */}
       {showExamModal && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 select-none animate-fadeIn">
-          <div className="bg-white border border-[#E7E1D7] p-6 rounded-2xl w-full max-w-lg shadow-xl relative flex flex-col max-h-[85vh] text-[#2C2825]">
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 p-3 sm:p-4 select-none animate-fadeIn">
+          <div className="bg-white border border-[#E7E1D7] p-4 sm:p-6 rounded-2xl w-full max-w-lg shadow-xl relative flex flex-col max-h-[90dvh] md:max-h-[85vh] text-[#2C2825]">
             <button
               onClick={() => setShowExamModal(false)}
               className="absolute top-4 right-4 text-[#8C827A] hover:text-[#2C2825] cursor-pointer"

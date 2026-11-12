@@ -273,7 +273,7 @@ export default function PerformanceStats({
       {/* 1. TOP 4 METRIC CARDS (Beaverplans Image 2 Style) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
         {/* Card 1: TỶ LỆ HOÀN THÀNH */}
-        <div className="bg-white border border-[#E7E1D7] rounded-xl p-5 shadow-xs flex flex-col justify-between">
+        <div className="bg-white border border-[#E7E1D7] rounded-xl p-3.5 md:p-5 shadow-xs flex flex-col justify-between">
           <div>
             <h3 className="text-3xl font-light text-[#9A3412] tracking-tight">
               {overallRate}%
@@ -288,7 +288,7 @@ export default function PerformanceStats({
         </div>
 
         {/* Card 2: TUẦN TỐT NHẤT */}
-        <div className="bg-white border border-[#E7E1D7] rounded-xl p-5 shadow-xs flex flex-col justify-between">
+        <div className="bg-white border border-[#E7E1D7] rounded-xl p-3.5 md:p-5 shadow-xs flex flex-col justify-between">
           <div>
             <h3 className="text-3xl font-light text-[#9A3412] tracking-tight">
               {bestWeekRate}%
@@ -303,7 +303,7 @@ export default function PerformanceStats({
         </div>
 
         {/* Card 3: CHUỖI TUẦN */}
-        <div className="bg-white border border-[#E7E1D7] rounded-xl p-5 shadow-xs flex flex-col justify-between">
+        <div className="bg-white border border-[#E7E1D7] rounded-xl p-3.5 md:p-5 shadow-xs flex flex-col justify-between">
           <div>
             <h3 className="text-3xl font-light text-[#9A3412] tracking-tight">
               {consecutiveWeeks}
@@ -318,7 +318,7 @@ export default function PerformanceStats({
         </div>
 
         {/* Card 4: TUẦN ĐÃ THEO DÕI */}
-        <div className="bg-white border border-[#E7E1D7] rounded-xl p-5 shadow-xs flex flex-col justify-between">
+        <div className="bg-white border border-[#E7E1D7] rounded-xl p-3.5 md:p-5 shadow-xs flex flex-col justify-between">
           <div>
             <h3 className="text-3xl font-light text-[#9A3412] tracking-tight">
               {weeksTracked}
@@ -334,7 +334,7 @@ export default function PerformanceStats({
       </div>
 
       {/* 2. SECTION: TỪNG TUẦN (Weekly Performance Bar Chart) */}
-      <div className="bg-white border border-[#E7E1D7] rounded-xl p-6 shadow-xs space-y-4">
+      <div className="bg-white border border-[#E7E1D7] rounded-xl p-3.5 md:p-6 shadow-xs space-y-4">
         <div>
           <h4 className="text-xs font-bold text-[#7A7268] uppercase tracking-wider">
             TỪNG TUẦN
@@ -345,13 +345,13 @@ export default function PerformanceStats({
         </div>
 
         {/* Stacked Bars Container */}
-        <div className="pt-8 pb-2">
+        <div className="pt-8 pb-2 overflow-x-auto">
           {/* Find max total in weekly data for normalization (minimum 5 for pleasant view) */}
           {(() => {
             const maxTasks = Math.max(5, ...weeklyData.map(w => w.total));
 
             return (
-              <div className="grid grid-cols-6 sm:grid-cols-12 gap-2 sm:gap-3 items-end h-40">
+              <div className="min-w-[520px] sm:min-w-0 grid grid-cols-12 gap-2 sm:gap-3 items-end h-40">
                 {weeklyData.map((w, idx) => {
                   const hasTasks = w.total > 0;
                   const totalHeightPct = hasTasks ? Math.max(15, Math.round((w.total / maxTasks) * 100)) : 0;
@@ -399,7 +399,7 @@ export default function PerformanceStats({
       </div>
 
       {/* 3. SECTION: HOẠT ĐỘNG (Activity Heatmap) */}
-      <div className="bg-white border border-[#E7E1D7] rounded-xl p-6 shadow-xs space-y-4">
+      <div className="bg-white border border-[#E7E1D7] rounded-xl p-3.5 md:p-6 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <h4 className="text-xs font-bold text-[#7A7268] uppercase tracking-wider">
@@ -458,7 +458,7 @@ export default function PerformanceStats({
       {/* 4 & 5. SECTIONS: MỨC ĐỘ HOÀN THÀNH & PHÂN BỐ */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Section 4: MỨC ĐỘ HOÀN THÀNH (Completion Rate by Day) */}
-        <div className="bg-white border border-[#E7E1D7] rounded-xl p-6 shadow-xs space-y-4">
+        <div className="bg-white border border-[#E7E1D7] rounded-xl p-3.5 md:p-6 shadow-xs space-y-4">
           <div>
             <h4 className="text-xs font-bold text-[#7A7268] uppercase tracking-wider">
               MỨC ĐỘ HOÀN THÀNH
@@ -497,7 +497,7 @@ export default function PerformanceStats({
         </div>
 
         {/* Section 5: PHÂN BỐ (Workload Distribution by Day) */}
-        <div className="bg-white border border-[#E7E1D7] rounded-xl p-6 shadow-xs space-y-4">
+        <div className="bg-white border border-[#E7E1D7] rounded-xl p-3.5 md:p-6 shadow-xs space-y-4">
           <div>
             <h4 className="text-xs font-bold text-[#7A7268] uppercase tracking-wider">
               PHÂN BỐ
@@ -543,8 +543,8 @@ export default function PerformanceStats({
       </div>
 
       {/* 6. WEEKLY GOALS / CHALLENGES SECTION (Modern Productivity Goals) */}
-      <div className="bg-white border border-[#E7E1D7] rounded-xl p-6 shadow-xs space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-[#EFECE6]">
+      <div className="bg-white border border-[#E7E1D7] rounded-xl p-3.5 md:p-6 shadow-xs space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#EFECE6]">
           <div>
             <h4 className="text-xs font-bold text-[#7A7268] uppercase tracking-wider">
               MỤC TIÊU TUẦN

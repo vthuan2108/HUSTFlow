@@ -67,7 +67,10 @@ import {
   Coffee,
   Shield,
   FileText,
-  Play
+  Play,
+  Menu,
+  Bot,
+  MoreHorizontal
 } from 'lucide-react';
 
 
@@ -480,6 +483,7 @@ export default function App() {
   const [isCloudSyncing, setIsCloudSyncing] = useState<boolean>(false);
   const [hasLoadedFromCloud, setHasLoadedFromCloud] = useState<boolean>(false);
   const [isAIOpen, setIsAIOpen] = useState<boolean>(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const [isWebBlockerOpen, setIsWebBlockerOpen] = useState<boolean>(false);
   const [isStudocuOpen, setIsStudocuOpen] = useState<boolean>(false);
   const [isWebBlockerActive, setIsWebBlockerActive] = useState<boolean>(() => {
@@ -1633,11 +1637,15 @@ export default function App() {
   // Calculations for Cultivation Profile stats
   const currentHour = new Date().getHours();
   const isNightTime = currentHour >= 18 || currentHour < 6;
+  const todayPendingTodoCount = (todoItems || []).filter(
+    t => !t.isCompleted && (t.dueDate || (t.createdAt ? t.createdAt.split('T')[0] : '')) === getLocalDateString()
+  ).length;
+  const isMoreTabActive = ['ANALYTICS', 'GRADES', 'IELTS_ARENA', 'CULT_PATH'].includes(activeTab);
 
   return (
-    <div className="min-h-screen bg-[#FBF8F2] text-[#2C2825] relative selection:bg-[#2E6930]/15 selection:text-[#2E6930]" id="main-applet-container">
+    <div className="min-h-dvh bg-[#FBF8F2] text-[#2C2825] relative selection:bg-[#2E6930]/15 selection:text-[#2E6930]" id="main-applet-container">
       {/* MAIN HUB VIEW LAYOUT WITH MODERN SIDEBAR */}
-      <div className="flex h-screen overflow-hidden bg-[#FBF8F2] text-[#2C2825]">
+      <div className="flex h-dvh overflow-hidden bg-[#FBF8F2] text-[#2C2825]">
         {/* Modern Left Sidebar Navigation (DeepFocus style) */}
         <ModernSidebar
           activeTab={activeTab}
@@ -1652,17 +1660,27 @@ export default function App() {
           isCloudSyncing={isCloudSyncing}
           onOpenAI={() => setIsAIOpen(prev => !prev)}
           isAIOpen={isAIOpen}
-          todoCount={(todoItems || []).filter(t => !t.isCompleted && (t.dueDate || (t.createdAt ? t.createdAt.split('T')[0] : '')) === getLocalDateString()).length}
+          todoCount={todayPendingTodoCount}
+          isMobileOpen={isMobileMenuOpen}
+          onCloseMobile={() => setIsMobileMenuOpen(false)}
         />
 
         {/* Right Active Content Workspace */}
-        <div className="flex-1 flex flex-col h-screen overflow-hidden">
+        <div className="flex-1 flex flex-col h-dvh overflow-hidden min-w-0">
           {/* Topbar */}
-          <header className="h-14 bg-[#FBF8F2] border-b border-[#E7E1D7] px-6 flex items-center justify-between shrink-0">
-            <div className="flex items-center gap-2 text-xs text-[#7A7268]">
-              <span className="text-[#9C948A]">Không gian làm việc</span>
-              <span className="text-[#C5BEB3]">/</span>
-              <span className="font-medium text-[#2C2825]">
+          <header className="min-h-14 pt-safe md:pt-0 md:h-14 bg-[#FBF8F2] border-b border-[#E7E1D7] px-3 md:px-6 flex items-center justify-between gap-2 shrink-0">
+            <div className="flex items-center gap-2 text-xs text-[#7A7268] min-w-0">
+              <button
+                type="button"
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="md:hidden p-1.5 -ml-1 rounded-lg text-[#5C554B] hover:text-[#2C2825] hover:bg-[#EFECE6] transition-colors shrink-0 cursor-pointer"
+                aria-label="Mở menu điều hướng"
+              >
+                <Menu className="w-5 h-5" />
+              </button>
+              <span className="hidden sm:inline text-[#9C948A]">Không gian làm việc</span>
+              <span className="hidden sm:inline text-[#C5BEB3]">/</span>
+              <span className="font-medium text-[#2C2825] truncate">
                 {activeTab === 'TODOS' && 'Kế hoạch tuần'}
                 {activeTab === 'ANALYTICS' && 'Thống kê & Hiệu suất'}
                 {activeTab === 'SCHEDULE' && 'Thời khóa biểu & Lịch'}
@@ -1673,11 +1691,11 @@ export default function App() {
               </span>
             </div>
 
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
               {/* Focus (Web Blocker) Button */}
               <button
                 onClick={() => setIsWebBlockerOpen(true)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all shadow-sm ${
+                className={`flex items-center gap-1.5 px-2 md:px-3 py-1.5 rounded-lg text-xs font-medium border transition-all shadow-sm ${
                   isWebBlockerActive
                     ? 'bg-[#2E6930]/10 border-[#2E6930]/30 text-[#2E6930] hover:bg-[#2E6930]/20'
                     : 'bg-[#F4EFE6] border-[#E7E1D7] text-[#5C554B] hover:text-[#2C2825] hover:border-[#D3CBBF]'
@@ -1701,21 +1719,21 @@ export default function App() {
               {/* Studocu Downloader Button */}
               <button
                 onClick={() => setIsStudocuOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-[#F4EFE6] border border-[#E7E1D7] text-[#5C554B] hover:text-[#2C2825] hover:border-[#D3CBBF] transition-all shadow-sm"
+                className="flex items-center gap-1.5 px-2 md:px-3 py-1.5 rounded-lg text-xs font-medium bg-[#F4EFE6] border border-[#E7E1D7] text-[#5C554B] hover:text-[#2C2825] hover:border-[#D3CBBF] transition-all shadow-sm"
                 title="Mở công cụ giải mã & tải tài liệu Studocu"
               >
                 <FileText className="w-3.5 h-3.5 text-[#B85D38]" />
                 <span>Studocu</span>
               </button>
 
-              <div className="h-4 w-px bg-[#E7E1D7] mx-1" />
+              <div className="hidden sm:block h-4 w-px bg-[#E7E1D7] mx-1" />
 
-              <span className="text-xs font-mono text-[#9C948A]">{getLocalDateString()}</span>
+              <span className="hidden sm:inline text-xs font-mono text-[#9C948A]">{getLocalDateString()}</span>
             </div>
           </header>
 
           {/* Main Content Area */}
-          <main className="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#FBF8F2]">
+          <main className="flex-1 overflow-y-auto p-3 pb-24 md:p-6 md:pb-6 bg-[#FBF8F2]">
             <div className="w-full max-w-[1600px] mx-auto space-y-6">
               {/* Tab: Tasks (Planner) */}
               <div className={activeTab !== 'TODOS' ? 'hidden' : ''} id="todos-tab-view">
@@ -1900,6 +1918,112 @@ export default function App() {
             isOpen={isStudocuOpen}
             onClose={() => setIsStudocuOpen(false)}
           />
+
+          {/* Mobile Bottom Navigation Bar (< md) */}
+          <nav
+            className="md:hidden fixed bottom-0 inset-x-0 z-30 bg-[#F7F4EE]/95 backdrop-blur-md border-t border-[#E7E1D7] pb-safe shadow-[0_-2px_10px_rgba(44,40,37,0.05)]"
+            aria-label="Điều hướng nhanh trên di động"
+          >
+            <div className="grid grid-cols-5 h-16 px-1">
+              <button
+                type="button"
+                onClick={() => setActiveTab('TODOS')}
+                className={`flex flex-col items-center justify-center gap-1 rounded-xl transition-colors cursor-pointer ${
+                  activeTab === 'TODOS'
+                    ? 'text-[#2E6930]'
+                    : 'text-[#797268] hover:text-[#2C2825]'
+                }`}
+              >
+                <div className={`relative p-1 rounded-lg transition-colors ${activeTab === 'TODOS' ? 'bg-[#EEF5EE]' : ''}`}>
+                  <ListTodo className="w-5 h-5" />
+                  {todayPendingTodoCount > 0 && (
+                    <span className="absolute -top-1 -right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-[#2E6930] text-white text-[9px] font-bold flex items-center justify-center">
+                      {todayPendingTodoCount > 99 ? '99+' : todayPendingTodoCount}
+                    </span>
+                  )}
+                </div>
+                <span className={`text-[10px] leading-none ${activeTab === 'TODOS' ? 'font-bold' : 'font-medium'}`}>
+                  Kế hoạch
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('SCHEDULE')}
+                className={`flex flex-col items-center justify-center gap-1 rounded-xl transition-colors cursor-pointer ${
+                  activeTab === 'SCHEDULE'
+                    ? 'text-[#2E6930]'
+                    : 'text-[#797268] hover:text-[#2C2825]'
+                }`}
+              >
+                <div className={`p-1 rounded-lg transition-colors ${activeTab === 'SCHEDULE' ? 'bg-[#EEF5EE]' : ''}`}>
+                  <Calendar className="w-5 h-5" />
+                </div>
+                <span className={`text-[10px] leading-none ${activeTab === 'SCHEDULE' ? 'font-bold' : 'font-medium'}`}>
+                  Lịch biểu
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('HABITS')}
+                className={`flex flex-col items-center justify-center gap-1 rounded-xl transition-colors cursor-pointer ${
+                  activeTab === 'HABITS'
+                    ? 'text-[#2E6930]'
+                    : 'text-[#797268] hover:text-[#2C2825]'
+                }`}
+              >
+                <div className={`p-1 rounded-lg transition-colors ${activeTab === 'HABITS' ? 'bg-[#EEF5EE]' : ''}`}>
+                  <Flame className="w-5 h-5" />
+                </div>
+                <span className={`text-[10px] leading-none ${activeTab === 'HABITS' ? 'font-bold' : 'font-medium'}`}>
+                  Thói quen
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsAIOpen(prev => !prev)}
+                className={`flex flex-col items-center justify-center gap-1 rounded-xl transition-colors cursor-pointer ${
+                  isAIOpen
+                    ? 'text-[#2E6930]'
+                    : 'text-[#B85D38] hover:text-[#2C2825]'
+                }`}
+              >
+                <div className={`p-1 rounded-lg transition-colors ${isAIOpen ? 'bg-[#EEF5EE]' : 'bg-[#FCF0EB]/70'}`}>
+                  <Bot className="w-5 h-5" />
+                </div>
+                <span className={`text-[10px] leading-none ${isAIOpen ? 'font-bold' : 'font-semibold'}`}>
+                  AI
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsMobileMenuOpen(true)}
+                className={`flex flex-col items-center justify-center gap-1 rounded-xl transition-colors cursor-pointer ${
+                  isMobileMenuOpen || isMoreTabActive
+                    ? 'text-[#2E6930]'
+                    : 'text-[#797268] hover:text-[#2C2825]'
+                }`}
+              >
+                <div className={`p-1 rounded-lg transition-colors ${
+                  isMobileMenuOpen || isMoreTabActive
+                    ? 'bg-[#EEF5EE]'
+                    : ''
+                }`}>
+                  <MoreHorizontal className="w-5 h-5" />
+                </div>
+                <span className={`text-[10px] leading-none ${
+                  isMobileMenuOpen || isMoreTabActive
+                    ? 'font-bold'
+                    : 'font-medium'
+                }`}>
+                  Thêm
+                </span>
+              </button>
+            </div>
+          </nav>
         </div>
       </div>
     </div>

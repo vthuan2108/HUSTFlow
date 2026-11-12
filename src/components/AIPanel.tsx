@@ -851,48 +851,51 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
               exit={{ opacity: 0, x: 400 }}
               transition={{ type: 'spring', damping: 25, stiffness: 250 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full sm:w-[480px] bg-[#FAF8F5] border-l border-[#E7E1D7] shadow-2xl flex flex-col font-sans h-full text-[#2C2825] ai-slideover-panel"
+              className="w-full md:w-[480px] bg-[#FAF8F5] md:border-l border-[#E7E1D7] shadow-2xl flex flex-col font-sans h-full text-[#2C2825] ai-slideover-panel"
             >
               {/* Panel Header */}
-              <div className="p-4 bg-white border-b border-[#E7E1D7] flex items-center justify-between gap-3 shrink-0">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-xl bg-[#EEF5EE] border border-[#D2E5D2] flex items-center justify-center text-[#2E6930] shrink-0">
-                    <Bot className="w-5 h-5 text-[#2E6930]" />
+              <div className="bg-white border-b border-[#E7E1D7] shrink-0">
+                <div className="pt-safe md:hidden" />
+                <div className="p-3 md:p-4 flex items-center justify-between gap-2 md:gap-3">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-9 h-9 rounded-xl bg-[#EEF5EE] border border-[#D2E5D2] flex items-center justify-center text-[#2E6930] shrink-0">
+                      <Bot className="w-5 h-5 text-[#2E6930]" />
+                    </div>
+                    <div className="min-w-0">
+                      <h2 className="text-sm font-bold text-[#2C2825] tracking-tight flex items-center gap-1.5 truncate">
+                        Trợ lý AI
+                      </h2>
+                      <p className="text-[11px] text-[#7A7268] truncate">
+                        Cố vấn học tập & kế hoạch
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h2 className="text-sm font-bold text-[#2C2825] tracking-tight flex items-center gap-1.5">
-                      Trợ lý AI
-                    </h2>
-                    <p className="text-[11px] text-[#7A7268]">
-                      Cố vấn học tập & kế hoạch
-                    </p>
-                  </div>
-                </div>
 
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={handleClearHistory}
-                    className="p-2 text-[#7A7268] hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
-                    title="Xóa lịch sử trò chuyện"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => setIsConfiguringKey(!isConfiguringKey)}
-                    className={`p-2 rounded-xl border transition-all cursor-pointer ${
-                      isConfiguringKey ? 'bg-emerald-50 border-emerald-200 text-[#2E6930]' : 'border-transparent text-[#7A7268] hover:text-[#2C2825] hover:bg-[#FAF8F5]'
-                    }`}
-                    title="Cài đặt API Key & Nguồn AI"
-                  >
-                    <Settings className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={handleClose}
-                    className="p-2 text-[#7A7268] hover:text-[#2C2825] hover:bg-[#FAF8F5] rounded-xl transition-colors cursor-pointer"
-                    title="Đóng"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      onClick={handleClearHistory}
+                      className="p-2 text-[#7A7268] hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer"
+                      title="Xóa lịch sử trò chuyện"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => setIsConfiguringKey(!isConfiguringKey)}
+                      className={`p-2 rounded-xl border transition-all cursor-pointer ${
+                        isConfiguringKey ? 'bg-emerald-50 border-emerald-200 text-[#2E6930]' : 'border-transparent text-[#7A7268] hover:text-[#2C2825] hover:bg-[#FAF8F5]'
+                      }`}
+                      title="Cài đặt API Key & Nguồn AI"
+                    >
+                      <Settings className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={handleClose}
+                      className="p-2 text-[#7A7268] hover:text-[#2C2825] hover:bg-[#FAF8F5] rounded-xl transition-colors cursor-pointer"
+                      title="Đóng"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -903,7 +906,7 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    className="bg-white border-b border-[#E7E1D7] p-4 space-y-3 shrink-0 overflow-hidden text-xs"
+                    className="bg-white border-b border-[#E7E1D7] p-3 md:p-4 space-y-3 shrink-0 overflow-y-auto max-h-[55dvh] md:max-h-none text-xs"
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-semibold text-xs text-[#2C2825]">Nguồn cung cấp AI</span>
@@ -962,11 +965,11 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
                           placeholder={provider === 'groq' ? 'Dán khóa Groq (gsk_...)' : 'Dán khóa API...'}
                           value={inputKeyTemp}
                           onChange={(e) => setInputKeyTemp(e.target.value)}
-                          className="flex-1 bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl px-3 py-1.5 text-xs text-[#2C2825] focus:outline-none focus:border-[#2E6930] focus:bg-white"
+                          className="flex-1 min-w-0 bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl px-3 py-1.5 text-xs text-[#2C2825] focus:outline-none focus:border-[#2E6930] focus:bg-white"
                         />
                         <button
                           onClick={saveApiKey}
-                          className="px-4 py-1.5 bg-[#2E6930] hover:bg-[#245226] text-white font-semibold rounded-xl text-xs transition-colors shadow-xs cursor-pointer"
+                          className="px-4 py-1.5 bg-[#2E6930] hover:bg-[#245226] text-white font-semibold rounded-xl text-xs transition-colors shadow-xs cursor-pointer shrink-0"
                         >
                           Lưu
                         </button>
@@ -977,7 +980,7 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
               </AnimatePresence>
 
               {/* Chat History View */}
-              <div className="flex-1 p-4 overflow-y-auto space-y-4 font-sans text-xs bg-[#FAF8F5]">
+              <div className="flex-1 p-3 md:p-4 overflow-y-auto space-y-3 md:space-y-4 font-sans text-xs bg-[#FAF8F5]">
                 {chatHistory.map((msg) => (
                   <div
                     key={msg.id}
@@ -985,12 +988,12 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
                   >
                     {msg.role === 'user' ? (
                       /* User Message Bubble */
-                      <div className="max-w-[85%] bg-white border border-[#E7E1D7] text-[#2C2825] p-3.5 rounded-2xl shadow-xs text-xs leading-relaxed whitespace-pre-wrap font-sans">
+                      <div className="max-w-[85%] bg-white border border-[#E7E1D7] text-[#2C2825] p-3 md:p-3.5 rounded-2xl shadow-xs text-xs leading-relaxed whitespace-pre-wrap break-words font-sans">
                         {msg.content}
                       </div>
                     ) : (
                       /* Assistant Message Card */
-                      <div className="w-full bg-white border border-[#E7E1D7] rounded-2xl p-4.5 shadow-xs text-xs leading-relaxed space-y-3.5 text-[#2C2825]">
+                      <div className="w-full bg-white border border-[#E7E1D7] rounded-2xl p-3.5 md:p-4.5 shadow-xs text-xs leading-relaxed space-y-3.5 text-[#2C2825]">
                         {/* Card Header */}
                         <div className="flex items-center justify-between pb-2 border-b border-[#F0EDE6]">
                           <div className="flex items-center gap-1.5">
@@ -1031,7 +1034,7 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
                                     ) : (
                                       <Square className="w-4 h-4 text-[#7A7268] shrink-0" />
                                     )}
-                                    <div className="truncate text-left">
+                                    <div className="min-w-0 flex-1 md:truncate text-left">
                                       <div className="flex items-center gap-1.5 font-bold text-[#2C2825] truncate">
                                         <span className={`text-[9px] px-1.5 py-0.5 rounded font-semibold uppercase shrink-0 ${
                                           p.action === 'DELETE' || p.type.includes('DELETE')
@@ -1109,70 +1112,73 @@ You MUST respond strictly in a valid JSON object format (no extra markdown outsi
               </div>
 
               {/* Input Form & Quick Command Presets */}
-              <div className="p-3.5 bg-white border-t border-[#E7E1D7] shrink-0 space-y-2.5 relative">
-                {/* Slash Command Autocomplete Popup */}
-                {prompt.startsWith('/') && !prompt.includes(' ') && (
-                  <div className="bg-white border border-[#E7E1D7] rounded-xl p-1.5 shadow-md flex items-center gap-2 animate-fadeIn">
-                    {['/task', '/calendar']
-                      .filter(cmd => cmd.toLowerCase().startsWith(prompt.toLowerCase()))
-                      .map((opt) => (
-                        <button
-                          key={opt}
-                          type="button"
-                          onClick={() => setPrompt(`${opt} `)}
-                          className="px-3.5 py-1.5 bg-[#FAF8F5] hover:bg-emerald-50 hover:text-[#2E6930] text-[#2C2825] font-mono font-semibold text-xs rounded-lg border border-[#E7E1D7] transition-all cursor-pointer"
-                        >
-                          {opt}
-                        </button>
-                      ))}
+              <div className="bg-white border-t border-[#E7E1D7] shrink-0">
+                <div className="p-3 md:p-3.5 space-y-2.5 relative">
+                  {/* Slash Command Autocomplete Popup */}
+                  {prompt.startsWith('/') && !prompt.includes(' ') && (
+                    <div className="bg-white border border-[#E7E1D7] rounded-xl p-1.5 shadow-md flex items-center gap-2 animate-fadeIn">
+                      {['/task', '/calendar']
+                        .filter(cmd => cmd.toLowerCase().startsWith(prompt.toLowerCase()))
+                        .map((opt) => (
+                          <button
+                            key={opt}
+                            type="button"
+                            onClick={() => setPrompt(`${opt} `)}
+                            className="px-3.5 py-1.5 bg-[#FAF8F5] hover:bg-emerald-50 hover:text-[#2E6930] text-[#2C2825] font-mono font-semibold text-xs rounded-lg border border-[#E7E1D7] transition-all cursor-pointer"
+                          >
+                            {opt}
+                          </button>
+                        ))}
+                    </div>
+                  )}
+
+                  {/* Quick Command Preset Pills */}
+                  <div className="flex flex-wrap gap-1.5 md:gap-2 max-h-20 md:max-h-24 overflow-y-auto">
+                    {[
+                      { icon: '📅', label: 'Lập lịch tuần này', text: 'Hãy giúp tôi lập kế hoạch và phân bổ thời gian học tập cho tuần này.' },
+                      { icon: '⚖️', label: 'Cân bằng thói quen', text: 'Phân tích và gợi ý cách cân bằng giữa việc học tập và duy trì thói quen tốt.' },
+                      { icon: '🎯', label: 'Ưu tiên nhiệm vụ', text: 'Hãy xem xét và sắp xếp thứ tự ưu tiên các nhiệm vụ còn tồn đọng.' },
+                      { icon: '💡', label: 'Kế hoạch ngày mai', text: 'Gợi ý lịch trình và công việc trọng tâm cho ngày mai.' },
+                      { icon: '🧩', label: 'Chia nhỏ môn học', text: 'Giúp tôi chia nhỏ các môn học lớn thành các mục tiêu học tập cụ thể theo từng chặng.' },
+                    ].map((cmd, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        disabled={!activeKey || isLoading}
+                        onClick={() => executeAIPlanning(cmd.text)}
+                        className="px-2.5 md:px-3 py-1.5 bg-[#FAF8F5] hover:bg-white border border-[#E7E1D7] hover:border-[#2E6930] rounded-xl text-[11px] font-medium text-[#2C2825] flex items-center gap-1.5 transition-all cursor-pointer shadow-xs disabled:opacity-40"
+                      >
+                        <span>{cmd.icon}</span>
+                        <span>{cmd.label}</span>
+                      </button>
+                    ))}
                   </div>
-                )}
 
-                {/* Quick Command Preset Pills */}
-                <div className="flex flex-wrap gap-2 max-h-24 overflow-y-auto">
-                  {[
-                    { icon: '📅', label: 'Lập lịch tuần này', text: 'Hãy giúp tôi lập kế hoạch và phân bổ thời gian học tập cho tuần này.' },
-                    { icon: '⚖️', label: 'Cân bằng thói quen', text: 'Phân tích và gợi ý cách cân bằng giữa việc học tập và duy trì thói quen tốt.' },
-                    { icon: '🎯', label: 'Ưu tiên nhiệm vụ', text: 'Hãy xem xét và sắp xếp thứ tự ưu tiên các nhiệm vụ còn tồn đọng.' },
-                    { icon: '💡', label: 'Kế hoạch ngày mai', text: 'Gợi ý lịch trình và công việc trọng tâm cho ngày mai.' },
-                    { icon: '🧩', label: 'Chia nhỏ môn học', text: 'Giúp tôi chia nhỏ các môn học lớn thành các mục tiêu học tập cụ thể theo từng chặng.' },
-                  ].map((cmd, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      disabled={!activeKey || isLoading}
-                      onClick={() => executeAIPlanning(cmd.text)}
-                      className="px-3 py-1.5 bg-[#FAF8F5] hover:bg-white border border-[#E7E1D7] hover:border-[#2E6930] rounded-xl text-[11px] font-medium text-[#2C2825] flex items-center gap-1.5 transition-all cursor-pointer shadow-xs disabled:opacity-40"
-                    >
-                      <span>{cmd.icon}</span>
-                      <span>{cmd.label}</span>
-                    </button>
-                  ))}
-                </div>
-
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    executeAIPlanning();
-                  }}
-                  className="flex items-center gap-2"
-                >
-                  <input
-                    type="text"
-                    placeholder={activeKey ? "Nhập / để xem lệnh nhanh (/task, /calendar) hoặc đặt câu hỏi..." : "Vui lòng nhập API Key trong Cài đặt ở trên..."}
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
-                    disabled={!activeKey || isLoading}
-                    className="flex-1 bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl px-3.5 py-2.5 text-xs text-[#2C2825] placeholder-[#7A7268]/60 focus:outline-none focus:border-[#2E6930] focus:bg-white font-sans disabled:opacity-50 transition-all"
-                  />
-                  <button
-                    type="submit"
-                    disabled={!activeKey || !prompt.trim() || isLoading}
-                    className="p-2.5 bg-[#2E6930] hover:bg-[#245226] text-white rounded-xl shadow-xs active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shrink-0"
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      executeAIPlanning();
+                    }}
+                    className="flex items-center gap-2"
                   >
-                    <Send className="w-4 h-4 text-white" />
-                  </button>
-                </form>
+                    <input
+                      type="text"
+                      placeholder={activeKey ? "Nhập / để xem lệnh nhanh (/task, /calendar) hoặc đặt câu hỏi..." : "Vui lòng nhập API Key trong Cài đặt ở trên..."}
+                      value={prompt}
+                      onChange={(e) => setPrompt(e.target.value)}
+                      disabled={!activeKey || isLoading}
+                      className="flex-1 min-w-0 bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl px-3.5 py-2.5 text-xs text-[#2C2825] placeholder-[#7A7268]/60 focus:outline-none focus:border-[#2E6930] focus:bg-white font-sans disabled:opacity-50 transition-all"
+                    />
+                    <button
+                      type="submit"
+                      disabled={!activeKey || !prompt.trim() || isLoading}
+                      className="p-2.5 bg-[#2E6930] hover:bg-[#245226] text-white rounded-xl shadow-xs active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer shrink-0"
+                    >
+                      <Send className="w-4 h-4 text-white" />
+                    </button>
+                  </form>
+                </div>
+                <div className="pb-safe md:hidden" />
               </div>
             </motion.div>
           </div>
