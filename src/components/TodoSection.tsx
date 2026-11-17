@@ -894,21 +894,10 @@ export default function TodoSection({
   const handleAddInColumn = async (dateStr: string) => {
     if (!columnNewTitle.trim()) return;
 
-    const prj = columnProject.trim() || (projects.length > 0 ? projects[0] : '');
+    const prj = columnProject.trim();
     const title = columnNewTitle.trim();
 
     await scheduleTaskWithGoogleSync(title, dateStr || undefined, prj, 'SO_CAP');
-
-    // Also register to master tasks if not existing
-    if (prj) {
-      setMasterTasks(prev => {
-        const exists = prev.some(m => m.project.toLowerCase() === prj.toLowerCase() && m.title.toLowerCase() === title.toLowerCase());
-        if (!exists) {
-          return [...prev, { title, project: prj }];
-        }
-        return prev;
-      });
-    }
 
     setColumnNewTitle('');
     setActiveAddColumnDate(null);
@@ -919,20 +908,10 @@ export default function TodoSection({
     e.preventDefault();
     if (!newTitle.trim()) return;
 
-    const prj = todoProject.trim() || (projects.length > 0 ? projects[0] : '');
+    const prj = todoProject.trim();
     const title = newTitle.trim();
 
     await scheduleTaskWithGoogleSync(title, todoDate || undefined, prj, difficulty);
-
-    if (prj) {
-      setMasterTasks(prev => {
-        const exists = prev.some(m => m.project.toLowerCase() === prj.toLowerCase() && m.title.toLowerCase() === title.toLowerCase());
-        if (!exists) {
-          return [...prev, { title, project: prj }];
-        }
-        return prev;
-      });
-    }
 
     setNewTitle('');
     setDifficulty('SO_CAP');
@@ -1244,7 +1223,7 @@ export default function TodoSection({
               onClick={() => {
                 setActiveAddColumnDate(activeAddColumnDate === dateStr ? null : dateStr);
                 setColumnNewTitle('');
-                setColumnProject(projects[0] || '');
+                setColumnProject('');
               }}
               className="p-0.5 rounded text-[#8C827A] hover:text-[#2C2825] hover:bg-white transition-colors cursor-pointer"
               title="Thêm nhiệm vụ cho ngày này"
@@ -1279,6 +1258,7 @@ export default function TodoSection({
                 onChange={(e) => setColumnProject(e.target.value)}
                 className="bg-[#FAF8F5] border border-[#E7E1D7] rounded-lg px-1.5 py-0.5 text-[10px] text-[#6B645C] focus:outline-none cursor-pointer max-w-[100px] truncate"
               >
+                <option value="">Không dự án</option>
                 {projects.map(p => (
                   <option key={p} value={p}>{p}</option>
                 ))}
@@ -1416,7 +1396,7 @@ export default function TodoSection({
               onClick={() => {
                 setActiveAddColumnDate(activeAddColumnDate === 'backlog' ? null : 'backlog');
                 setColumnNewTitle('');
-                setColumnProject(projects[0] || '');
+                setColumnProject('');
               }}
               className="p-0.5 rounded text-[#8C827A] hover:text-[#2C2825] hover:bg-white transition-colors cursor-pointer"
               title="Thêm việc chưa xếp ngày"
@@ -1450,6 +1430,7 @@ export default function TodoSection({
                 onChange={(e) => setColumnProject(e.target.value)}
                 className="bg-[#FAF8F5] border border-[#E7E1D7] rounded-lg px-1.5 py-0.5 text-[10px] text-[#6B645C] focus:outline-none cursor-pointer max-w-[100px] truncate"
               >
+                <option value="">Không dự án</option>
                 {projects.map(p => (
                   <option key={p} value={p}>{p}</option>
                 ))}
@@ -1707,7 +1688,7 @@ export default function TodoSection({
                     <button
                       onClick={() => {
                         setShowToolsDropdown(false);
-                        setExcelDefaultProject(projects[0] || 'Chung');
+                        setExcelDefaultProject('Chung');
                         setExcelPastedText('');
                         setExcelParsedRows([]);
                         setShowExcelImportModal(true);
@@ -1763,7 +1744,7 @@ export default function TodoSection({
 
             <button
               onClick={() => {
-                setTodoProject(projects[0] || '');
+                setTodoProject('');
                 setShowQuickAddModal(true);
               }}
               className="flex items-center gap-1 px-3 py-1 bg-[#2E6930] hover:bg-[#255527] text-white rounded-xl text-xs font-medium transition-colors cursor-pointer shadow-xs"
@@ -2378,7 +2359,7 @@ export default function TodoSection({
       <button
         type="button"
         onClick={() => {
-          setTodoProject(projects[0] || '');
+          setTodoProject('');
           setShowQuickAddModal(true);
         }}
         className="md:hidden fixed bottom-20 right-4 z-20 flex items-center gap-1.5 px-4 py-3 bg-[#2E6930] hover:bg-[#255527] active:scale-95 text-white rounded-full text-xs font-bold shadow-lg shadow-[#2E6930]/25 transition-all cursor-pointer"
@@ -2434,6 +2415,7 @@ export default function TodoSection({
                       onChange={(e) => setTodoProject(e.target.value)}
                       className="w-full bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl px-2.5 py-2 text-xs text-[#2C2825] focus:outline-none cursor-pointer"
                     >
+                      <option value="">Không thuộc dự án nào</option>
                       {projects.map(p => (
                         <option key={p} value={p}>{p}</option>
                       ))}
@@ -2520,6 +2502,7 @@ export default function TodoSection({
                       onChange={(e) => setEditProject(e.target.value)}
                       className="w-full bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl px-2.5 py-2 text-xs text-[#2C2825] focus:outline-none cursor-pointer"
                     >
+                      <option value="">Không thuộc dự án nào</option>
                       {projects.map(p => (
                         <option key={p} value={p}>{p}</option>
                       ))}
