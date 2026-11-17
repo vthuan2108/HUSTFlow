@@ -30,7 +30,9 @@ import {
   FileSpreadsheet,
   Sparkles,
   ChevronDown,
-  Wrench
+  Wrench,
+  Link2,
+  ExternalLink
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { initAuth, googleSignIn, logout, getAccessToken } from '../lib/firebase';
@@ -41,6 +43,36 @@ function getLocalDateString(d: Date = new Date()): string {
   const month = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
+}
+
+export function normalizeUrl(url?: string): string {
+  if (!url) return '';
+  const trimmed = url.trim();
+  if (!trimmed) return '';
+  if (/^https?:\/\//i.test(trimmed)) {
+    return trimmed;
+  }
+  return `https://${trimmed}`;
+}
+
+export function getTaskUrl(item: TodoItem): string | null {
+  if (item.link && item.link.trim()) {
+    return normalizeUrl(item.link);
+  }
+  const match = item.title?.match(/(https?:\/\/[^\s]+)/i);
+  if (match) {
+    return match[1];
+  }
+  return null;
+}
+
+export function getDisplayDomain(rawUrl: string): string {
+  try {
+    const urlObj = new URL(rawUrl);
+    return urlObj.hostname.replace(/^www\./i, '');
+  } catch (e) {
+    return rawUrl.replace(/^https?:\/\//i, '').split('/')[0] || rawUrl;
+  }
 }
 
 export interface ParsedTaskRow {
@@ -188,7 +220,7 @@ export function parseExcelClipboard(pastedText: string): ParsedTaskRow[] {
 
 interface TodoSectionProps {
   todoItems: TodoItem[];
-  onAddTodo: (title: string, difficulty: Priority, dueDate?: string, googleTaskId?: string, project?: string) => void;
+  onAddTodo: (title: string, difficulty: Priority, dueDate?: string, googleTaskId?: string, project?: string, link?: string) => void;
   onUpdateTodo?: (updatedTodo: TodoItem) => void;
   onToggleTodo: (id: string) => void;
   onDeleteTodo: (id: string) => void;
@@ -326,6 +358,7 @@ export default function TodoSection({
   const [editProject, setEditProject] = useState('');
   const [editDifficulty, setEditDifficulty] = useState<Priority>('SO_CAP');
   const [editDueDate, setEditDueDate] = useState('');
+  const [editLink, setEditLink] = useState('');
 
   // Auth states
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -336,11 +369,13 @@ export default function TodoSection({
   // Column quick add modal / popover
   const [activeAddColumnDate, setActiveAddColumnDate] = useState<string | null>(null);
   const [columnNewTitle, setColumnNewTitle] = useState('');
+  const [columnLink, setColumnLink] = useState('');
   const [columnProject, setColumnProject] = useState('');
 
   // Top quick add modal
   const [showQuickAddModal, setShowQuickAddModal] = useState(false);
   const [newTitle, setNewTitle] = useState('');
+  const [newLink, setNewLink] = useState('');
   const [todoDate, setTodoDate] = useState(getLocalDateString());
   const [todoProject, setTodoProject] = useState('');
   const [difficulty, setDifficulty] = useState<Priority>('SO_CAP');
@@ -577,9 +612,11 @@ export default function TodoSection({
     title: string,
     dueDate?: string,
     project?: string,
-    difficulty: Priority = 'SO_CAP'
+    difficulty: Priority = 'SO_CAP',
+    link?: string
   ) => {
     let gId: string | undefined = undefined;
+    const cleanLink = link?.trim() ? normalizeUrl(link) : undefined;
     if (isLoggedIn) {
       const token = getAccessToken();
       if (token) {
@@ -593,13 +630,14 @@ export default function TodoSection({
           linhThachReward: 5,
           dueDate: dueDate || undefined,
           difficulty,
-          project: project || ''
+          project: project || '',
+          link: cleanLink
         };
         const pushedId = await pushTaskToGoogle(token, tempTodo);
         if (pushedId) gId = pushedId;
       }
     }
-    onAddTodo(title.trim(), difficulty, dueDate || undefined, gId, project || '');
+    onAddTodo(title.trim(), difficulty, dueDate || undefined, gId, project || '', cleanLink);
   };
 
   // Excel Import Handlers (2-column: Date & Task)
@@ -896,10 +934,12 @@ export default function TodoSection({
 
     const prj = columnProject.trim();
     const title = columnNewTitle.trim();
+    const link = columnLink.trim() ? normalizeUrl(columnLink) : undefined;
 
-    await scheduleTaskWithGoogleSync(title, dateStr || undefined, prj, 'SO_CAP');
+    await scheduleTaskWithGoogleSync(title, dateStr || undefined, prj, 'SO_CAP', link);
 
     setColumnNewTitle('');
+    setColumnLink('');
     setActiveAddColumnDate(null);
   };
 
@@ -910,10 +950,12 @@ export default function TodoSection({
 
     const prj = todoProject.trim();
     const title = newTitle.trim();
+    const link = newLink.trim() ? normalizeUrl(newLink) : undefined;
 
-    await scheduleTaskWithGoogleSync(title, todoDate || undefined, prj, difficulty);
+    await scheduleTaskWithGoogleSync(title, todoDate || undefined, prj, difficulty, link);
 
     setNewTitle('');
+    setNewLink('');
     setDifficulty('SO_CAP');
     setShowQuickAddModal(false);
   };
@@ -925,18 +967,21 @@ export default function TodoSection({
     setEditProject(todo.project || '');
     setEditDifficulty(getTodoPriority(todo));
     setEditDueDate(todo.dueDate || getLocalDateString());
+    setEditLink(todo.link || '');
   };
 
   const handleSaveEdit = async () => {
     if (!editingTodo || !editTitle.trim()) return;
 
     const normDifficulty = normalizePriority(editDifficulty);
+    const cleanLink = editLink.trim() ? normalizeUrl(editLink) : undefined;
     const updated: TodoItem = {
       ...editingTodo,
       title: editTitle.trim(),
       project: editProject.trim() || undefined,
       difficulty: normDifficulty,
-      dueDate: editDueDate || undefined
+      dueDate: editDueDate || undefined,
+      link: cleanLink
     };
 
     if (onUpdateTodo) {
@@ -951,7 +996,8 @@ export default function TodoSection({
       if (token) {
         patchTaskOnGoogle(token, updated.googleTaskId, {
           title: updated.title,
-          dueDate: updated.dueDate
+          dueDate: updated.dueDate,
+          notes: updated.link || null
         }).catch(err => {
           console.warn('Google Task edit sync failed:', err);
         });
@@ -1091,7 +1137,8 @@ export default function TodoSection({
         title: item.title,
         project: item.project || '',
         dayOffset,
-        difficulty: item.difficulty || 'SO_CAP'
+        difficulty: item.difficulty || 'SO_CAP',
+        link: item.link
       };
     });
 
@@ -1110,14 +1157,14 @@ export default function TodoSection({
     }
 
     try {
-      const blueprint: Array<{ title: string; project: string; dayOffset: number; difficulty: Priority }> = JSON.parse(saved);
+      const blueprint: Array<{ title: string; project: string; dayOffset: number; difficulty: Priority; link?: string }> = JSON.parse(saved);
       if (!Array.isArray(blueprint) || blueprint.length === 0) return;
 
       blueprint.forEach(entry => {
         const targetDate = weekDays[entry.dayOffset];
         if (targetDate) {
           const dateStr = getLocalDateString(targetDate);
-          onAddTodo(entry.title, entry.difficulty || 'SO_CAP', dateStr, undefined, entry.project);
+          onAddTodo(entry.title, entry.difficulty || 'SO_CAP', dateStr, undefined, entry.project, entry.link);
         }
       });
 
@@ -1223,6 +1270,7 @@ export default function TodoSection({
               onClick={() => {
                 setActiveAddColumnDate(activeAddColumnDate === dateStr ? null : dateStr);
                 setColumnNewTitle('');
+                setColumnLink('');
                 setColumnProject('');
               }}
               className="p-0.5 rounded text-[#8C827A] hover:text-[#2C2825] hover:bg-white transition-colors cursor-pointer"
@@ -1252,6 +1300,19 @@ export default function TodoSection({
               }}
               className="w-full bg-[#FAF8F5] border border-[#E7E1D7] rounded-lg px-2 py-1 text-xs text-[#2C2825] focus:outline-none focus:border-[#2E6930]"
             />
+            <div className="flex items-center gap-1.5 bg-[#FAF8F5] border border-[#E7E1D7] rounded-lg px-2 py-1">
+              <Link2 className="w-3 h-3 text-[#8C827A] shrink-0" />
+              <input
+                type="text"
+                placeholder="Gắn link (tuỳ chọn)..."
+                value={columnLink}
+                onChange={(e) => setColumnLink(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleAddInColumn(dateStr);
+                }}
+                className="w-full bg-transparent text-[11px] text-[#2C2825] placeholder:text-[#A8A196] focus:outline-none"
+              />
+            </div>
             <div className="flex justify-between items-center gap-1">
               <select
                 value={columnProject}
@@ -1357,6 +1418,27 @@ export default function TodoSection({
                     >
                       {item.title}
                     </p>
+
+                    {/* Attached Web Link Badge */}
+                    {(() => {
+                      const taskUrl = getTaskUrl(item);
+                      if (!taskUrl) return null;
+                      return (
+                        <div className="mt-1 flex items-center">
+                          <a
+                            href={taskUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-[#EEF4ED] text-[#2E6930] hover:bg-[#E2ECE0] border border-[#D5E5D3] max-w-full truncate transition-colors cursor-pointer group/link"
+                            title={taskUrl}
+                          >
+                            <ExternalLink className="w-2.5 h-2.5 shrink-0 group-hover/link:translate-x-0.5 transition-transform" />
+                            <span className="truncate">{getDisplayDomain(taskUrl)}</span>
+                          </a>
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
               );
@@ -1396,6 +1478,7 @@ export default function TodoSection({
               onClick={() => {
                 setActiveAddColumnDate(activeAddColumnDate === 'backlog' ? null : 'backlog');
                 setColumnNewTitle('');
+                setColumnLink('');
                 setColumnProject('');
               }}
               className="p-0.5 rounded text-[#8C827A] hover:text-[#2C2825] hover:bg-white transition-colors cursor-pointer"
@@ -1424,6 +1507,19 @@ export default function TodoSection({
               }}
               className="w-full bg-[#FAF8F5] border border-[#E7E1D7] rounded-lg px-2 py-1 text-xs text-[#2C2825] focus:outline-none focus:border-[#2E6930]"
             />
+            <div className="flex items-center gap-1.5 bg-[#FAF8F5] border border-[#E7E1D7] rounded-lg px-2 py-1">
+              <Link2 className="w-3 h-3 text-[#8C827A] shrink-0" />
+              <input
+                type="text"
+                placeholder="Gắn link (tuỳ chọn)..."
+                value={columnLink}
+                onChange={(e) => setColumnLink(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleAddInColumn('');
+                }}
+                className="w-full bg-transparent text-[11px] text-[#2C2825] placeholder:text-[#A8A196] focus:outline-none"
+              />
+            </div>
             <div className="flex justify-between items-center gap-1">
               <select
                 value={columnProject}
@@ -1494,6 +1590,27 @@ export default function TodoSection({
                   <p className={`text-[12px] font-medium leading-tight break-words ${item.isCompleted ? 'text-[#8A8177]' : 'text-[#2C2825]'}`}>
                     {item.title}
                   </p>
+
+                  {/* Attached Web Link Badge */}
+                  {(() => {
+                    const taskUrl = getTaskUrl(item);
+                    if (!taskUrl) return null;
+                    return (
+                      <div className="mt-1 flex items-center">
+                        <a
+                          href={taskUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-[#EEF4ED] text-[#2E6930] hover:bg-[#E2ECE0] border border-[#D5E5D3] max-w-full truncate transition-colors cursor-pointer group/link"
+                          title={taskUrl}
+                        >
+                          <ExternalLink className="w-2.5 h-2.5 shrink-0 group-hover/link:translate-x-0.5 transition-transform" />
+                          <span className="truncate">{getDisplayDomain(taskUrl)}</span>
+                        </a>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             ))
@@ -2435,6 +2552,22 @@ export default function TodoSection({
                   </div>
                 </div>
 
+                <div>
+                  <label className="text-[11px] font-semibold text-[#7A7268] block mb-1">
+                    Gắn link liên kết (URL website)
+                  </label>
+                  <div className="flex items-center gap-2 bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl px-3 py-2 focus-within:border-[#2E6930]">
+                    <Link2 className="w-3.5 h-3.5 text-[#8C827A] shrink-0" />
+                    <input
+                      type="text"
+                      placeholder="https://... hoặc domain.com (tuỳ chọn)"
+                      value={newLink}
+                      onChange={(e) => setNewLink(e.target.value)}
+                      className="w-full bg-transparent text-xs text-[#2C2825] focus:outline-none placeholder:text-[#A8A196]"
+                    />
+                  </div>
+                </div>
+
                 <div className="flex gap-2 pt-2 border-t border-[#EFECE6]">
                   <button
                     type="button"
@@ -2518,6 +2651,25 @@ export default function TodoSection({
                       value={editDueDate}
                       onChange={(e) => setEditDueDate(e.target.value)}
                       className="w-full bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl px-2.5 py-2 text-xs text-[#2C2825] focus:outline-none cursor-pointer"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-semibold text-[#7A7268] block mb-1">
+                    Gắn link liên kết (URL website)
+                  </label>
+                  <div className="flex items-center gap-2 bg-[#FAF8F5] border border-[#E7E1D7] rounded-xl px-3 py-2 focus-within:border-[#2E6930]">
+                    <Link2 className="w-3.5 h-3.5 text-[#8C827A] shrink-0" />
+                    <input
+                      type="text"
+                      placeholder="https://... hoặc domain.com (tuỳ chọn)"
+                      value={editLink}
+                      onChange={(e) => setEditLink(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleSaveEdit();
+                      }}
+                      className="w-full bg-transparent text-xs text-[#2C2825] focus:outline-none placeholder:text-[#A8A196]"
                     />
                   </div>
                 </div>

@@ -233,6 +233,7 @@ export interface TodoItem {
   estimatedMinutes?: number;
   difficulty?: Priority;
   project?: string; // Associated project name (e.g. 'beaverplans', 'linear algebra', 'piano', 'HUSTFlow')
+  link?: string; // Web URL attached to task
 }
 
 export interface ProjectItem {

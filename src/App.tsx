@@ -1327,7 +1327,7 @@ export default function App() {
   };
 
   // --- TODO LIST HANDLERS ---
-  const handleAddTodo = (title: string, difficulty: Priority, dueDate?: string, googleTaskId?: string, project?: string) => {
+  const handleAddTodo = (title: string, difficulty: Priority, dueDate?: string, googleTaskId?: string, project?: string, link?: string) => {
     const normPriority = normalizePriority(difficulty);
     const { tuViReward, linhThachReward } = getPriorityRewards(normPriority);
 
@@ -1342,7 +1342,8 @@ export default function App() {
       dueDate: dueDate || getLocalDateString(),
       googleTaskId,
       difficulty: normPriority,
-      project: project?.trim() || ''
+      project: project?.trim() || '',
+      link: link?.trim() || undefined
     };
     setTodoItems(prev => [newTodo, ...prev]);
   };
@@ -1429,7 +1430,8 @@ export default function App() {
       ...updatedTodo,
       difficulty: normPriority,
       tuViReward,
-      linhThachReward
+      linhThachReward,
+      link: updatedTodo.link?.trim() || undefined
     };
 
     setTodoItems(prev => prev.map(t => t.id === updatedTodo.id ? finalTodo : t));
@@ -1439,7 +1441,8 @@ export default function App() {
       if (token) {
         patchTaskOnGoogle(token, finalTodo.googleTaskId, {
           title: finalTodo.title,
-          dueDate: finalTodo.dueDate
+          dueDate: finalTodo.dueDate,
+          notes: finalTodo.link || null
         }).catch(err => {
           console.warn('Instant Google Task update patch failed:', err);
         });

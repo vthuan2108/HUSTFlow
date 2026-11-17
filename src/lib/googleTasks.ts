@@ -272,6 +272,7 @@ export async function syncGoogleTasks(
 
         const listTitle = gt._listTitle || '';
         const isGenericList = ['tasks', 'my tasks', '@default', 'default', 'chung', 'hustflow'].includes(listTitle.toLowerCase());
+        const notesLink = gt.notes && /https?:\/\//i.test(gt.notes) ? gt.notes.trim() : undefined;
 
         const pulledTodo: TodoItem = {
           id: `todo_pulled_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
@@ -287,7 +288,8 @@ export async function syncGoogleTasks(
           googleTaskListName: gt._listTitle,
           dueDate,
           difficulty: 'SO_CAP',
-          project: isGenericList ? '' : listTitle
+          project: isGenericList ? '' : listTitle,
+          link: notesLink
         };
 
         syncedTodos.push(pulledTodo);
@@ -318,8 +320,10 @@ export async function pushTaskToGoogle(
       ...(todo.isCompleted ? { completed: todo.completedAt || new Date().toISOString() } : {})
     };
 
-    // Only set notes if an actual description exists
-    if ((todo as any).description && (todo as any).description.trim()) {
+    // Set notes if link or description exists
+    if (todo.link && todo.link.trim()) {
+      body.notes = todo.link.trim();
+    } else if ((todo as any).description && (todo as any).description.trim()) {
       body.notes = (todo as any).description.trim();
     }
 
