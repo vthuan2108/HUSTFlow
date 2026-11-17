@@ -1350,13 +1350,14 @@ export default function TodoSection({
             dayItems.map(item => {
               const rawProject = item.project || (!isGenericProject(item.googleTaskListName) ? item.googleTaskListName : '');
               const displayProject = isGenericProject(rawProject) ? '' : rawProject;
+              const taskUrl = getTaskUrl(item);
 
               return (
                 <div
                   key={item.id}
                   draggable
                   onDragStart={() => handleDragStart(item.id)}
-                  className={`group/todo bg-white rounded-xl p-2.5 border shadow-[0_1px_2px_rgba(0,0,0,0.03)] hover:border-[#D5CDC2] hover:shadow-xs transition-all flex items-start gap-2.5 cursor-grab active:cursor-grabbing ${
+                  className={`group/todo bg-white rounded-xl p-2.5 border shadow-[0_1px_2px_rgba(0,0,0,0.03)] hover:border-[#D5CDC2] hover:shadow-xs transition-all flex items-center gap-2.5 cursor-grab active:cursor-grabbing ${
                     item.isCompleted
                       ? 'border-[#ECE7DF] bg-white/80'
                       : 'border-[#ECE7DF]'
@@ -1365,7 +1366,7 @@ export default function TodoSection({
                   {/* Round Checkbox (Green filled when done, delicate hollow when undone) */}
                   <button
                     onClick={() => handleToggleTodoWithGoogleSync(item)}
-                    className={`mt-0.5 w-4 h-4 rounded-full flex items-center justify-center transition-all cursor-pointer shrink-0 ${
+                    className={`w-4 h-4 rounded-full flex items-center justify-center transition-all cursor-pointer shrink-0 ${
                       item.isCompleted
                         ? 'bg-[#2E6930] text-white shadow-2xs'
                         : 'border border-[#B5ACA1] hover:border-[#2E6930] bg-white'
@@ -1377,68 +1378,91 @@ export default function TodoSection({
 
                   {/* Task Content */}
                   <div className="flex-1 min-w-0">
-                    {/* Top Tag: Project name in tiny uppercase + dot-menu */}
-                    <div className="flex items-center justify-between text-[8.5px] font-bold uppercase tracking-wider text-[#8A8177] mb-0.5 min-h-[14px]">
-                      {displayProject ? (
+                    {/* Top Tag: Project name in tiny uppercase + dot-menu (ONLY if project exists) */}
+                    {displayProject && (
+                      <div className="flex items-center justify-between text-[8.5px] font-bold uppercase tracking-wider text-[#8A8177] mb-0.5">
                         <span className="truncate max-w-[110px]" title={displayProject}>
                           {displayProject}
                         </span>
-                      ) : <span />}
-                      <div className="opacity-100 md:opacity-0 md:group-hover/todo:opacity-100 flex items-center gap-1 transition-opacity shrink-0">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            startEditing(item);
-                          }}
-                          className="text-[#8C827A] hover:text-[#2C2825] p-0.5 rounded cursor-pointer"
-                          title="Chỉnh sửa"
-                        >
-                          <Pencil className="w-2.5 h-2.5" />
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setDeletingTodo(item);
-                          }}
-                          className="text-[#8C827A] hover:text-rose-600 p-0.5 rounded cursor-pointer"
-                          title="Xóa"
-                        >
-                          <Trash2 className="w-2.5 h-2.5" />
-                        </button>
+                        <div className="opacity-100 md:opacity-0 md:group-hover/todo:opacity-100 flex items-center gap-1 transition-opacity shrink-0">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              startEditing(item);
+                            }}
+                            className="text-[#8C827A] hover:text-[#2C2825] p-0.5 rounded cursor-pointer"
+                            title="Chỉnh sửa"
+                          >
+                            <Pencil className="w-2.5 h-2.5" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeletingTodo(item);
+                            }}
+                            className="text-[#8C827A] hover:text-rose-600 p-0.5 rounded cursor-pointer"
+                            title="Xóa"
+                          >
+                            <Trash2 className="w-2.5 h-2.5" />
+                          </button>
+                        </div>
                       </div>
+                    )}
+
+                    {/* Task Title & Action buttons (when no project tag) */}
+                    <div className="flex items-center justify-between gap-1.5">
+                      <p
+                        className={`text-[12px] font-medium leading-snug break-words flex-1 min-w-0 ${
+                          item.isCompleted
+                            ? 'text-[#8A8177]'
+                            : 'text-[#2C2825]'
+                        }`}
+                      >
+                        {item.title}
+                      </p>
+
+                      {!displayProject && (
+                        <div className="opacity-100 md:opacity-0 md:group-hover/todo:opacity-100 flex items-center gap-1 transition-opacity shrink-0">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              startEditing(item);
+                            }}
+                            className="text-[#8C827A] hover:text-[#2C2825] p-0.5 rounded cursor-pointer"
+                            title="Chỉnh sửa"
+                          >
+                            <Pencil className="w-2.5 h-2.5" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeletingTodo(item);
+                            }}
+                            className="text-[#8C827A] hover:text-rose-600 p-0.5 rounded cursor-pointer"
+                            title="Xóa"
+                          >
+                            <Trash2 className="w-2.5 h-2.5" />
+                          </button>
+                        </div>
+                      )}
                     </div>
 
-                    {/* Bottom: Task Title (clean, legible, not violently crossed out) */}
-                    <p
-                      className={`text-[12px] font-medium leading-tight break-words ${
-                        item.isCompleted
-                          ? 'text-[#8A8177]'
-                          : 'text-[#2C2825]'
-                      }`}
-                    >
-                      {item.title}
-                    </p>
-
                     {/* Attached Web Link Badge */}
-                    {(() => {
-                      const taskUrl = getTaskUrl(item);
-                      if (!taskUrl) return null;
-                      return (
-                        <div className="mt-1 flex items-center">
-                          <a
-                            href={taskUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-[#EEF4ED] text-[#2E6930] hover:bg-[#E2ECE0] border border-[#D5E5D3] max-w-full truncate transition-colors cursor-pointer group/link"
-                            title={taskUrl}
-                          >
-                            <ExternalLink className="w-2.5 h-2.5 shrink-0 group-hover/link:translate-x-0.5 transition-transform" />
-                            <span className="truncate">{getDisplayDomain(taskUrl)}</span>
-                          </a>
-                        </div>
-                      );
-                    })()}
+                    {taskUrl && (
+                      <div className="mt-1 flex items-center">
+                        <a
+                          href={taskUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-[#EEF4ED] text-[#2E6930] hover:bg-[#E2ECE0] border border-[#D5E5D3] max-w-full truncate transition-colors cursor-pointer group/link"
+                          title={taskUrl}
+                        >
+                          <ExternalLink className="w-2.5 h-2.5 shrink-0 group-hover/link:translate-x-0.5 transition-transform" />
+                          <span className="truncate">{getDisplayDomain(taskUrl)}</span>
+                        </a>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -1553,49 +1577,68 @@ export default function TodoSection({
 
         <div className="flex-1 overflow-y-auto space-y-1.5 pr-0.5 min-h-0 py-0.5 scrollbar-thin">
           {backlogItems.length > 0 ? (
-            backlogItems.map(item => (
-              <div
-                key={item.id}
-                draggable
-                onDragStart={() => handleDragStart(item.id)}
-                className="group/todo bg-white rounded-xl p-2.5 border border-[#ECE7DF] shadow-[0_1px_2px_rgba(0,0,0,0.03)] hover:border-[#D5CDC2] hover:shadow-xs transition-all flex items-start gap-2.5 cursor-grab active:cursor-grabbing"
-              >
-                <button
-                  onClick={() => handleToggleTodoWithGoogleSync(item)}
-                  className={`mt-0.5 w-4 h-4 rounded-full flex items-center justify-center transition-all cursor-pointer shrink-0 ${
+            backlogItems.map(item => {
+              const rawProject = item.project || (!isGenericProject(item.googleTaskListName) ? item.googleTaskListName : '');
+              const displayProject = isGenericProject(rawProject) ? '' : rawProject;
+              const taskUrl = getTaskUrl(item);
+
+              return (
+                <div
+                  key={item.id}
+                  draggable
+                  onDragStart={() => handleDragStart(item.id)}
+                  className={`group/todo bg-white rounded-xl p-2.5 border shadow-[0_1px_2px_rgba(0,0,0,0.03)] hover:border-[#D5CDC2] hover:shadow-xs transition-all flex items-center gap-2.5 cursor-grab active:cursor-grabbing ${
                     item.isCompleted
-                      ? 'bg-[#2E6930] text-white shadow-2xs'
-                      : 'border border-[#B5ACA1] hover:border-[#2E6930] bg-white'
+                      ? 'border-[#ECE7DF] bg-white/80'
+                      : 'border-[#ECE7DF]'
                   }`}
                 >
-                  {item.isCompleted && <Check className="w-2.5 h-2.5 stroke-[3]" />}
-                </button>
+                  <button
+                    onClick={() => handleToggleTodoWithGoogleSync(item)}
+                    className={`w-4 h-4 rounded-full flex items-center justify-center transition-all cursor-pointer shrink-0 ${
+                      item.isCompleted
+                        ? 'bg-[#2E6930] text-white shadow-2xs'
+                        : 'border border-[#B5ACA1] hover:border-[#2E6930] bg-white'
+                    }`}
+                  >
+                    {item.isCompleted && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                  </button>
 
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between text-[8.5px] font-bold uppercase tracking-wider text-[#8A8177] mb-0.5 min-h-[14px]">
-                    {item.project && !isGenericProject(item.project) ? (
-                      <span className="truncate max-w-[110px]">
-                        {item.project}
-                      </span>
-                    ) : <span />}
-                    <div className="opacity-100 md:opacity-0 md:group-hover/todo:opacity-100 flex items-center gap-1 transition-opacity shrink-0">
-                      <button onClick={() => startEditing(item)} className="text-[#8C827A] hover:text-[#2C2825] p-0.5 rounded cursor-pointer">
-                        <Pencil className="w-2.5 h-2.5" />
-                      </button>
-                      <button onClick={() => setDeletingTodo(item)} className="text-[#8C827A] hover:text-rose-600 p-0.5 rounded cursor-pointer">
-                        <Trash2 className="w-2.5 h-2.5" />
-                      </button>
+                  <div className="flex-1 min-w-0">
+                    {displayProject && (
+                      <div className="flex items-center justify-between text-[8.5px] font-bold uppercase tracking-wider text-[#8A8177] mb-0.5">
+                        <span className="truncate max-w-[110px]" title={displayProject}>
+                          {displayProject}
+                        </span>
+                        <div className="opacity-100 md:opacity-0 md:group-hover/todo:opacity-100 flex items-center gap-1 transition-opacity shrink-0">
+                          <button onClick={() => startEditing(item)} className="text-[#8C827A] hover:text-[#2C2825] p-0.5 rounded cursor-pointer">
+                            <Pencil className="w-2.5 h-2.5" />
+                          </button>
+                          <button onClick={() => setDeletingTodo(item)} className="text-[#8C827A] hover:text-rose-600 p-0.5 rounded cursor-pointer">
+                            <Trash2 className="w-2.5 h-2.5" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between gap-1.5">
+                      <p className={`text-[12px] font-medium leading-snug break-words flex-1 min-w-0 ${item.isCompleted ? 'text-[#8A8177]' : 'text-[#2C2825]'}`}>
+                        {item.title}
+                      </p>
+
+                      {!displayProject && (
+                        <div className="opacity-100 md:opacity-0 md:group-hover/todo:opacity-100 flex items-center gap-1 transition-opacity shrink-0">
+                          <button onClick={() => startEditing(item)} className="text-[#8C827A] hover:text-[#2C2825] p-0.5 rounded cursor-pointer">
+                            <Pencil className="w-2.5 h-2.5" />
+                          </button>
+                          <button onClick={() => setDeletingTodo(item)} className="text-[#8C827A] hover:text-rose-600 p-0.5 rounded cursor-pointer">
+                            <Trash2 className="w-2.5 h-2.5" />
+                          </button>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                  <p className={`text-[12px] font-medium leading-tight break-words ${item.isCompleted ? 'text-[#8A8177]' : 'text-[#2C2825]'}`}>
-                    {item.title}
-                  </p>
 
-                  {/* Attached Web Link Badge */}
-                  {(() => {
-                    const taskUrl = getTaskUrl(item);
-                    if (!taskUrl) return null;
-                    return (
+                    {taskUrl && (
                       <div className="mt-1 flex items-center">
                         <a
                           href={taskUrl}
@@ -1609,11 +1652,11 @@ export default function TodoSection({
                           <span className="truncate">{getDisplayDomain(taskUrl)}</span>
                         </a>
                       </div>
-                    );
-                  })()}
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           ) : (
             <div className="h-full flex flex-col items-center justify-center text-center text-[11px] text-[#A8A196]/80 py-8">
               <span>Kéo thả việc vào đây để lưu trữ</span>
